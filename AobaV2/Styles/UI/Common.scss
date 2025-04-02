@@ -1,0 +1,10 @@
+@import '../mixins';
+@import '../vars';
+
+a{
+	color:$featureColor;
+
+	&:hover{
+		color:$accentColor;
+	}
+}

@@ -10,11 +10,14 @@
 
   <ItemGroup>
     <Content Include="Styles\main.scss" />
+    <Content Include="Styles\mixins.scss" />
+    <Content Include="Styles\UI\Inputs.scss" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.SassCompiler" Version="1.86.0" />
     <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
+    <PackageReference Include="MaybeError" Version="1.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.3" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.1">
@@ -25,7 +28,10 @@
     <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="3.0.71" />
     <PackageReference Include="MongoDB.Analyzer" Version="1.5.0" />
     <PackageReference Include="MongoDB.Bson" Version="3.3.0" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.30.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AobaCore\AobaCore.csproj" />
   </ItemGroup>
 
 </Project>
