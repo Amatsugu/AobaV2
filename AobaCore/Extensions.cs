@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿global using MaybeError;
+using Microsoft.Extensions.DependencyInjection;
 
 using System;
 using System.Collections.Generic;

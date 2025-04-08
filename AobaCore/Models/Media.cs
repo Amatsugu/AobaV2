@@ -9,9 +9,9 @@ public class Media
 	[BsonId]
 	public ObjectId Id { get; set; }
 	public ObjectId MediaId { get; set; }
-	public required string Filename { get; set; }
+	public string Filename { get; set; }
 	public MediaType MediaType { get; set; }
-	public required string Ext { get; set; }
+	public string Ext { get; set; }
 	public int ViewCount { get; set; }
 	public ObjectId Owner { get; set; }
 
@@ -48,6 +48,23 @@ public class Media
 			{ ".json", MediaType.Code },
 			{ ".py", MediaType.Code },
 		};
+
+	[BsonConstructor]
+	private Media()
+	{
+		Filename = string.Empty;
+		Ext = string.Empty;
+	}
+
+	public Media(ObjectId fileId, string filename, ObjectId owner)
+	{
+		MediaType = GetMediaType(filename);
+		Ext = Path.GetExtension(filename);
+		Filename = filename;
+		MediaId = fileId;
+		Owner = owner;
+		Id = ObjectId.GenerateNewId();
+	}
 
 	public string GetMediaUrl()
 	{

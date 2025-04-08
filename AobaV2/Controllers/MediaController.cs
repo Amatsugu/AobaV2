@@ -1,10 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AobaCore;
+
+using Microsoft.AspNetCore.Mvc;
+
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace AobaV2.Controllers;
-public class MediaController : Controller
+
+[Route("/m")]
+public class MediaController(MediaService media) : Controller
 {
-	public IActionResult Index()
+	[HttpGet("{id}")]
+	public IActionResult Media(ObjectId id)
 	{
+		meda
 		return View();
+	}
+
+	[HttpGet("/i/{id}/{*rest}")]
+	public async Task<IActionResult> LegacyRedirectAsync(ObjectId id, string rest, [FromServices] AobaService aoba)
+	{
+		var media = await aoba.GetMediaAsync(id);
+		if (media == null)
+			return NotFound();
+		return LocalRedirectPermanent($"/m/{media.Id}/{rest}");
 	}
 }

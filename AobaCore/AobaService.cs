@@ -1,7 +1,5 @@
 ﻿using AobaV2.Models;
 
-using MaybeError;
-
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -15,5 +13,10 @@ public class AobaService(IMongoDatabase db)
 	public async Task<Media?> GetMediaAsync(ObjectId id)
 	{
 		return await _media.Find(m => m.Id == id).FirstOrDefaultAsync();
+	}
+
+	public Task AddMediaAsync(Media media)
+	{
+		return _media.InsertOneAsync(media);
 	}
 }
