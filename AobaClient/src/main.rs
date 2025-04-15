@@ -1,37 +1,29 @@
+pub mod components;
+pub mod models;
+pub mod route;
+pub mod views;
+
 use dioxus::prelude::*;
+use route::Route;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
-const MAIN_CSS: Asset = asset!("/assets/main.css");
-const HEADER_SVG: Asset = asset!("/assets/header.svg");
+const MAIN_CSS: Asset = asset!("/assets/style/main.scss");
 
 fn main() {
-    dioxus::launch(App);
+	dioxus::launch(App);
 }
 
 #[component]
 fn App() -> Element {
-    rsx! {
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS }
-        Hero {}
-
-    }
-}
-
-#[component]
-pub fn Hero() -> Element {
-    rsx! {
-        div {
-            id: "hero",
-            img { src: HEADER_SVG, id: "header" }
-            div { id: "links",
-                a { href: "https://dioxuslabs.com/learn/0.6/", "📚 Learn Dioxus" }
-                a { href: "https://dioxuslabs.com/awesome", "🚀 Awesome Dioxus" }
-                a { href: "https://github.com/dioxus-community/", "📡 Community Libraries" }
-                a { href: "https://github.com/DioxusLabs/sdk", "⚙️ Dioxus Development Kit" }
-                a { href: "https://marketplace.visualstudio.com/items?itemName=DioxusLabs.dioxus", "💫 VSCode Extension" }
-                a { href: "https://discord.gg/XgGxMSkvUM", "👋 Community Discord" }
-            }
-        }
-    }
+	rsx! {
+		document::Link { rel: "icon", href: FAVICON }
+		document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }
+		document::Link { rel: "preconnect", href: "https://fonts.gstatic.com" }
+		document::Link { rel: "stylesheet", href: MAIN_CSS }
+		document::Link {
+			rel: "stylesheet",
+			href: "https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap",
+		}
+		Router::<Route> {}
+	}
 }

@@ -1,0 +1,30 @@
+@import 'mixins';
+@import 'colors';
+
+:root {
+	background-color: $mainBGColor;
+	color: $mainTextColor;
+	box-sizing: border-box;
+	font-family: "Noto Sans", sans-serif;
+	font-optical-sizing: auto;
+	font-weight: 400;
+	font-style: normal;
+	font-variation-settings:
+		"wdth" 100;
+}
+
+body {
+	padding: 0;
+	margin: 0;
+}
+
+#main {
+	display: grid;
+	grid-template-columns: $navBarSize 1fr;
+	grid-template-areas: "Nav Content";
+}
+
+#content {
+	grid-area: Content;
+	margin-left: $navBarSize;
+}
