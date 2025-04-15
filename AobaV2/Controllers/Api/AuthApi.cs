@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AobaV2.Controllers.Api;
 
 [Route("/api/auth")]
-public class AuthApi: ControllerBase
+public class AuthApi : ControllerBase
 {
 	[HttpGet("login")]
 	public async Task<IActionResult> LoginAsync()
@@ -12,7 +12,7 @@ public class AuthApi: ControllerBase
 	}
 
 	[HttpGet("register")]
-	public async Task<IActionResult> LoginAsync()
+	public async Task<IActionResult> RegisterAsync()
 	{
 		throw new NotImplementedException();
 	}

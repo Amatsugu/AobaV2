@@ -12,14 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-#if DEBUG
-	builder.Services
-		.AddControllersWithViews(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()))
-		.AddRazorRuntimeCompilation();
-	builder.Services.AddSassCompiler();
-#else
-	builder.Services.AddControllersWithViews();
-#endif
+builder.Services
+	.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
+
 
 var authInfo = AuthInfo.LoadOrCreate("Auth.json", "aobaV2", "aoba");
 builder.Services.AddSingleton(authInfo);
@@ -85,20 +80,6 @@ if (!app.Environment.IsDevelopment())
 	app.UseHsts();
 }
 
-//Javascript frameworks were a mistake
-app.Use((c, n) =>
-{
-	if(!c.Request.Path.HasValue)
-		return n.Invoke();
-	if (c.Request.Path.Value.EndsWith(".js"))
-		return n.Invoke();
-	if (!(c.Request.Path.StartsWithSegments("/js") || c.Request.Path.StartsWithSegments("/lib")))
-		return n.Invoke();
-
-	c.Response.Redirect($"{c.Request.Path}.js{c.Request.QueryString}");
-	c.Response.StatusCode = StatusCodes.Status301MovedPermanently;
-	return Task.CompletedTask;
-});
 
 app.UseHttpsRedirection();
 app.UseRouting();

@@ -13,7 +13,6 @@ public class MediaController(MediaService media) : Controller
 	[HttpGet("{id}")]
 	public IActionResult Media(ObjectId id)
 	{
-		meda
 		return View();
 	}
 
