@@ -14,7 +14,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AobaV2/AobaV2.csproj", "AobaV2/"]
 RUN dotnet restore "./AobaV2/AobaV2.csproj"
-RUN npm install
 COPY . .
 WORKDIR "/src/AobaV2"
 RUN dotnet build "./AobaV2.csproj" -c $BUILD_CONFIGURATION -o /app/build

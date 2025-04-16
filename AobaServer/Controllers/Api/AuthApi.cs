@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace AobaV2.Controllers.Api;
+namespace AobaServer.Controllers.Api;
 
 [Route("/api/auth")]
 public class AuthApi : ControllerBase

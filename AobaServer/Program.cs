@@ -1,10 +1,9 @@
 using AobaCore;
 
-using AobaV2;
-using AobaV2.Models;
+using AobaServer;
+using AobaServer.Models;
 
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
@@ -12,8 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services
-	.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
+builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
 
 
 var authInfo = AuthInfo.LoadOrCreate("Auth.json", "aobaV2", "aoba");
@@ -89,12 +87,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
 
-app.MapControllerRoute(
-	name: "default",
-	pattern: "{controller=Home}/{action=Index}/{id?}")
-	.WithStaticAssets();
+app.MapControllers();
 
 
 app.Run();

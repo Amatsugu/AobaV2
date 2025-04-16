@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MongoDB.Bson;
 
-namespace AobaV2.Models;
+namespace AobaServer.Models;
 
 public class BsonIdModelBinderProvider : IModelBinderProvider
 {

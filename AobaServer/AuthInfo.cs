@@ -1,14 +1,15 @@
 ﻿using MongoDB.Bson.IO;
+
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace AobaV2;
+namespace AobaServer;
 
 public class AuthInfo
 {
-	public required string Issuer;
-	public required string Audience;
-	public required byte[] SecureKey;
+	public required string Issuer { get; set; }
+	public required string Audience { get; set; }
+	public required byte[] SecureKey { get; set; }
 
 	/// <summary>
 	/// Save this auth into in a json format to the sepcified file
@@ -53,7 +54,7 @@ public class AuthInfo
 		if (File.Exists(path))
 		{
 			var loaded = Load(path);
-			if(loaded != null)
+			if (loaded != null)
 				return loaded;
 		}
 		var info = Create(issuer, audience);

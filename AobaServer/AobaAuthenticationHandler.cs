@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Options;
 using System.Text.Encodings.Web;
 
-namespace AobaV2;
+namespace AobaServer;
 
 internal class AobaAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-	public AobaAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+	public AobaAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
 	{
 	}
 

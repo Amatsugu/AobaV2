@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AobaV2.Controllers;
+namespace AobaServer.Controllers;
 
 [AllowAnonymous]
 [Route("auth")]
