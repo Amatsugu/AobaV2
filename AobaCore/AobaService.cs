@@ -23,4 +23,9 @@ public class AobaService(IMongoDatabase db)
 	{
 		return _media.UpdateOneAsync(m => m.Id == id, Builders<Media>.Update.Inc(m => m.ViewCount, 1));
 	}
+
+	public Task IncrementFileViewCountAsync(ObjectId fileId)
+	{
+		return _media.UpdateOneAsync(m => m.MediaId == fileId, Builders<Media>.Update.Inc(m => m.ViewCount, 1));
+	}
 }

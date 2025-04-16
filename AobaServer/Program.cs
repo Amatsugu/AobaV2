@@ -42,9 +42,7 @@ builder.Services.AddAuthentication(options =>
 		OnMessageReceived = ctx => //Retreive token from cookie if not found in headers
 		{
 			if (string.IsNullOrWhiteSpace(ctx.Token))
-				ctx.Token = ctx.Request.Cookies["token"];
-			if (string.IsNullOrWhiteSpace(ctx.Token))
-				ctx.Token = ctx.Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
+				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
 			return Task.CompletedTask;
 		},
 		OnAuthenticationFailed = ctx =>
@@ -59,7 +57,7 @@ builder.Services.AddAuthentication(options =>
 			return Task.CompletedTask;
 		}
 	};
-}).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", cfg => { });
+}).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", null);
 
 builder.Services.AddAoba();
 builder.Services.Configure<FormOptions>(opt =>

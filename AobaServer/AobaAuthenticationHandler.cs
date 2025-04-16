@@ -1,45 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+
 using System.Text.Encodings.Web;
 
 namespace AobaServer;
 
-internal class AobaAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+internal class AobaAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-	public AobaAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
-	{
-	}
-
 	protected override Task<AuthenticateResult> HandleAuthenticateAsync()
 	{
-		throw new System.NotImplementedException();
+		throw new NotImplementedException();
 	}
 
 	protected override Task HandleChallengeAsync(AuthenticationProperties properties)
 	{
-		//Don't challenge API requests
-		if (OriginalPath.StartsWithSegments("/api"))
-		{
-			Response.StatusCode = StatusCodes.Status401Unauthorized;
-			Response.BodyWriter.Complete();
-			return Task.CompletedTask;
-		}
-		//Redirect to login page
-		Response.Redirect($"/auth/login?ReturnUrl={Uri.EscapeDataString(OriginalPath)}");
+		Response.StatusCode = StatusCodes.Status401Unauthorized;
+		Response.BodyWriter.Complete();
 		return Task.CompletedTask;
 	}
 
 	protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
 	{
-		//Don't show error page for api requests
-		if (OriginalPath.StartsWithSegments("/api"))
-		{
-			Response.StatusCode = StatusCodes.Status403Forbidden;
-			Response.BodyWriter.Complete();
-			return Task.CompletedTask;
-		}
-		//Show Error page
-		Response.Redirect($"/error/{StatusCodes.Status403Forbidden}");
+		Response.StatusCode = StatusCodes.Status403Forbidden;
+		Response.BodyWriter.Complete();
 		return Task.CompletedTask;
 	}
 }

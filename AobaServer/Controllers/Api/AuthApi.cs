@@ -6,13 +6,13 @@ namespace AobaServer.Controllers.Api;
 public class AuthApi : ControllerBase
 {
 	[HttpGet("login")]
-	public async Task<IActionResult> LoginAsync()
+	public Task<IActionResult> LoginAsync()
 	{
 		throw new NotImplementedException();
 	}
 
 	[HttpGet("register")]
-	public async Task<IActionResult> RegisterAsync()
+	public Task<IActionResult> RegisterAsync()
 	{
 		throw new NotImplementedException();
 	}

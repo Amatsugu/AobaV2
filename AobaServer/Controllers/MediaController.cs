@@ -10,7 +10,7 @@ using MongoDB.Driver;
 namespace AobaServer.Controllers;
 
 [Route("/m")]
-public class MediaController(MediaService mediaService, ILogger<MediaController> logger) : Controller
+public class MediaController(MediaService mediaService, AobaService aobaService, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
 	[ResponseCache(Duration = int.MaxValue)]
@@ -23,6 +23,7 @@ public class MediaController(MediaService mediaService, ILogger<MediaController>
 			return NotFound();
 		}
 		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
+		_ = aobaService.IncrementFileViewCountAsync(id);
 		return File(file, mime, true);
 	}
 
