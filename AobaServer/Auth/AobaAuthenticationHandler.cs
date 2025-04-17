@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 using System.Text.Encodings.Web;
 
-namespace AobaServer;
+namespace AobaServer.Auth;
 
 internal class AobaAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {

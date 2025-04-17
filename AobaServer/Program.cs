@@ -1,6 +1,8 @@
 using AobaCore;
 
 using AobaServer;
+using AobaServer.Auth;
+using AobaServer.Middleware;
 using AobaServer.Models;
 
 using Microsoft.AspNetCore.Authentication;
@@ -13,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
 
+builder.Services.AddObersability(builder.Configuration);
 
 var authInfo = AuthInfo.LoadOrCreate("Auth.json", "aobaV2", "aoba");
 builder.Services.AddSingleton(authInfo);
@@ -37,6 +40,7 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
 	options.TokenValidationParameters = validationParams;
+	options.TokenHandlers.Add(new MetricsTokenValidator(authInfo));
 	options.Events = new JwtBearerEvents
 	{
 		OnMessageReceived = ctx => //Retreive token from cookie if not found in headers
@@ -87,6 +91,7 @@ app.UseAuthorization();
 
 
 app.MapControllers();
+app.MapObserability();
 
 
 app.Run();
