@@ -38,13 +38,13 @@ public static class OpenTelemetry
 			// Metrics provided by System.Net libraries
 			.AddMeter("System.Net.Http")
 			.AddMeter("System.Net.NameResolution")
-			.AddMeter("MongoDB.Driver.Core.Extensions.DiagnosticSources")
 			.AddPrometheusExporter());
 
 		// Add Tracing for ASP.NET Core and our custom ActivitySource and export to Jaeger
 		var tracingOtlpEndpoint = configuration["OTLP_ENDPOINT_URL"];
 		otel.WithTracing(tracing =>
 		{
+			tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources");
 			tracing.AddAspNetCoreInstrumentation();
 			tracing.AddHttpClientInstrumentation();
 			if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
