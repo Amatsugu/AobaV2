@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace AobaV2.Models;
+namespace AobaCore.Models;
 
 [BsonIgnoreExtraElements]
 public class Media

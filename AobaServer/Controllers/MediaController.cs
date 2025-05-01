@@ -10,20 +10,24 @@ using MongoDB.Driver;
 namespace AobaServer.Controllers;
 
 [Route("/m")]
-public class MediaController(MediaService mediaService, AobaService aobaService, ILogger<MediaController> logger) : Controller
+public class MediaController(AobaService aobaService, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
 	[ResponseCache(Duration = int.MaxValue)]
-	public async Task<IActionResult> MediaAsync(ObjectId id)
+	public async Task<IActionResult> MediaAsync(ObjectId id, [FromServices] MongoClient client, CancellationToken cancellationToken)
 	{
-		var file = await mediaService.GetMediaStreamAsync(id);
+		using var session = await client.StartSessionAsync(cancellationToken: cancellationToken);
+		session.StartTransaction();
+		var file = await aobaService.GetFileStreamAsync(id, cancellationToken: cancellationToken);
 		if (file.HasError)
 		{
+			await session.AbortTransactionAsync(cancellationToken: cancellationToken);
 			logger.LogError(file.Error.Exception, "Failed to load media stream");
 			return NotFound();
 		}
+		await session.CommitTransactionAsync(cancellationToken: cancellationToken);
 		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
-		_ = aobaService.IncrementFileViewCountAsync(id);
+		_ = aobaService.IncrementFileViewCountAsync(id, cancellationToken);
 		return File(file, mime, true);
 	}
 
@@ -35,9 +39,9 @@ public class MediaController(MediaService mediaService, AobaService aobaService,
 	/// <param name="aoba"></param>
 	/// <returns></returns>
 	[HttpGet("/i/{id}/{*rest}")]
-	public async Task<IActionResult> LegacyRedirectAsync(ObjectId id, string rest, [FromServices] AobaService aoba)
+	public async Task<IActionResult> LegacyRedirectAsync(ObjectId id, string rest, CancellationToken cancellationToken)
 	{
-		var media = await aoba.GetMediaAsync(id);
+		var media = await aobaService.GetMediaAsync(id, cancellationToken);
 		if (media == null)
 			return NotFound();
 		return LocalRedirectPermanent($"/m/{media.MediaId}/{rest}");

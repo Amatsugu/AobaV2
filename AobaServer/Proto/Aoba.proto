@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+
+service AobaRPC {
+  rpc GetMedia (Id) returns (MediaModel);
+}
+
+message Id{
+	string idString = 1;
+}
+
+message MediaModel {
+	int32 version = 1;
+	Id id = 2;
+	string mediaId = 3;
+	string fileName = 4;
+	MediaType mediaType = 5;
+	string ext = 6;
+	int32 viewCount = 7;
+	Id owner = 8;
+}
+
+enum MediaType{
+	Image = 0;
+	Audio = 1;
+	Video = 2;
+	Text = 3;
+	Code = 4;
+	Raw = 5;
+}
