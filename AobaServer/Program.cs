@@ -4,6 +4,7 @@ using AobaServer;
 using AobaServer.Auth;
 using AobaServer.Middleware;
 using AobaServer.Models;
+using AobaServer.Services;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
 
 builder.Services.AddObersability(builder.Configuration);
+builder.Services.AddGrpc();
 
 var authInfo = AuthInfo.LoadOrCreate("Auth.json", "aobaV2", "aoba");
 builder.Services.AddSingleton(authInfo);
@@ -92,6 +94,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapObserability();
+app.MapGrpcService<AobaRpcService>();
+
+
 
 
 app.Run();
