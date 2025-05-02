@@ -1,4 +1,7 @@
-mod main_layout;
+pub mod basic;
+mod media_grid;
 mod navbar;
-pub use main_layout::MainLayout;
-pub use navbar::Navbar;
+mod search;
+pub use media_grid::*;
+pub use navbar::*;
+pub use search::*;

@@ -1,5 +1,6 @@
-@import 'mixins';
-@import 'colors';
+@import "mixins";
+@import "colors";
+@import "inputs";
 
 :root {
 	background-color: $mainBGColor;
@@ -9,8 +10,7 @@
 	font-optical-sizing: auto;
 	font-weight: 400;
 	font-style: normal;
-	font-variation-settings:
-		"wdth" 100;
+	font-variation-settings: "wdth" 100;
 }
 
 body {
@@ -27,4 +27,39 @@ body {
 #content {
 	grid-area: Content;
 	margin-left: $navBarSize;
+}
+
+.mediaGrid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+
+	.mediaItem {
+		width: 200px;
+		background-color: $featureColor;
+
+		img {
+			aspect-ratio: 1;
+			object-fit: cover;
+			object-position: center;
+			width: 100%;
+			background-color: $invertTextColor;
+			border: 0;
+			outline: none;
+		}
+
+		.info {
+			padding: 2px 5px;
+
+			.name {
+				text-align: center;
+				width: 100%;
+				display: block;
+			}
+			.details {
+				display: flex;
+				justify-content: space-between;
+			}
+		}
+	}
 }
