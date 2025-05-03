@@ -10,6 +10,11 @@ edition = "2021"
 dioxus = { version = "0.6.0", features = ["router"] }
 serde = "1.0.219"
 serde_repr = "0.1.20"
+tonic = "*"
+prost = "0.13"
+
+[build-dependencies]
+tonic-build = "*"
 
 [features]
 default = ["web"]

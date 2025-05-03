@@ -1,23 +1,53 @@
 syntax = "proto3";
 
+option csharp_namespace = "Aoba.RPC";
+package aoba;
 
-service AobaRPC {
-  rpc GetMedia (Id) returns (MediaModel);
+service AobaRpc {
+  rpc GetMedia (Id) returns (MediaResponse);
+  rpc ListMedia(PageFilter) returns (ListResponse);
+}
+
+message PageFilter{
+	optional int32 page = 1;
+	optional int32 pageSize = 2;
+	optional string query = 3;
 }
 
 message Id{
-	string idString = 1;
+	string value = 1;
 }
 
+message MediaResponse {
+	oneof result {
+		MediaModel value = 1;
+		Empty empty = 2;
+	}
+}
+
+message ListResponse{
+	repeated MediaModel items = 1;
+	Pagination pagination = 2;
+}
+
+message Pagination {
+	int32 page = 1;
+	int32 pageSize = 2;
+	int64 totalPages = 3;
+	int64 totalItems = 4;
+	optional string query = 5;
+}
+
+message Empty{}
+
 message MediaModel {
-	int32 version = 1;
-	Id id = 2;
-	string mediaId = 3;
-	string fileName = 4;
-	MediaType mediaType = 5;
-	string ext = 6;
-	int32 viewCount = 7;
-	Id owner = 8;
+	Id id = 1;
+	Id mediaId = 2;
+	string fileName = 3;
+	MediaType mediaType = 4;
+	string ext = 5;
+	int32 viewCount = 6;
+	Id owner = 7;
 }
 
 enum MediaType{

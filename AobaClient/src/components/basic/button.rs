@@ -13,6 +13,7 @@ pub enum ButtonVariant {
 	Accented,
 }
 
+#[component]
 pub fn Button(props: ButtonProps) -> Element {
 	rsx! {
 		button { "{props.text}" }

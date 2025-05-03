@@ -2,6 +2,7 @@ pub mod components;
 mod layouts;
 pub mod models;
 pub mod route;
+pub mod rpc;
 pub mod views;
 
 use dioxus::prelude::*;
