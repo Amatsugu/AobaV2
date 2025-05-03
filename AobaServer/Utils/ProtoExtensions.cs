@@ -19,14 +19,16 @@ public static class ProtoExtensions
 
 	public static Pagination ToPagination<T>(this PagedResult<T> result)
 	{
-		return new Pagination()
+		var p =new Pagination()
 		{
 			Page = result.Page,
 			PageSize = result.PageSize,
 			TotalItems = result.TotalItems,
 			TotalPages = result.TotalPages,
-			Query = result.Query,
 		};
+		if(result.Query != null)
+			p.Query = result.Query;
+		return p;
 	}
 
 	public static MediaResponse ToResponse(this Media? media)

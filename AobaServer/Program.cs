@@ -35,6 +35,17 @@ var validationParams = new TokenValidationParameters
 	ClockSkew = TimeSpan.FromMinutes(1),
 };
 
+builder.Services.AddCors(o =>
+{
+	o.AddPolicy("AllowAll", p =>
+	{
+		p.AllowAnyOrigin();
+		p.AllowAnyMethod();
+		p.AllowAnyHeader();
+		//p.WithOrigins("http://127.0.0.1:8080", "https://aoba.app");
+	});
+});
+
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -82,10 +93,11 @@ if (!app.Environment.IsDevelopment())
 	app.UseHsts();
 }
 
-
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseCors();
 
 
 app.UseAuthentication();
@@ -94,7 +106,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapObserability();
-app.MapGrpcService<AobaRpcService>();
+app.MapGrpcService<AobaRpcService>()
+	.RequireCors("AllowAll");
 
 
 
