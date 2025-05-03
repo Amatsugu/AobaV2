@@ -9,7 +9,7 @@ pub fn Login() -> Element {
 			id: "centralModal",
 			form{
 				Input { type : "text", name: "username", label: "Username" },
-				Input{ type : "password", name: "password", label: "Password" },
+				Input { type : "password", name: "password", label: "Password" },
 				Button{text: "Login!"}
 			}
 		}

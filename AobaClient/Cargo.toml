@@ -10,11 +10,15 @@ edition = "2021"
 dioxus = { version = "0.6.0", features = ["router"] }
 serde = "1.0.219"
 serde_repr = "0.1.20"
-tonic = "*"
+tonic = { version = "*", default-features = false, features = [
+	"codegen",
+	"prost",
+] }
 prost = "0.13"
+tonic-web-wasm-client = "0.7"
 
 [build-dependencies]
-tonic-build = "*"
+tonic-build = { version = "*", default-features = false, features = ["prost"] }
 
 [features]
 default = ["web"]
