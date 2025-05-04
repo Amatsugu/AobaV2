@@ -3,12 +3,12 @@ use std::sync::RwLock;
 use aoba::{aoba_rpc_client::AobaRpcClient, auth_rpc_client::AuthRpcClient};
 use tonic_web_wasm_client::Client;
 
+use crate::HOST;
+
 pub mod aoba {
 	tonic::include_proto!("aoba");
 	tonic::include_proto!("aoba.auth");
 }
-
-const HOST: &'static str = "http://localhost:5164";
 
 static RPC_CLIENT: RpcConnection = RpcConnection {
 	aoba: RwLock::new(None),

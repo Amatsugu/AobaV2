@@ -10,6 +10,11 @@ use contexts::AuthContext;
 use dioxus::prelude::*;
 use route::Route;
 
+#[cfg(debug_assertions)]
+pub const HOST: &'static str = "http://localhost:5164";
+#[cfg(not(debug_assertions))]
+pub const HOST: &'static str = "https://aoba.app";
+
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/style/main.scss");
 
