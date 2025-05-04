@@ -18,7 +18,7 @@ public class AobaRpcService(AobaService aobaService) : AobaRpc.AobaRpcBase
 
 	public override async Task<ListResponse> ListMedia(PageFilter request, ServerCallContext context)
 	{
-		var result = await aobaService.FindMediaAsync(request.Query, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 50);
+		var result = await aobaService.FindMediaAsync(request.Query, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
 		return result.ToResponse();
 	}
 

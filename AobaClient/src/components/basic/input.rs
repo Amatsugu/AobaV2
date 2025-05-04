@@ -3,11 +3,12 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Clone, Props)]
 pub struct InputProps {
 	pub r#type: Option<String>,
-	pub value: Option<String>,
+	pub value: Option<Signal<String>>,
 	pub label: Option<String>,
 	pub placeholder: Option<String>,
 	pub name: String,
 	pub oninput: Option<EventHandler<FormEvent>>,
+	pub required: Option<bool>,
 }
 
 #[component]
@@ -21,7 +22,8 @@ pub fn Input(props: InputProps) -> Element {
 				type : props.r#type.unwrap_or("text".into()),
 				value: props.value,
 				name: props.name,
-				placeholder:ph
+				placeholder:ph,
+				required: props.required
 			}
 		}
 	}

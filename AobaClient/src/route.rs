@@ -1,6 +1,6 @@
 use crate::{
-	layouts::{BasicLayout, MainLayout},
-	views::{Home, Login, Settings},
+	layouts::MainLayout,
+	views::{Home, Settings},
 };
 use dioxus::prelude::*;
 
@@ -12,8 +12,5 @@ pub enum Route {
 		Home {},
 		#[route("/settings")]
 		Settings {},
-	#[end_layout]
-	#[layout(BasicLayout)]
-		#[route("/login")]
-		Login {},
+	// #[end_layout]
 }

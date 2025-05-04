@@ -18,7 +18,7 @@ public class AobaService(IMongoDatabase db)
 		return await _media.Find(m => m.Id == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<PagedResult<Media>> FindMediaAsync(string? query, int page = 1, int pageSize = 50)
+	public async Task<PagedResult<Media>> FindMediaAsync(string? query, int page = 1, int pageSize = 100)
 	{
 		var filter = string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query);
 		var find = _media.Find(filter);

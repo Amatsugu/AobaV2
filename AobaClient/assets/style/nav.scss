@@ -1,6 +1,5 @@
-@import 'mixins';
-@import 'colors';
-
+@import "mixins";
+@import "colors";
 
 nav {
 	display: grid;
@@ -9,14 +8,20 @@ nav {
 	background-color: $featureColor;
 	height: 100dvh;
 	position: fixed;
+	width: $navBarSize;
 
-	>* {
+	> * {
 		display: flex;
 		flex-direction: column;
 	}
 
 	.branding {
 		grid-area: Branding;
+
+		img {
+			width: $navBarSize;
+			object-fit: contain;
+		}
 	}
 
 	.mainNav {
@@ -30,5 +35,4 @@ nav {
 	.utils {
 		grid-area: Utils;
 	}
-
 }

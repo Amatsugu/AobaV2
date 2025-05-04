@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use crate::Route;
 
 const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
+const NAV_ICON: Asset = asset!("/assets/favicon.ico");
 
 #[component]
 pub fn Navbar() -> Element {
@@ -30,7 +31,10 @@ pub fn MainNaviagation() -> Element {
 #[component]
 pub fn Branding() -> Element {
 	rsx! {
-		div { class: "branding" }
+		div { class: "branding",
+			"Aoba"
+			img {src: NAV_ICON}
+		}
 	}
 }
 

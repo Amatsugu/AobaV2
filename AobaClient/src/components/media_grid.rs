@@ -3,6 +3,7 @@ use tonic::{IntoRequest, Request};
 
 use crate::{
 	components::MediaItem,
+	contexts::AuthContext,
 	rpc::{aoba::PageFilter, get_rpc_client},
 };
 
@@ -34,11 +35,17 @@ impl Into<PageFilter> for MediaGridProps {
 
 #[component]
 pub fn MediaGrid(props: MediaGridProps) -> Element {
-	let media_result = use_resource(use_reactive!(|(props,)| async move {
+	let jwt = use_context::<AuthContext>().jwt;
+	let media_result = use_resource(use_reactive!(|(props, jwt)| async move {
 		let mut client = get_rpc_client();
 		let mut req = Request::new(props.into());
+		let token = if jwt.cloned().is_some() {
+			jwt.unwrap()
+		} else {
+			"".into()
+		};
 		req.metadata_mut()
-			.insert("authorization", "Bearer <toto: get token>".parse().unwrap());
+			.insert("authorization", format!("Bearer {token}").parse().unwrap());
 		let result = client.list_media(req).await;
 		return result.expect("Failed to load media").into_inner();
 	}));

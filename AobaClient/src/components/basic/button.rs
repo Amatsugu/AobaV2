@@ -19,6 +19,7 @@ pub fn Button(props: ButtonProps) -> Element {
 	rsx! {
 		button {
 			onclick: move |event| {
+				event.prevent_default();
 				if let Some(h) = props.onclick {
 					h.call(event);
 				}
