@@ -2,8 +2,9 @@ use dioxus::prelude::*;
 
 #[derive(PartialEq, Clone, Props)]
 pub struct ButtonProps {
-	variant: Option<ButtonVariant>,
-	text: String,
+	pub variant: Option<ButtonVariant>,
+	pub text: String,
+	pub onclick: Option<EventHandler<Event<MouseData>>>,
 }
 
 #[derive(PartialEq, Clone)]
@@ -16,6 +17,13 @@ pub enum ButtonVariant {
 #[component]
 pub fn Button(props: ButtonProps) -> Element {
 	rsx! {
-		button { "{props.text}" }
+		button {
+			onclick: move |event| {
+				if let Some(h) = props.onclick {
+					h.call(event);
+				}
+			},
+			"{props.text}"
+		}
 	}
 }

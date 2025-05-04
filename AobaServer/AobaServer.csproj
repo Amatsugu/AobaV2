@@ -32,7 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-	<Protobuf Include="Proto\Aoba.proto"></Protobuf>
+	  <Protobuf Include="Proto\Aoba.proto"></Protobuf>
+	  <Protobuf Include="Proto\Auth.proto"></Protobuf>
   </ItemGroup>
 
 </Project>

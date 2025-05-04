@@ -7,6 +7,7 @@ pub struct InputProps {
 	pub label: Option<String>,
 	pub placeholder: Option<String>,
 	pub name: String,
+	pub oninput: Option<EventHandler<FormEvent>>,
 }
 
 #[component]

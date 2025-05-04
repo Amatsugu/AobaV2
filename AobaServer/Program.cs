@@ -42,7 +42,16 @@ builder.Services.AddCors(o =>
 		p.AllowAnyOrigin();
 		p.AllowAnyMethod();
 		p.AllowAnyHeader();
-		//p.WithOrigins("http://127.0.0.1:8080", "https://aoba.app");
+	});
+	o.AddPolicy("RPC", p =>
+	{
+		p.AllowAnyMethod();
+		p.AllowAnyHeader();
+#if DEBUG
+		p.AllowAnyOrigin();
+#else
+		p.WithOrigins("http://127.0.0.1:8080", "https://aoba.app");
+#endif
 	});
 });
 
@@ -107,7 +116,10 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapObserability();
 app.MapGrpcService<AobaRpcService>()
-	.RequireCors("AllowAll");
+	.RequireCors("RPC");
+app.MapGrpcService<AobaAuthService>()
+	.AllowAnonymous()
+	.RequireCors("RPC");
 
 
 

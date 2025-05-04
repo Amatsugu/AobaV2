@@ -23,6 +23,20 @@ public static class Extensions
 		services.AddSingleton(dbClient);
 		services.AddSingleton<IMongoDatabase>(db);
 		services.AddSingleton<AobaService>();
+		services.AddHostedService<AobaIndexCreationService>();
 		return services;
+	}
+
+	public static async Task EnsureIndexAsync<T>(this IMongoCollection<T> collection, CreateIndexModel<T> indexModel)
+	{
+		try
+		{
+			await collection.Indexes.CreateOneAsync(indexModel);
+		}
+		catch (MongoCommandException e) when (e.Code == 85 || e.Code == 86) //CodeName	"IndexOptionsConflict" or "NameConflict"
+		{
+			await collection.Indexes.DropOneAsync(indexModel.Options.Name);
+			await collection.Indexes.CreateOneAsync(indexModel);
+		}
 	}
 }
