@@ -1,4 +1,4 @@
-﻿using AobaCore.Models;
+using AobaCore.Models;
 
 using MaybeError.Errors;
 
@@ -34,7 +34,7 @@ public class AobaService(IMongoDatabase db)
 	{
 		return _media.InsertOneAsync(media, null, cancellationToken);
 	}
-	
+
 	public Task IncrementViewCountAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
 		return _media.UpdateOneAsync(m => m.Id == id, Builders<Media>.Update.Inc(m => m.ViewCount, 1), cancellationToken: cancellationToken);
