@@ -3,7 +3,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace AobaServer;
+namespace AobaServer.Models;
 
 public class AuthInfo
 {

@@ -1,6 +1,5 @@
 using AobaCore;
 
-using AobaServer;
 using AobaServer.Auth;
 using AobaServer.Middleware;
 using AobaServer.Models;
