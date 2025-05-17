@@ -21,6 +21,7 @@ pub fn Input(props: InputProps) -> Element {
 			input {
 				type : props.r#type.unwrap_or("text".into()),
 				value: props.value,
+				oninput: move |e| if let Some(mut s) = props.value { s.set(e.value()); },
 				name: props.name,
 				placeholder:ph,
 				required: props.required

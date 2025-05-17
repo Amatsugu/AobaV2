@@ -2,3 +2,8 @@
 	display: grid;
 	width: 100%;
 }
+
+label {
+	display: flex;
+	flex-direction: column;
+}

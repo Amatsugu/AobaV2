@@ -25,6 +25,8 @@ public class AccountsService(IMongoDatabase db)
 	public async Task<User?> VerifyLoginAsync(string username, string password, CancellationToken cancellationToken = default)
 	{
 		var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
+		if(user == null)
+			return null;
 
 		if(user.IsArgon && Argon2.Verify(user.PasswordHash, password))
 			return user;

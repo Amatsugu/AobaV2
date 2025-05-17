@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::basic::{Button, Input},
+	components::{basic::Input, Notif, NotifType},
 	contexts::AuthContext,
 	rpc::{aoba::Credentials, get_auth_rpc_client},
 };
@@ -11,9 +11,16 @@ use crate::{
 pub fn Login() -> Element {
 	let username = use_signal(|| "".to_string());
 	let password = use_signal(|| "".to_string());
+	let mut error: Signal<Option<String>> = use_signal(|| None);
 	let mut auth_context = use_context::<AuthContext>();
 
-	let onclick = move |_| {
+	let login = move |e: Event<MouseData>| {
+		e.prevent_default();
+		if username.cloned().is_empty() || password.cloned().is_empty() {
+			error.set(Some("Username and Password are required".into()));
+			return;
+		}
+
 		spawn(async move {
 			let mut auth = get_auth_rpc_client();
 			let result = auth
@@ -31,8 +38,9 @@ pub fn Login() -> Element {
 						crate::rpc::aoba::login_response::Result::Jwt(jwt) => {
 							auth_context.jwt.set(Some(jwt.token));
 						}
-						crate::rpc::aoba::login_response::Result::Error(_login_error) => {
+						crate::rpc::aoba::login_response::Result::Error(login_error) => {
 							auth_context.jwt.set(None);
+							error.set(Some(login_error.message));
 						}
 					};
 				}
@@ -46,12 +54,15 @@ pub fn Login() -> Element {
 	rsx! {
 		div{
 			id: "centralModal",
+			if let Some(err) = error.cloned() {
+				Notif{ type: NotifType::Error, message: err}
+			}
 			form{
 				Input { type : "text", name: "username", label: "Username", value: username, required: true },
 				Input { type : "password", name: "password", label: "Password", value: password, required: true },
-				Button {
-					text: "Login!",
-					onclick: onclick
+				button {
+					onclick: login,
+					"Login!",
 				}
 			}
 		}

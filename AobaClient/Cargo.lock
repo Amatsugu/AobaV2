@@ -37,12 +37,14 @@ name = "aoba-client"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "js-sys",
  "prost",
  "serde",
  "serde_repr",
  "tonic",
  "tonic-build",
  "tonic-web-wasm-client",
+ "web-sys",
 ]
 
 [[package]]

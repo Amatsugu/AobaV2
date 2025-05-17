@@ -24,7 +24,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-	let _auth_state = use_context_provider(|| AuthContext::default());
+	let _auth_state = use_context_provider(|| AuthContext::new());
 	rsx! {
 		document::Link { rel: "icon", href: FAVICON }
 		document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }

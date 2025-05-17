@@ -16,6 +16,8 @@ tonic = { version = "*", default-features = false, features = [
 ] }
 prost = "0.13"
 tonic-web-wasm-client = "0.7"
+js-sys = { version = "0.3.77" }
+web-sys = { version = "0.3.77", features = ["Storage", "Window"] }
 
 [build-dependencies]
 tonic-build = { version = "*", default-features = false, features = ["prost"] }

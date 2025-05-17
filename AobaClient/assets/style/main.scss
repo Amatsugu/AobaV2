@@ -18,7 +18,7 @@ body {
 	margin: 0;
 }
 
-#main {
+#main:has(#content) {
 	display: grid;
 	grid-template-columns: $navBarSize 1fr;
 	grid-template-areas: "Nav Content";
@@ -63,5 +63,42 @@ body {
 				justify-content: space-between;
 			}
 		}
+	}
+}
+
+#main:has(#centralModal) {
+	display: grid;
+	place-items: center;
+	height: 100dvh;
+	width: 100dvw;
+}
+
+#centralModal {
+	display: flex;
+	flex-direction: column;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.notif {
+	background-color: red;
+	display: grid;
+	grid-template-columns: 50px 1fr;
+	height: 50px;
+	border-radius: 20px;
+	border-bottom-left-radius: 0;
+	border-top-right-radius: 0;
+
+	.icon {
+		padding: 10px;
+	}
+
+	.message {
+		padding: 10px;
+		align-self: center;
 	}
 }
