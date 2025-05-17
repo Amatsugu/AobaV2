@@ -36,16 +36,16 @@ pub fn Login() -> Element {
 				Ok(res) => {
 					match res.into_inner().result.unwrap() {
 						crate::rpc::aoba::login_response::Result::Jwt(jwt) => {
-							auth_context.jwt.set(Some(jwt.token));
+							auth_context.login(jwt.token);
 						}
 						crate::rpc::aoba::login_response::Result::Error(login_error) => {
-							auth_context.jwt.set(None);
+							auth_context.logout();
 							error.set(Some(login_error.message));
 						}
 					};
 				}
 				Err(_err) => {
-					auth_context.jwt.set(None);
+					auth_context.logout();
 				}
 			}
 		});

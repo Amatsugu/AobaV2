@@ -1,4 +1,4 @@
-use dioxus::{html::u::icon, prelude::*};
+use dioxus::prelude::*;
 
 use crate::components::icons;
 

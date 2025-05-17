@@ -7,10 +7,16 @@ pub struct AuthContext {
 }
 
 impl AuthContext {
-	pub fn set_token(&mut self, token: String) {
+	pub fn login(&mut self, token: String) {
 		self.jwt.set(Some(token.clone()));
 		let local_storage = window().unwrap().local_storage().unwrap().unwrap();
 		_ = local_storage.set_item("token", token.as_str());
+	}
+
+	pub fn logout(&mut self) {
+		self.jwt.set(None);
+		let local_storage = window().unwrap().local_storage().unwrap().unwrap();
+		_ = local_storage.remove_item("token");
 	}
 
 	pub fn new() -> Self {

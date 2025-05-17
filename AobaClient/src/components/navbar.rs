@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::Route;
+use crate::{contexts::AuthContext, Route};
 
 const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
 const NAV_ICON: Asset = asset!("/assets/favicon.ico");
@@ -47,7 +47,14 @@ pub fn Widgets() -> Element {
 
 #[component]
 pub fn Utils() -> Element {
+	let mut auth_context = use_context::<AuthContext>();
+
 	rsx! {
-		div { class: "utils" }
+		div { class: "utils",
+			div{
+				onclick: move |_| auth_context.logout(),
+				"Logout"
+			}
+	 }
 	}
 }
