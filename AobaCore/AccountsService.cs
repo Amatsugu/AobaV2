@@ -22,27 +22,28 @@ public class AccountsService(IMongoDatabase db)
 		return await _users.Find(u => u.Id == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<bool> VerifyLoginAsync(string username, string password, CancellationToken cancellationToken = default)
+	public async Task<User?> VerifyLoginAsync(string username, string password, CancellationToken cancellationToken = default)
 	{
 		var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
 
-		if(user.IsArgon)
-			return Argon2.Verify(user.PasswordHash, password);
+		if(user.IsArgon && Argon2.Verify(user.PasswordHash, password))
+			return user;
 
 		if(LegacyVerifyPassword( password, user.PasswordHash))
 		{
+#if !DEBUG
 			var argon2Hash = Argon2.Hash(password);
 			var update = Builders<User>.Update.Set(u => u.PasswordHash, argon2Hash).Set(u => u.IsArgon, true);
-
 			await _users.UpdateOneAsync(u => u.Id == user.Id, update, cancellationToken: cancellationToken);
-			return true;
+#endif
+			return user;
 		}
 
-		return false;
+		return null;
 	}
 
 
-	public bool LegacyVerifyPassword(string password, string passwordHash)
+	public static bool LegacyVerifyPassword(string password, string passwordHash)
 	{
 		if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
 			return false;

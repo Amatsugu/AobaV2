@@ -77,8 +77,9 @@ public class AobaService(IMongoDatabase db)
 	{
 		try
 		{
-			await _gridFs.DeleteAsync(fileId, cancellationToken);
-			await _media.DeleteOneAsync(m => m.MediaId == fileId, cancellationToken);
+			cancellationToken.ThrowIfCancellationRequested();
+			await _gridFs.DeleteAsync(fileId, CancellationToken.None);
+			await _media.DeleteOneAsync(m => m.MediaId == fileId, CancellationToken.None);
 		}
 		catch (GridFSFileNotFoundException)
 		{

@@ -68,6 +68,12 @@ builder.Services.AddAuthentication(options =>
 		{
 			if (string.IsNullOrWhiteSpace(ctx.Token))
 				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
+
+#if DEBUG //allow cookie based auth when in debug mode
+			if(string.IsNullOrWhiteSpace(ctx.Token))
+				ctx.Token = ctx.Request.Cookies.FirstOrDefault(c => c.Key == "token").Value;
+#endif
+
 			return Task.CompletedTask;
 		},
 		OnAuthenticationFailed = ctx =>

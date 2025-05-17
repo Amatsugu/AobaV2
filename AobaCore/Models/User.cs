@@ -32,4 +32,5 @@ public class User
 			id.AddClaim(new Claim(ClaimTypes.Role, Role));
 		return id;
 	}
+
 }

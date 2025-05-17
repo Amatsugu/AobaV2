@@ -1,23 +1,37 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AobaCore;
+
+using AobaServer.Models;
+using AobaServer.Utils;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using System.Net;
 
 namespace AobaServer.Controllers;
 
+
+
+//allow login via http during debug testing
+#if DEBUG
 [AllowAnonymous]
 [Route("auth")]
-public class AuthController : Controller
+public class AuthController(AccountsService accountsService, AuthInfo authInfo) : Controller
 {
-	[HttpGet("login")]
-	public IActionResult Login([FromQuery] string returnUrl)
+	[HttpPost("login")]
+	public async Task<IActionResult> Login([FromForm] string username, [FromForm] string password, CancellationToken cancellationToken)
 	{
-		ViewData["returnUrl"] = returnUrl;
-		return View();
-	}
+		var user = await accountsService.VerifyLoginAsync(username, password, cancellationToken);
 
-	[HttpGet("register/{token}")]
-	public IActionResult Register(string token)
-	{
-
-		return View(token);
+		if (user == null)
+			return Problem("Invalid login Credentials", statusCode: StatusCodes.Status400BadRequest);
+		Response.Cookies.Append("token", user.GetToken(authInfo), new CookieOptions
+		{
+			IsEssential = true,
+			SameSite = SameSiteMode.Strict,
+			Secure = true,
+		});
+		return Ok();
 	}
 }
+#endif
