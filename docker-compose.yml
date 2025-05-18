@@ -1,0 +1,10 @@
+services:
+    client:
+        build:
+            context: .
+            dockerfile: AobaClient/Dockerfile
+    # server:
+    #     build:
+    #         context: .
+    #         dockerfile: AobaServer/Dockerfile
+    

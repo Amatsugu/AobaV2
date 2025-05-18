@@ -2,8 +2,7 @@
 name = "aoba-client"
 version = "0.1.0"
 authors = ["Amatsugu <khamraj@kaisei.app>"]
-edition = "2021"
-
+edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -16,7 +15,6 @@ tonic = { version = "*", default-features = false, features = [
 ] }
 prost = "0.13"
 tonic-web-wasm-client = "0.7"
-js-sys = { version = "0.3.77" }
 web-sys = { version = "0.3.77", features = ["Storage", "Window"] }
 
 [build-dependencies]
@@ -25,8 +23,6 @@ tonic-build = { version = "*", default-features = false, features = ["prost"] }
 [features]
 default = ["web"]
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
 
 [profile]
 
