@@ -41,7 +41,4 @@
 		<Exec Command="rm -rf wwwroot/*" />
 		<Exec Command="cp -r target\dx\aoba-client\debug\web\public\* ../AobaServer/wwwroot/" WorkingDirectory="..\AobaClient" />
 	</Target>
-	<Target Name="BuildDioxusClientRelease" BeforeTargets="Build" Condition="'$(Configuration)'!='DEBUG'">
-		<Exec Command="dx bundle --platform web -r --out-dir ../AobaServer/wwwroot" WorkingDirectory="..\AobaClient" />
-	</Target>
 </Project>

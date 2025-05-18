@@ -1,10 +1,9 @@
 services:
-    client:
-        build:
-            context: .
-            dockerfile: AobaClient/Dockerfile
-    # server:
+    # client:
     #     build:
     #         context: .
-    #         dockerfile: AobaServer/Dockerfile
-    
+    #         dockerfile: AobaClient/Dockerfile
+    server:
+        build:
+            context: .
+            dockerfile: AobaServer/Dockerfile
