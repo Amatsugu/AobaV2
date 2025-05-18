@@ -1,6 +1,5 @@
 @import "mixins";
 @import "colors";
-@import "inputs";
 
 :root {
 	background-color: $mainBGColor;
@@ -11,6 +10,11 @@
 	font-weight: 400;
 	font-style: normal;
 	font-variation-settings: "wdth" 100;
+}
+
+.stickyTop {
+	top: 0;
+	position: sticky;
 }
 
 body {

@@ -1,4 +1,4 @@
-﻿global using MaybeError;
+global using MaybeError;
 using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Driver;
@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 namespace AobaCore;
 public static class Extensions
 {
-	public static IServiceCollection AddAoba(this IServiceCollection services)
+	public static IServiceCollection AddAoba(this IServiceCollection services, string dbString)
 	{
-		var settings = MongoClientSettings.FromConnectionString("mongodb://NinoIna:27017");
+		var settings = MongoClientSettings.FromConnectionString(dbString);
 		settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
 		var dbClient = new MongoClient(settings);
 		var db = dbClient.GetDatabase("Aoba");

@@ -21,11 +21,12 @@ public class AobaService(IMongoDatabase db)
 	public async Task<PagedResult<Media>> FindMediaAsync(string? query, int page = 1, int pageSize = 100)
 	{
 		var filter = string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query);
+		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);
 		var find = _media.Find(filter);
 
 		var total = await find.CountDocumentsAsync();
 		page -= 1;
-		var items = await find.Skip(page * pageSize).Limit(pageSize).ToListAsync();
+		var items = await find.Sort(sort).Skip(page * pageSize).Limit(pageSize).ToListAsync();
 		return new PagedResult<Media>(items, page, pageSize, total);
 	}
 

@@ -42,4 +42,11 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 			return NotFound();
 		return LocalRedirectPermanent($"/m/{media.MediaId}/{rest}");
 	}
+
+	[HttpGet("thumb/{id}")]
+	public async Task<IActionResult> ThumbAsync(ObjectId id)
+	{
+
+		return NoContent();
+	}
 }

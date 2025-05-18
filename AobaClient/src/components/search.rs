@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 pub fn Search(query: Signal<String>) -> Element {
 	rsx! {
 		div{
-			class: "searchBar",
+			class: "searchBar stickyTop",
 			input {
 				type: "search",
 				placeholder: "Search Files",

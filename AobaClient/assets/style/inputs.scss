@@ -1,9 +1,23 @@
-.searchBar {
-	display: grid;
-	width: 100%;
-}
-
 label {
 	display: flex;
 	flex-direction: column;
+}
+
+textarea,
+input[type="url"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="text"] {
+}
+
+.searchBar {
+	display: grid;
+	width: 100%;
+
+	input {
+		padding: 10px;
+		font-size: 1.5rem;
+		border-radius: 20px;
+	}
 }

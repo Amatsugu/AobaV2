@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var config = builder.Configuration;
 // Add services to the container.
 builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
 
@@ -70,7 +70,7 @@ builder.Services.AddAuthentication(options =>
 				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
 
 #if DEBUG //allow cookie based auth when in debug mode
-			if(string.IsNullOrWhiteSpace(ctx.Token))
+			if (string.IsNullOrWhiteSpace(ctx.Token))
 				ctx.Token = ctx.Request.Cookies.FirstOrDefault(c => c.Key == "token").Value;
 #endif
 
@@ -90,7 +90,8 @@ builder.Services.AddAuthentication(options =>
 	};
 }).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", null);
 
-builder.Services.AddAoba();
+var dbString = config["DB_STRING"];
+builder.Services.AddAoba(dbString ?? "mongodb://localhost:27017");
 builder.Services.Configure<FormOptions>(opt =>
 {
 	opt.ValueLengthLimit = int.MaxValue;
