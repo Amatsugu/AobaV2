@@ -1,14 +1,16 @@
 syntax = "proto3";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "Aoba.RPC";
 package aoba;
 
 service AobaRpc {
   rpc GetMedia (Id) returns (MediaResponse);
-  rpc DeleteMedia (Id) returns (Empty);
-  rpc UpdateMedia (Empty) returns (Empty);
+  rpc DeleteMedia (Id) returns (google.protobuf.Empty);
+  rpc UpdateMedia (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc ListMedia(PageFilter) returns (ListResponse);
   rpc GetUser(Id) returns (UserResponse);
+  rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
 }
 
 message PageFilter {
@@ -24,7 +26,7 @@ message Id {
 message MediaResponse {
 	oneof result {
 		MediaModel value = 1;
-		Empty empty = 2;
+		google.protobuf.Empty empty = 2;
 	}
 }
 
@@ -44,7 +46,7 @@ message Pagination {
 message UserResponse {
 	oneof userResult {
 		UserModel user = 1;
-		Empty empty = 2;
+		google.protobuf.Empty empty = 2;
 	}
 }
 
@@ -55,7 +57,6 @@ message UserModel {
 	bool isAdmin = 4;
 }
 
-message Empty {}
 
 message MediaModel {
 	Id id = 1;
@@ -67,11 +68,18 @@ message MediaModel {
 	Id owner = 7;
 }
 
-enum MediaType{
+enum MediaType {
 	Image = 0;
 	Audio = 1;
 	Video = 2;
 	Text = 3;
 	Code = 4;
 	Raw = 5;
+}
+
+message ShareXResponse {
+	oneof dstResult {
+		string destination = 1;
+		string error = 2;
+	}
 }

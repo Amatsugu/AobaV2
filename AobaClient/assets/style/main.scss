@@ -30,6 +30,7 @@ body {
 
 #content {
 	grid-area: Content;
+	overflow-x: hidden;
 	padding: 10px;
 	/* margin-left: $navBarSize; */
 }
@@ -105,4 +106,12 @@ form {
 		padding: 10px;
 		align-self: center;
 	}
+}
+
+.codeSelect {
+	line-break: anywhere;
+	white-space: pre-wrap;
+	background-color: $featureColor;
+	padding: 5px;
+	user-select: all;
 }

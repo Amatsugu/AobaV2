@@ -109,7 +109,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -123,6 +122,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapObserability();
 app.MapGrpcService<AobaRpcService>()
+	.RequireAuthorization()
 	.RequireCors("RPC");
 app.MapGrpcService<AobaAuthService>()
 	.AllowAnonymous()

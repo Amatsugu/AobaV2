@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::{components::Navbar, contexts::AuthContext, views::Login, Route};
+use crate::{Route, components::Navbar, contexts::AuthContext, views::Login};
 
 #[component]
 pub fn MainLayout() -> Element {
@@ -12,6 +12,9 @@ pub fn MainLayout() -> Element {
 
 	return rsx! {
 		Navbar {}
-		Outlet::<Route> {}
+		div{
+			id: "content",
+			Outlet::<Route> {}
+		}
 	};
 }

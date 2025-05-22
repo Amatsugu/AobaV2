@@ -2,7 +2,7 @@
 
 public class ShareXDestination
 {
-	public string Version { get; set; } = "13.1.0";
+	public string Version { get; set; } = "14.0.1";
 	public string Name { get; set; } = "Aoba";
 	public string DestinationType { get; set; } = "ImageUploader, TextUploader, FileUploader";
 	public string RequestMethod { get; set; } = "POST";
@@ -13,6 +13,6 @@ public class ShareXDestination
 	public string FileFormName { get; set; } = "file";
 	public string[] RegexList { get; set; } = ["([^/]+)/?$"];
 	public string URL { get; set; } = "https://aoba.app$json:url$";
-	public required string ThumbnailURL { get; set; }
-	public required string DeletionURL { get; set; }
+	public string? ThumbnailURL { get; set; }
+	public string? DeletionURL { get; set; }
 }

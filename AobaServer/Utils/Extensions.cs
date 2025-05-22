@@ -2,6 +2,8 @@
 
 using AobaServer.Models;
 
+using Grpc.Core;
+
 using Microsoft.IdentityModel.Tokens;
 
 using MongoDB.Bson;
@@ -36,5 +38,10 @@ public static class Extensions
 	public static ObjectId GetId(this ClaimsPrincipal user)
 	{
 		return user.FindFirstValue(ClaimTypes.NameIdentifier).ToObjectId();
+	}
+
+	public static ObjectId GetUserId(this ServerCallContext context)
+	{
+		return context.GetHttpContext().User.GetId();
 	}
 }

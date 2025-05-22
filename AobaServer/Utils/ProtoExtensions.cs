@@ -2,6 +2,7 @@
 using Aoba.RPC;
 
 using MongoDB.Bson;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AobaServer.Utils;
 
