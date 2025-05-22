@@ -65,6 +65,7 @@ public class Media
 		MediaId = fileId;
 		Owner = owner;
 		Id = ObjectId.GenerateNewId();
+		UploadDate = DateTime.UtcNow;
 	}
 
 	public string GetMediaUrl()
