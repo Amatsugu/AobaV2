@@ -36,9 +36,4 @@
 	  <Protobuf Include="Proto\Auth.proto"></Protobuf>
   </ItemGroup>
 
-	<Target Name="BuildDioxusClientDebug" BeforeTargets="Build" Condition="'$(Configuration)'=='B'">
-		<Exec Command="dx build --platform web" WorkingDirectory="..\AobaClient" />
-		<Exec Command="rm -rf wwwroot/*" />
-		<Exec Command="cp -r target\dx\aoba-client\debug\web\public\* ../AobaServer/wwwroot/" WorkingDirectory="..\AobaClient" />
-	</Target>
 </Project>
