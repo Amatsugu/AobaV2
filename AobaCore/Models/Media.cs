@@ -71,8 +71,8 @@ public class Media
 	{
 		return this switch
 		{
-			Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code} => $"/i/dl/{Id}/{Filename}",
-			_ => $"/i/{Id}"
+			//Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code} => $"/i/dl/{MediaId}/{Filename}",
+			_ => $"/m/{MediaId}"
 		};
 	}
 

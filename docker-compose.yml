@@ -5,3 +5,5 @@ services:
             dockerfile: AobaServer/Dockerfile
         ports:
             - "4321:8080"
+        environment:
+            - DB_STRING="mongodb://192.168.86.63:27017"

@@ -27,7 +27,7 @@ pub fn Settings() -> Element {
 		div {
 			pre {
 				class: "codeSelect",
-				"test {d}"
+				"{d}"
 			}
 		}
 	}

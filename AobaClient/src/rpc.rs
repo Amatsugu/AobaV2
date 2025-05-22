@@ -4,7 +4,7 @@ use aoba::{aoba_rpc_client::AobaRpcClient, auth_rpc_client::AuthRpcClient};
 use tonic::service::{Interceptor, interceptor::InterceptedService};
 use tonic_web_wasm_client::Client;
 
-use crate::HOST;
+use crate::RPC_HOST;
 
 pub mod aoba {
 	tonic::include_proto!("aoba");
@@ -37,7 +37,7 @@ impl RpcConnection {
 
 	fn ensure_client(&self) {
 		if self.aoba.read().unwrap().is_none() {
-			let wasm_client = Client::new(HOST.into());
+			let wasm_client = Client::new(RPC_HOST.into());
 			let aoba_client = AobaRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor);
 			*self.aoba.write().unwrap() = Some(aoba_client);
 			*self.auth.write().unwrap() = Some(AuthRpcClient::new(wasm_client.clone()));

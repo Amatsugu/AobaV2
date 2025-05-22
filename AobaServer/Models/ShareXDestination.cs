@@ -12,7 +12,7 @@ public class ShareXDestination
 	public Dictionary<string, string> Arguments { get; set; } = new() { { "name", "$filename$" } };
 	public string FileFormName { get; set; } = "file";
 	public string[] RegexList { get; set; } = ["([^/]+)/?$"];
-	public string URL { get; set; } = "https://aoba.app$json:url$";
+	public string URL { get; set; } = "https://aoba.app{json:url}";
 	public string? ThumbnailURL { get; set; }
 	public string? DeletionURL { get; set; }
 }

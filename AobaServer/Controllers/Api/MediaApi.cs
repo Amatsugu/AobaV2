@@ -24,7 +24,7 @@ public class MediaApi(AobaService aoba) : ControllerBase
 
 		return Ok(new
 		{
-			media.Value,
+			media = media.Value,
 			url = media.Value.GetMediaUrl()
 		});
 	}
