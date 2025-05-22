@@ -46,11 +46,12 @@ builder.Services.AddCors(o =>
 	{
 		p.AllowAnyMethod();
 		p.AllowAnyHeader();
-#if DEBUG
+		p.WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
 		p.AllowAnyOrigin();
-#else
-		p.WithOrigins("http://127.0.0.1:8080", "https://aoba.app");
-#endif
+//#if DEBUG
+//#else
+//		p.WithOrigins("https://aoba.app", "https://grpc.aoba.app");
+//#endif
 	});
 });
 
