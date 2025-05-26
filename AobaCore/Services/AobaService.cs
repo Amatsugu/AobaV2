@@ -6,7 +6,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-namespace AobaCore;
+namespace AobaCore.Services;
 
 public class AobaService(IMongoDatabase db)
 {
