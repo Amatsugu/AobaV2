@@ -18,7 +18,7 @@ internal class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 
 	public async Task<MemoryStream> GetThumbnailAsync(ObjectId id)
 	{
-
+        throw new NotImplementedException();
 	}
 
 	public async Task GenerateThumbnailAsync(ObjectId id)

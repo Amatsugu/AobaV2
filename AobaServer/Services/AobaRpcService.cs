@@ -9,8 +9,6 @@ using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
 
-using Microsoft.AspNetCore.Mvc;
-
 using MongoDB.Bson.IO;
 
 using System.Text.Json;

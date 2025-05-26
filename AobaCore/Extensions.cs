@@ -26,6 +26,7 @@ public static class Extensions
 		services.AddSingleton(dbClient);
 		services.AddSingleton<IMongoDatabase>(db);
 		services.AddSingleton<AobaService>();
+        services.AddSingleton<ThumbnailService>();
 		services.AddSingleton<AccountsService>();
 		services.AddHostedService<AobaIndexCreationService>();
 		return services;
