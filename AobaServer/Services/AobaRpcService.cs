@@ -1,6 +1,6 @@
 ﻿using Aoba.RPC;
 
-using AobaCore;
+using AobaCore.Services;
 
 using AobaServer.Models;
 using AobaServer.Utils;

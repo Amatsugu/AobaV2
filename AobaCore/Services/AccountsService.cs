@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AobaCore;
+namespace AobaCore.Services;
 public class AccountsService(IMongoDatabase db)
 {
 	public readonly IMongoCollection<User> _users = db.GetCollection<User>("users");

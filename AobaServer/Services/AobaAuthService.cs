@@ -1,7 +1,7 @@
 ﻿using Aoba.RPC.Auth;
 
-using AobaCore;
 using AobaCore.Models;
+using AobaCore.Services;
 
 using AobaServer.Models;
 using AobaServer.Utils;

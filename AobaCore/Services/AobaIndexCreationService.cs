@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 using MongoDB.Driver;
 
-namespace AobaCore;
+namespace AobaCore.Services;
 
 public class AobaIndexCreationService(IMongoDatabase db): BackgroundService
 {
