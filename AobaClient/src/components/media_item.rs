@@ -13,11 +13,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 	let filename = props.item.file_name;
 	let id = props.item.media_id.unwrap().value;
 
-	#[cfg(debug_assertions)]
 	let src = format!("{HOST}/m/thumb/{id}");
-	#[cfg(not(debug_assertions))]
-	let src = format!("https://aoba.app/m/thumb/{id}");
-	// let url = "https://aoba.app/i/{}";
 	rsx! {
 		div{
 			class: "mediaItem",
