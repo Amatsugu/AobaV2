@@ -12,8 +12,9 @@
 		<PackageReference Include="MaybeError" Version="1.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
 		<PackageReference Include="MongoDB.Driver" Version="3.4.0" />
-		<PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="2.0.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.10.0" />
+		<PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="2.1.0" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.6" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
 	</ItemGroup>
 
 </Project>

@@ -44,9 +44,11 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	}
 
 	[HttpGet("thumb/{id}")]
-	public async Task<IActionResult> ThumbAsync(ObjectId id)
+	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken)
 	{
-
-		return NoContent();
+		var thumb = await thumbnailService.GetThumbnailFromFileAsync(id, cancellationToken);
+		if (thumb == null)
+			return NotFound();
+		return File(thumb, "image/webp", true);
 	}
 }

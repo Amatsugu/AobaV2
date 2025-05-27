@@ -11,9 +11,9 @@ use dioxus::prelude::*;
 use route::Route;
 
 #[cfg(debug_assertions)]
-pub const HOST: &'static str = "http://localhost:5164";
+pub const HOST: &'static str = "http://localhost:8080";
 #[cfg(debug_assertions)]
-pub const RPC_HOST: &'static str = "http://localhost:5164";
+pub const RPC_HOST: &'static str = "http://localhost:8080";
 #[cfg(not(debug_assertions))]
 pub const RPC_HOST: &'static str = "https://grpc.aoba.app:8443";
 #[cfg(not(debug_assertions))]

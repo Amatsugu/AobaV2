@@ -18,7 +18,12 @@ public class AobaService(IMongoDatabase db)
 		return await _media.Find(m => m.Id == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<PagedResult<Media>> FindMediaAsync(string? query, int page = 1, int pageSize = 100)
+    public async Task<Media?> GetMediaFromFileAsync(ObjectId id, CancellationToken cancellationToken = default)
+    {
+        return await _media.Find(m => m.MediaId == id).FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<PagedResult<Media>> FindMediaAsync(string? query, int page = 1, int pageSize = 100)
 	{
 		var filter = string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query);
 		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);

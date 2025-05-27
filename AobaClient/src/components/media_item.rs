@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::rpc::aoba::MediaModel;
+use crate::{HOST, rpc::aoba::MediaModel};
 
 #[derive(PartialEq, Clone, Props)]
 pub struct MediaItemProps {
@@ -14,9 +14,9 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 	let id = props.item.media_id.unwrap().value;
 
 	#[cfg(debug_assertions)]
-	let src = format!("http://localhost:5164/m/{id}");
+	let src = format!("{HOST}/m/thumb/{id}");
 	#[cfg(not(debug_assertions))]
-	let src = format!("https://aoba.app/m/{id}");
+	let src = format!("https://aoba.app/m/thumb/{id}");
 	// let url = "https://aoba.app/i/{}";
 	rsx! {
 		div{
