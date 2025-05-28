@@ -1,5 +1,8 @@
 @import "mixins";
 @import "colors";
+* {
+	box-sizing: border-box;
+}
 
 :root {
 	background-color: $mainBGColor;
@@ -35,27 +38,49 @@ body {
 	/* margin-left: $navBarSize; */
 }
 
+$mediaItemSize: 300px;
+
 .mediaGrid {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 5px;
+	justify-content: center;
+	gap: 10px;
+	margin: 10px 0;
 
 	.mediaItem {
-		width: 200px;
-		background-color: $featureColor;
+		width: $mediaItemSize;
+		height: $mediaItemSize;
+		overflow: hidden;
+		display: grid;
+		grid-template-columns: $mediaItemSize;
+		grid-template-areas: "A";
+		box-shadow: 0 0 2px #000;
+		color: $mainTextColor;
+		text-decoration: none;
+		transition:
+			transform 0.25s ease-out,
+			box-shadow 0.25s ease-out;
+
+		> * {
+			grid-area: A;
+		}
 
 		img {
 			aspect-ratio: 1;
 			object-fit: cover;
-			object-position: center;
 			width: 100%;
+			object-position: center;
 			background-color: $invertTextColor;
 			border: 0;
 			outline: none;
 		}
 
 		.info {
-			padding: 2px 5px;
+			align-self: end;
+			backdrop-filter: blur(20px) brightness(0.5);
+			transition: transform 0.25s ease-out;
+			transform: translateY(100%);
+			padding: 2px;
 
 			.name {
 				text-align: center;
@@ -66,6 +91,15 @@ body {
 			.details {
 				display: flex;
 				justify-content: space-between;
+			}
+		}
+
+		&:hover {
+			transform: scale(110%) translateZ(2px);
+			box-shadow: 0 0 8px #000;
+
+			.info {
+				transform: translateY(0%);
 			}
 		}
 	}

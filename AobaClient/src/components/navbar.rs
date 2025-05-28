@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::{contexts::AuthContext, Route};
+use crate::{Route, contexts::AuthContext};
 
 const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
 const NAV_ICON: Asset = asset!("/assets/favicon.ico");
@@ -32,8 +32,7 @@ pub fn MainNaviagation() -> Element {
 pub fn Branding() -> Element {
 	rsx! {
 		div { class: "branding",
-			"Aoba"
-			img {src: NAV_ICON}
+			img {src: NAV_ICON, alt: "Aoba"}
 		}
 	}
 }

@@ -14,14 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(o =>
 {
-    o.ListenAnyIP(8081, lo =>
+#if !DEBUG
+	o.ListenAnyIP(8081, lo =>
     {
         lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
     });
-    o.ListenAnyIP(8080, lo =>
+	o.ListenAnyIP(8080, lo =>
     {
         lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
     });
+#endif
 });
 var config = builder.Configuration;
 // Add services to the container.

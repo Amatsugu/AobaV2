@@ -9,10 +9,15 @@ nav {
 	height: 100dvh;
 	position: fixed;
 	width: $navBarSize;
+	box-shadow: 0 0 3px #000;
+	gap: 20px;
+	padding: 20px 0;
 
 	> * {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		gap: 10px;
 	}
 
 	.branding {

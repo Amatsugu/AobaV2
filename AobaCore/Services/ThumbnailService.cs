@@ -45,7 +45,12 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		var img = Image.Load(stream);
 		img.Mutate(o =>
 		{
-			o.Resize(200, 200);
+			o.Resize(new ResizeOptions
+			{
+				Position = AnchorPositionMode.Center,
+				Mode = ResizeMode.Crop,
+				Size = new Size(300, 300)
+			});
 		});
 		var result = new MemoryStream();
 		await img.SaveAsWebpAsync(result, cancellationToken);

@@ -15,16 +15,18 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 
 	let src = format!("{HOST}/m/thumb/{id}");
 	rsx! {
-		div{
+		a{
 			class: "mediaItem",
+			href: "{HOST}/m/{id}",
+			target: "_blank",
 			img{ src: src }
-			div {
+			span {
 				class: "info",
 				span{
 					class: "name",
 					"{filename}"
 				},
-				div{
+				span{
 					class: "details",
 					span{
 						"{mtype}"
