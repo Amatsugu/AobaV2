@@ -25,20 +25,15 @@ pub fn Notif(props: NotifProps) -> Element {
 	};
 	let m = props.message;
 	rsx! {
-		div{
-			class: "notif {type_class}",
-			div{
-				class: "icon",
+		div { class: "notif {type_class}",
+			div { class: "icon",
 				match t {
-					NotifType::Notice => icons::Error(),
-					NotifType::Error => icons::Error(),
-					NotifType::Warning => icons::Warn(),
+				    NotifType::Notice => icons::Error(),
+				    NotifType::Error => icons::Error(),
+				    NotifType::Warning => icons::Warn(),
 				}
 			}
-			div{
-				class: "message",
-				"{m}"
-			}
+			div { class: "message", "{m}" }
 		}
 	}
 }

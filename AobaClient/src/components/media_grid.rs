@@ -49,7 +49,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 	match media_result.cloned() {
 		Some(value) => match value {
 			Ok(result) => rsx! {
-				div{
+				div {
 					class: "mediaGrid",
 					{result.items.iter().map(|itm| rsx!{
 						MediaItem { item: itm.clone() }
@@ -57,7 +57,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 				}
 			},
 			Err(msg) => rsx! {
-				div{
+				div {
 					class: "mediaGrid",
 					div {
 						"Failed to load results: {msg}"
@@ -69,18 +69,9 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 			div{
 				class: "mediaGrid",
 				div {
-					"No results could be loaded"
+					"Loading..."
 				}
 			}
 		},
-	}
-}
-
-pub fn Nested() -> Element {
-	rsx! {
-		div{
-			"test",
-			slot {  }
-		}
 	}
 }

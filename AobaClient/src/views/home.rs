@@ -6,9 +6,7 @@ pub fn Home() -> Element {
 	let query = use_signal(|| "".to_string());
 
 	rsx! {
-		Search {
-			query: query
-		},
+		Search { query }
 		MediaGrid { query: query.cloned() }
 	}
 }

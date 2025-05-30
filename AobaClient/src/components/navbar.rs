@@ -32,7 +32,7 @@ pub fn MainNaviagation() -> Element {
 pub fn Branding() -> Element {
 	rsx! {
 		div { class: "branding",
-			img {src: NAV_ICON, alt: "Aoba"}
+			img { src: NAV_ICON, alt: "Aoba" }
 		}
 	}
 }
@@ -50,10 +50,7 @@ pub fn Utils() -> Element {
 
 	rsx! {
 		div { class: "utils",
-			div{
-				onclick: move |_| auth_context.logout(),
-				"Logout"
-			}
-	 }
+			div { onclick: move |_| auth_context.logout(), "Logout" }
+		}
 	}
 }

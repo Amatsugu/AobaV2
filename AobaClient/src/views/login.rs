@@ -52,18 +52,26 @@ pub fn Login() -> Element {
 	};
 
 	rsx! {
-		div{
-			id: "centralModal",
+		div { id: "centralModal",
 			if let Some(err) = error.cloned() {
-				Notif{ type: NotifType::Error, message: err}
+				Notif { r#type: NotifType::Error, message: err }
 			}
-			form{
-				Input { type : "text", name: "username", label: "Username", value: username, required: true },
-				Input { type : "password", name: "password", label: "Password", value: password, required: true },
-				button {
-					onclick: login,
-					"Login!",
+			form {
+				Input {
+					r#type: "text",
+					name: "username",
+					label: "Username",
+					value: username,
+					required: true,
 				}
+				Input {
+					r#type: "password",
+					name: "password",
+					label: "Password",
+					value: password,
+					required: true,
+				}
+				button { onclick: login, "Login!" }
 			}
 		}
 	}
