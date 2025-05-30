@@ -37,17 +37,33 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 	let media_result = use_resource(use_reactive!(|(props)| async move {
 		let mut client = get_rpc_client();
 		let result = client.list_media(props.into_request()).await;
-		return result.expect("Failed to load media").into_inner();
+		if let Ok(items) = result {
+			return Ok(items.into_inner());
+		} else {
+			let err = result.err().unwrap();
+			let message = err.message();
+			return Err(format!("Failed to load results: {message}"));
+		}
 	}));
 
-	match &*media_result.read_unchecked() {
-		Some(result) => rsx! {
-			div{
-				class: "mediaGrid",
-				{result.items.iter().map(|itm| rsx!{
-					MediaItem { item: itm.clone() }
-				})},
-			}
+	match media_result.cloned() {
+		Some(value) => match value {
+			Ok(result) => rsx! {
+				div{
+					class: "mediaGrid",
+					{result.items.iter().map(|itm| rsx!{
+						MediaItem { item: itm.clone() }
+					})},
+				}
+			},
+			Err(msg) => rsx! {
+				div{
+					class: "mediaGrid",
+					div {
+						"Failed to load results: {msg}"
+					}
+				}
+			},
 		},
 		None => rsx! {
 			div{
@@ -57,5 +73,14 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 				}
 			}
 		},
+	}
+}
+
+pub fn Nested() -> Element {
+	rsx! {
+		div{
+			"test",
+			slot {  }
+		}
 	}
 }
