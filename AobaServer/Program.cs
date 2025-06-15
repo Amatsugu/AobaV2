@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(o =>
 {
+	o.Limits.MaxRequestBodySize = null;
 #if !DEBUG
 	o.ListenAnyIP(8081, lo =>
     {
