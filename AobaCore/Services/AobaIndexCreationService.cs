@@ -2,6 +2,9 @@
 
 using Microsoft.Extensions.Hosting;
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace AobaCore.Services;
@@ -12,6 +15,7 @@ public class AobaIndexCreationService(IMongoDatabase db): BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		BsonSerializer.RegisterSerializer(new EnumSerializer<ThumbnailSize>(BsonType.String));
 		var textKeys = Builders<Media>.IndexKeys
 			.Text(m => m.Filename);
 

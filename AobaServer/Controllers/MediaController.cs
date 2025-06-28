@@ -1,4 +1,5 @@
-﻿using AobaCore.Services;
+﻿using AobaCore.Models;
+using AobaCore.Services;
 
 using HeyRed.Mime;
 
@@ -44,11 +45,21 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	}
 
 	[HttpGet("thumb/{id}")]
-	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken)
+	[ResponseCache(Duration = int.MaxValue)]
+	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, [FromQuery] ThumbnailSize size = ThumbnailSize.Medium, CancellationToken cancellationToken = default)
 	{
-		var thumb = await thumbnailService.GetThumbnailFromFileAsync(id, cancellationToken);
-		if (thumb == null)
-			return NotFound();
+		var thumb = await thumbnailService.GetOrCreateThumbnailAsync(id, size, cancellationToken);
+		if (thumb.HasError)
+		{
+			logger.LogError("Failed to generate thumbnail: {}", thumb.Error);
+			return DefaultThumbnailAsync();
+		}
 		return File(thumb, "image/webp", true);
+	}
+
+	[NonAction]
+	private IActionResult DefaultThumbnailAsync()
+	{
+		return NoContent();
 	}
 }
