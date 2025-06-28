@@ -1,5 +1,8 @@
 ﻿using AobaCore.Models;
 
+using FFMpegCore;
+using FFMpegCore.Pipes;
+
 using MaybeError.Errors;
 
 using MongoDB.Bson;
@@ -44,16 +47,18 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		try
 		{
 
-			var mediaData = await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
+			using var mediaData = await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
 			var thumb = await GenerateThumbnailAsync(mediaData, size, media.MediaType, media.Ext, cancellationToken);
 
 			if (thumb.HasError)
 				return thumb.Error;
 			cancellationToken.ThrowIfCancellationRequested();
 
+#if !DEBUG
 			var thumbId = await _gridfs.UploadFromStreamAsync($"{media.Filename}.webp", thumb, cancellationToken: CancellationToken.None);
 			var update = Builders<MediaThumbnail>.Update.Set(t => t.Sizes[size], thumbId);
 			await _thumbnails.UpdateOneAsync(t => t.Id == id, update, cancellationToken: CancellationToken.None);
+#endif
 			thumb.Value.Position = 0;
 			return thumb;
 		} catch (Exception ex) {
@@ -101,6 +106,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		var img = Image.Load(stream);
 		img.Mutate(o =>
 		{
+			var size = 
 			o.Resize(new ResizeOptions
 			{
 				Position = AnchorPositionMode.Center,
@@ -116,7 +122,20 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 
 	public async Task<Maybe<Stream>> GenerateVideoThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		return new NotImplementedException();
+		var w = (int)size;
+		var source = new MemoryStream();
+		data.CopyTo(source);
+		source.Position = 0;
+		var output = new MemoryStream();
+		await FFMpegArguments.FromPipeInput(new StreamPipeSource(source))
+				.OutputToPipe(new StreamPipeSink(output), opt =>
+				{
+					opt.WithCustomArgument($"-t 5 -vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0")
+					.ForceFormat("webp");
+				}).ProcessAsynchronously();
+		output.Position = 0;
+
+		return output;
 	}
 
 	public async Task<Maybe<Stream>> GenerateDocumentThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
