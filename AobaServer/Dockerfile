@@ -57,5 +57,6 @@ RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN sudo apt-get install -y ffmpeg libgdiplus
+# RUN apt update
+# RUN apt install -y ffmpeg libgdiplus
 ENTRYPOINT ["dotnet", "AobaServer.dll"]
