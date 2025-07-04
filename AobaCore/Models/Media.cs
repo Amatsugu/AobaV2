@@ -7,7 +7,7 @@ namespace AobaCore.Models;
 public class Media
 {
 	[BsonId]
-	public ObjectId Id { get; set; }
+	public ObjectId LegacyId { get; set; }
 	public ObjectId MediaId { get; set; }
 	public string Filename { get; set; }
 	public MediaType MediaType { get; set; }
@@ -16,6 +16,7 @@ public class Media
 	public ObjectId Owner { get; set; }
 	public DateTime UploadDate { get; set; }
 	public string[] Tags { get; set; } = [];
+	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
 
 
 	public static readonly Dictionary<string, MediaType> KnownTypes = new()
@@ -65,7 +66,7 @@ public class Media
 		Filename = filename;
 		MediaId = fileId;
 		Owner = owner;
-		Id = ObjectId.GenerateNewId();
+		LegacyId = ObjectId.GenerateNewId();
 		UploadDate = DateTime.UtcNow;
 		Tags = DeriveTags(filename);
 	}

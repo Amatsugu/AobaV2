@@ -13,9 +13,9 @@ public class AobaService(IMongoDatabase db)
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	private readonly GridFSBucket _gridFs = new(db);
 
-	public async Task<Media?> GetMediaAsync(ObjectId id, CancellationToken cancellationToken = default)
+	public async Task<Media?> GetMediaFromLegacyIdAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
-		return await _media.Find(m => m.Id == id).FirstOrDefaultAsync(cancellationToken);
+		return await _media.Find(m => m.LegacyId == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
 	public async Task<Media?> GetMediaFromFileAsync(ObjectId id, CancellationToken cancellationToken = default)
@@ -44,14 +44,22 @@ public class AobaService(IMongoDatabase db)
 		return _media.InsertOneAsync(media, null, cancellationToken);
 	}
 
-	public Task IncrementViewCountAsync(ObjectId id, CancellationToken cancellationToken = default)
+	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		return _media.UpdateOneAsync(m => m.Id == id, Builders<Media>.Update.Inc(m => m.ViewCount, 1), cancellationToken: cancellationToken);
+		var upate = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);
+
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, upate, cancellationToken: cancellationToken);
 	}
 
-	public Task IncrementFileViewCountAsync(ObjectId fileId, CancellationToken cancellationToken = default)
+	public async Task<ObjectId> GetThumbnailIdAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		return _media.UpdateOneAsync(m => m.MediaId == fileId, Builders<Media>.Update.Inc(m => m.ViewCount, 1), cancellationToken: cancellationToken);
+		var thumb = await _media.Find(m => m.MediaId == mediaId).Project(m => m.Thumbnails[size]).FirstOrDefaultAsync(cancellationToken);
+		return thumb;
+	}
+
+	public Task IncrementViewCountAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
+	{
+		return _media.UpdateOneAsync(m => m.MediaId == mediaId, Builders<Media>.Update.Inc(m => m.ViewCount, 1), cancellationToken: cancellationToken);
 	}
 
 
@@ -70,11 +78,11 @@ public class AobaService(IMongoDatabase db)
 		}
 	}
 
-	public async Task<MaybeEx<GridFSDownloadStream, GridFSException>> GetFileStreamAsync(ObjectId id, bool seekable = false, CancellationToken cancellationToken = default)
+	public async Task<MaybeEx<GridFSDownloadStream, GridFSException>> GetFileStreamAsync(ObjectId mediaId, bool seekable = false, CancellationToken cancellationToken = default)
 	{
 		try
 		{
-			return await _gridFs.OpenDownloadStreamAsync(id, new GridFSDownloadOptions { Seekable = seekable }, cancellationToken);
+			return await _gridFs.OpenDownloadStreamAsync(mediaId, new GridFSDownloadOptions { Seekable = seekable }, cancellationToken);
 		}
 		catch (GridFSException ex)
 		{
@@ -82,19 +90,21 @@ public class AobaService(IMongoDatabase db)
 		}
 	}
 
-	public async Task DeleteFileAsync(ObjectId fileId, CancellationToken cancellationToken = default)
+	public async Task DeleteFileAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
 	{
 		try
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			await _gridFs.DeleteAsync(fileId, CancellationToken.None);
-			await _media.DeleteOneAsync(m => m.MediaId == fileId, CancellationToken.None);
+			await _gridFs.DeleteAsync(mediaId, CancellationToken.None);
+			await _media.DeleteOneAsync(m => m.MediaId == mediaId, CancellationToken.None);
 		}
 		catch (GridFSFileNotFoundException)
 		{
 			//ignore if file was not found
 		}
 	}
+
+	
 
 	public async Task DeriveTagsAsync(CancellationToken cancellationToken = default)
 	{
@@ -104,7 +114,7 @@ public class AobaService(IMongoDatabase db)
 		foreach (var mediaItem in mediaItems)
 		{
 			mediaItem.Tags = Media.DeriveTags(mediaItem.Filename);
-			await _media.UpdateOneAsync(m => m.Id == mediaItem.Id, Builders<Media>.Update.Set(m => m.Tags, mediaItem.Tags), null, cancellationToken);
+			await _media.UpdateOneAsync(m => m.MediaId == mediaItem.MediaId, Builders<Media>.Update.Set(m => m.Tags, mediaItem.Tags), null, cancellationToken);
 		}
 		Console.WriteLine("All Tags Derived");
 	}

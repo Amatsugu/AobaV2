@@ -60,12 +60,12 @@ message UserModel {
 
 message MediaModel {
 	Id id = 1;
-	Id mediaId = 2;
-	string fileName = 3;
-	MediaType mediaType = 4;
-	string ext = 5;
-	int32 viewCount = 6;
-	Id owner = 7;
+	string fileName = 2;
+	MediaType mediaType = 3;
+	string ext = 4;
+	int32 viewCount = 5;
+	Id owner = 6;
+	string thumbUrl = 7;
 }
 
 enum MediaType {

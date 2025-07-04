@@ -24,27 +24,27 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 			return NotFound();
 		}
 		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
-		_ = aobaService.IncrementFileViewCountAsync(id, cancellationToken);
+		_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
 		return File(file, mime, true);
 	}
 
 	/// <summary>
 	/// Redirect legacy media urls to the new url
 	/// </summary>
-	/// <param name="id"></param>
+	/// <param name="legacyId"></param>
 	/// <param name="rest"></param>
 	/// <param name="aoba"></param>
 	/// <returns></returns>
-	[HttpGet("/i/{id}/{*rest}")]
-	public async Task<IActionResult> LegacyRedirectAsync(ObjectId id, string rest, CancellationToken cancellationToken)
+	[HttpGet("/i/{legacyId}/{*rest}")]
+	public async Task<IActionResult> LegacyRedirectAsync(ObjectId legacyId, string rest, CancellationToken cancellationToken)
 	{
-		var media = await aobaService.GetMediaAsync(id, cancellationToken);
+		var media = await aobaService.GetMediaFromLegacyIdAsync(legacyId, cancellationToken);
 		if (media == null)
 			return NotFound();
 		return LocalRedirectPermanent($"/m/{media.MediaId}/{rest}");
 	}
 
-	[HttpGet("thumb/{id}")]
+	[HttpGet("{id}/thumb")]
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, [FromQuery] ThumbnailSize size = ThumbnailSize.Medium, CancellationToken cancellationToken = default)
 	{
@@ -54,6 +54,15 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 			logger.LogError("Failed to generate thumbnail: {}", thumb.Error);
 			return DefaultThumbnailAsync();
 		}
+		return File(thumb, "image/webp", true);
+	}
+
+	[HttpGet("/t/{id}")]
+	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken = default)
+	{
+		var thumb = await thumbnailService.GetThumbnailByFileIdAsync(id, cancellationToken);
+		if(thumb == null) 
+			return NotFound();
 		return File(thumb, "image/webp", true);
 	}
 

@@ -20,33 +20,32 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AobaCore.Services;
+
 public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
-	private readonly IMongoCollection<MediaThumbnail> _thumbnails = db.GetCollection<MediaThumbnail>("thumbs");
-
+	private Lock _lock = new();
 
 	/// <summary>
-	/// 
+	///
 	/// </summary>
-	/// <param name="id">File id</param>
+	/// <param name="mediaId">Media id</param>
 	/// <param name="size"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task<Maybe<Stream>> GetOrCreateThumbnailAsync(ObjectId id, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Maybe<Stream>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var existingThumb = await GetThumbnailAsync(id, size, cancellationToken);
+		var existingThumb = await GetThumbnailAsync(mediaId, size, cancellationToken);
 		if (existingThumb != null)
 			return existingThumb;
 
-		var media = await aobaService.GetMediaFromFileAsync(id, cancellationToken);
+		var media = await aobaService.GetMediaFromFileAsync(mediaId, cancellationToken);
 
 		if (media == null)
 			return new Error("Media does not exist");
 
 		try
 		{
-
 			using var mediaData = await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
 			var thumb = await GenerateThumbnailAsync(mediaData, size, media.MediaType, media.Ext, cancellationToken);
 
@@ -54,59 +53,58 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 				return thumb.Error;
 			cancellationToken.ThrowIfCancellationRequested();
 
-#if !DEBUG
 			var thumbId = await _gridfs.UploadFromStreamAsync($"{media.Filename}.webp", thumb, cancellationToken: CancellationToken.None);
-			var update = Builders<MediaThumbnail>.Update.Set(t => t.Sizes[size], thumbId);
-			await _thumbnails.UpdateOneAsync(t => t.Id == id, update, cancellationToken: CancellationToken.None);
-#endif
+			await aobaService.AddThumbnailAsync(mediaId, thumbId, size, cancellationToken);
+
 			thumb.Value.Position = 0;
 			return thumb;
-		} catch (Exception ex) {
+		}
+		catch (Exception ex)
+		{
 			return ex;
 		}
-		
-
-		
 	}
 
 	/// <summary>
-	/// 
+	///
 	/// </summary>
-	/// <param name="id">File Id</param>
+	/// <param name="mediaId">Media Id</param>
 	/// <param name="size"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task<Stream?> GetThumbnailAsync(ObjectId id, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Stream?> GetThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var thumb = await _thumbnails.Find(t => t.Id == id).FirstOrDefaultAsync(cancellationToken);
-		if (thumb == null) 
+		var thumb = await aobaService.GetThumbnailIdAsync(mediaId, size, cancellationToken);
+		if (thumb == default)
 			return null;
 
-		if (!thumb.Sizes.TryGetValue(size, out var tid))
-			return null;
-
-		var thumbData = await _gridfs.OpenDownloadStreamAsync(tid, cancellationToken: cancellationToken);
+		var thumbData = await _gridfs.OpenDownloadStreamAsync(thumb, cancellationToken: cancellationToken);
 		return thumbData;
 	}
 
+	public async Task<Stream?> GetThumbnailByFileIdAsync(ObjectId thumbId, CancellationToken cancellationToken = default)
+	{
+		var thumbData = await _gridfs.OpenDownloadStreamAsync(thumbId, cancellationToken: cancellationToken);
+		return thumbData;
+	}
 
 	public async Task<Maybe<Stream>> GenerateThumbnailAsync(Stream stream, ThumbnailSize size, MediaType type, string ext, CancellationToken cancellationToken = default)
 	{
 		return type switch
 		{
 			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, cancellationToken),
-			MediaType.Video => await GenerateVideoThumbnailAsync(stream, size, cancellationToken),
+			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
 			MediaType.Text or MediaType.Code => await GenerateDocumentThumbnailAsync(stream, size, cancellationToken),
 			_ => new Error($"No Thumbnail for {type}"),
 		};
 	}
 
-	public async Task<Stream> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, CancellationToken cancellationToken = default) 
+	public static async Task<Stream> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var img = Image.Load(stream);
 		img.Mutate(o =>
 		{
-			var size = 
+			var size =
 			o.Resize(new ResizeOptions
 			{
 				Position = AnchorPositionMode.Center,
@@ -120,21 +118,22 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		return result;
 	}
 
-	public async Task<Maybe<Stream>> GenerateVideoThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public Maybe<Stream> GenerateVideoThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var w = (int)size;
 		var source = new MemoryStream();
 		data.CopyTo(source);
 		source.Position = 0;
 		var output = new MemoryStream();
-		await FFMpegArguments.FromPipeInput(new StreamPipeSource(source))
-				.OutputToPipe(new StreamPipeSink(output), opt =>
-				{
-					opt.WithCustomArgument($"-t 5 -vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0")
-					.ForceFormat("webp");
-				}).ProcessAsynchronously();
+		FFMpegArguments.FromPipeInput(new StreamPipeSource(source), opt =>
+		{
+			opt.WithCustomArgument("-t 5");
+		}).OutputToPipe(new StreamPipeSink(output), opt =>
+		{
+			opt.WithCustomArgument($"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0 -r 15")
+			.ForceFormat("webp");
+		}).ProcessSynchronously();
 		output.Position = 0;
-
 		return output;
 	}
 
