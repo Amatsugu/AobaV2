@@ -95,4 +95,17 @@ public class AobaService(IMongoDatabase db)
 			//ignore if file was not found
 		}
 	}
+
+	public async Task DeriveTagsAsync(CancellationToken cancellationToken = default)
+	{
+		var mediaItems = await _media.Find(Builders<Media>.Filter.Exists(m => m.Tags, false))
+			.ToListAsync(cancellationToken);
+		Console.WriteLine($"Derving Tag for {mediaItems.Count} items");
+		foreach (var mediaItem in mediaItems)
+		{
+			mediaItem.Tags = Media.DeriveTags(mediaItem.Filename);
+			await _media.UpdateOneAsync(m => m.Id == mediaItem.Id, Builders<Media>.Update.Set(m => m.Tags, mediaItem.Tags), null, cancellationToken);
+		}
+		Console.WriteLine("All Tags Derived");
+	}
 }

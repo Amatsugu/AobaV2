@@ -52,7 +52,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 				div {
 					class: "mediaGrid",
 					{result.items.iter().map(|itm| rsx!{
-						MediaItem { item: itm.clone() }
+						MediaItem { item: Some(itm.clone()) }
 					})},
 				}
 			},
@@ -68,9 +68,9 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 		None => rsx! {
 			div{
 				class: "mediaGrid",
-				div {
-					"Loading..."
-				}
+				{(0..50).map(|_| rsx!{
+					MediaItem {}
+				})}
 			}
 		},
 	}

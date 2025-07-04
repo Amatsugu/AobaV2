@@ -15,6 +15,7 @@ public class Media
 	public int ViewCount { get; set; }
 	public ObjectId Owner { get; set; }
 	public DateTime UploadDate { get; set; }
+	public string[] Tags { get; set; } = [];
 
 
 	public static readonly Dictionary<string, MediaType> KnownTypes = new()
@@ -66,6 +67,7 @@ public class Media
 		Owner = owner;
 		Id = ObjectId.GenerateNewId();
 		UploadDate = DateTime.UtcNow;
+		Tags = DeriveTags(filename);
 	}
 
 	public string GetMediaUrl()
@@ -84,6 +86,14 @@ public class Media
 			return mType;
 		else
 			return MediaType.Raw;
+	}
+
+	public static string[] DeriveTags(string filename)
+	{
+		return filename.Split('_')
+			.SelectMany(v => v.Split('-'))
+			.SelectMany(v => v.Split(' '))
+			.ToArray();
 	}
 }
 

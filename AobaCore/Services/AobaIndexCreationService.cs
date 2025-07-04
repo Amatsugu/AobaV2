@@ -17,7 +17,9 @@ public class AobaIndexCreationService(IMongoDatabase db): BackgroundService
 	{
 		BsonSerializer.RegisterSerializer(new EnumSerializer<ThumbnailSize>(BsonType.String));
 		var textKeys = Builders<Media>.IndexKeys
-			.Text(m => m.Filename);
+			.Text(m => m.Filename)
+			.Text(m => m.Ext)
+			.Text(m => m.Tags);
 
 		var textModel = new CreateIndexModel<Media>(textKeys, new CreateIndexOptions
 		{
