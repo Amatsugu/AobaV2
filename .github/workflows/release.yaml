@@ -1,0 +1,34 @@
+name: "Build and Push Image"
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkou code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Extract tag version
+        id: extract_tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: git.kaisei.app/amatsugu/aoba:${{ env.VERSION }}

@@ -18,7 +18,7 @@ COPY /AobaServer/Proto /app/AobaServer/Proto
 
 # Install Protobuf
 RUN apt update
-RUN apt install -y protobuf-compiler libprotobuf-dev
+RUN apt install -y protobuf-compiler libprotobuf-dev ffmpeg
 
 # Install `dx`
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
@@ -57,6 +57,6 @@ RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-# RUN apt update
-# RUN apt install -y ffmpeg libgdiplus
+COPY --from=client-builder /bin/ffmpeg /bin/ffprobe /bin/ffplay /usr/bin/
+
 ENTRYPOINT ["dotnet", "AobaServer.dll"]
