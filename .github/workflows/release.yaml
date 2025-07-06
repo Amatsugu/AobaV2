@@ -29,6 +29,7 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
+          file: AobaServer/Dockerfile
           context: .
           push: true
           tags: git.kaisei.app/amatsugu/aoba:${{ env.VERSION }}
