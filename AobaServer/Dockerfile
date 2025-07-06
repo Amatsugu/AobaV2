@@ -24,7 +24,8 @@ RUN apt install -y protobuf-compiler libprotobuf-dev ffmpeg
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall dioxus-cli --root /.cargo -y --force
 ENV PATH="/.cargo/bin:$PATH"
-
+ARG VERSION
+ENV APP_VERSION=$VERSION
 # Create the final bundle folder. Bundle always executes in release mode with optimizations enabled
 RUN dx bundle --platform web
 
@@ -56,7 +57,7 @@ RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+
 COPY --from=publish /app/publish .
 COPY --from=client-builder /bin/ffmpeg /bin/ffprobe /bin/ffplay /usr/bin/
-
 ENTRYPOINT ["dotnet", "AobaServer.dll"]

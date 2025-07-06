@@ -1,3 +1,5 @@
+use std::env;
+
 use dioxus::prelude::*;
 
 use crate::{Route, contexts::AuthContext};
@@ -47,9 +49,10 @@ pub fn Widgets() -> Element {
 #[component]
 pub fn Utils() -> Element {
 	let mut auth_context = use_context::<AuthContext>();
-
+	let version = env::var("APP_VERSION").unwrap_or("DEBUG".into());
 	rsx! {
 		div { class: "utils",
+			div { "{version}" }
 			div { onclick: move |_| auth_context.logout(), "Logout" }
 		}
 	}
