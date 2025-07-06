@@ -60,4 +60,5 @@ WORKDIR /app
 
 COPY --from=publish /app/publish .
 COPY --from=client-builder /bin/ffmpeg /bin/ffprobe /bin/ffplay /usr/bin/
+ENV APP_VERSION=$VERSION
 ENTRYPOINT ["dotnet", "AobaServer.dll"]

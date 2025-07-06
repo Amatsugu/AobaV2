@@ -19,6 +19,7 @@ web-sys = { version = "0.3.77", features = ["Storage", "Window"] }
 
 [build-dependencies]
 tonic-build = { version = "*", default-features = false, features = ["prost"] }
+dotenv = "0.15.0"
 
 [features]
 default = ["web"]

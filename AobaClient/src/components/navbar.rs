@@ -2,7 +2,7 @@ use std::env;
 
 use dioxus::prelude::*;
 
-use crate::{Route, contexts::AuthContext};
+use crate::{Route, contexts::AuthContext, env::APP_VERSION};
 
 const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
 const NAV_ICON: Asset = asset!("/assets/favicon.ico");
@@ -49,7 +49,7 @@ pub fn Widgets() -> Element {
 #[component]
 pub fn Utils() -> Element {
 	let mut auth_context = use_context::<AuthContext>();
-	let version = env::var("APP_VERSION").unwrap_or("DEBUG".into());
+	let version = APP_VERSION;
 	rsx! {
 		div { class: "utils",
 			div { "{version}" }
