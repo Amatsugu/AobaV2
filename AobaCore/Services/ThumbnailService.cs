@@ -132,6 +132,11 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		{
 			opt.WithCustomArgument($"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0 -r 15")
 			.ForceFormat("webp");
+		}).Configure(cfg =>
+		{
+#if !DEBUG
+			cfg.BinaryFolder = "/usr/bin";
+#endif
 		}).ProcessSynchronously();
 		output.Position = 0;
 		return output;
