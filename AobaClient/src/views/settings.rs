@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::rpc::get_rpc_client;
+use crate::{components::MetricsToken, rpc::get_rpc_client};
 
 #[component]
 pub fn Settings() -> Element {
@@ -27,5 +27,6 @@ pub fn Settings() -> Element {
 		div {
 			pre { class: "codeSelect", "{d}" }
 		}
+		MetricsToken {  }
 	}
 }

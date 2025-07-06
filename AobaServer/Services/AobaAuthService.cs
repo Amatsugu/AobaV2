@@ -9,15 +9,13 @@ using AobaServer.Utils;
 using Grpc.Core;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
+using Aoba.RPC;
 
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AobaServer.Services;
 
-public class AobaAuthService(AccountsService accountsService, AuthInfo authInfo) : Aoba.RPC.Auth.AuthRpc.AuthRpcBase
+public class AobaAuthService(AccountsService accountsService, AuthInfo authInfo) : AuthRpc.AuthRpcBase
 {
-	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
 	{
 		var user = await accountsService.VerifyLoginAsync(request.User, request.Password, context.CancellationToken);
@@ -32,7 +30,7 @@ public class AobaAuthService(AccountsService accountsService, AuthInfo authInfo)
 		var token = user.GetToken(authInfo);
 		return new LoginResponse
 		{
-			Jwt = new Jwt
+			Jwt = new ()
 			{
 				Token = token
 			}

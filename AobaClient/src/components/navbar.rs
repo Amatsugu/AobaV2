@@ -1,5 +1,3 @@
-use std::env;
-
 use dioxus::prelude::*;
 
 use crate::{Route, contexts::AuthContext, env::APP_VERSION};

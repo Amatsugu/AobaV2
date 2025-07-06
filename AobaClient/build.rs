@@ -8,8 +8,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.build_server(false)
 		.build_client(true)
 		.compile_protos(
-			&["../AobaServer/Proto/Aoba.proto", "../AobaServer/Proto/Auth.proto"],
-			&["../AobaServer/Proto/"],
+			&[
+				"../AobaServer/Proto/Aoba.proto",
+				"../AobaServer/Proto/Auth.proto",
+				"../AobaServer/Proto/Metrics.proto",
+				"../AobaServer/Proto/Types.proto",
+			],
+			&["../AobaServer/"],
 		)?;
 	forward_env();
 	Ok(())

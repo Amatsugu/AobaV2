@@ -1,19 +1,22 @@
 use std::sync::RwLock;
 
-use aoba::{aoba_rpc_client::AobaRpcClient, auth_rpc_client::AuthRpcClient};
+use aoba::aoba_rpc_client::AobaRpcClient;
 use tonic::service::{Interceptor, interceptor::InterceptedService};
 use tonic_web_wasm_client::Client;
 
-use crate::RPC_HOST;
+use crate::{
+	RPC_HOST,
+	rpc::aoba::{auth_rpc_client::AuthRpcClient, metrics_rpc_client::MetricsRpcClient},
+};
 
 pub mod aoba {
 	tonic::include_proto!("aoba");
-	tonic::include_proto!("aoba.auth");
 }
 
 static RPC_CLIENT: RpcConnection = RpcConnection {
 	aoba: RwLock::new(None),
 	auth: RwLock::new(None),
+	metrics: RwLock::new(None),
 	jwt: RwLock::new(None),
 };
 
@@ -21,6 +24,7 @@ static RPC_CLIENT: RpcConnection = RpcConnection {
 pub struct RpcConnection {
 	aoba: RwLock<Option<AobaRpcClient<InterceptedService<Client, AuthInterceptor>>>>,
 	auth: RwLock<Option<AuthRpcClient<Client>>>,
+	metrics: RwLock<Option<MetricsRpcClient<InterceptedService<Client, AuthInterceptor>>>>,
 	jwt: RwLock<Option<String>>,
 }
 
@@ -35,12 +39,19 @@ impl RpcConnection {
 		return self.auth.read().unwrap().clone().unwrap();
 	}
 
+	pub fn get_metrics_client(&self) -> MetricsRpcClient<InterceptedService<Client, AuthInterceptor>> {
+		self.ensure_client();
+		return self.metrics.read().unwrap().clone().unwrap();
+	}
+
 	fn ensure_client(&self) {
 		if self.aoba.read().unwrap().is_none() {
 			let wasm_client = Client::new(RPC_HOST.into());
 			let aoba_client = AobaRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor);
 			*self.aoba.write().unwrap() = Some(aoba_client);
 			*self.auth.write().unwrap() = Some(AuthRpcClient::new(wasm_client.clone()));
+			*self.metrics.write().unwrap() =
+				Some(MetricsRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor));
 		}
 	}
 }
@@ -66,6 +77,9 @@ pub fn get_auth_rpc_client() -> AuthRpcClient<Client> {
 	return RPC_CLIENT.get_auth_client();
 }
 
+pub fn get_metrics_rpc_client() -> MetricsRpcClient<InterceptedService<Client, AuthInterceptor>> {
+	return RPC_CLIENT.get_metrics_client();
+}
 pub fn login(jwt: String) {
 	*RPC_CLIENT.jwt.write().unwrap() = Some(jwt);
 }

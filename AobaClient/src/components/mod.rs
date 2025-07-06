@@ -1,11 +1,13 @@
 pub mod basic;
 mod media_grid;
 mod media_item;
+mod metrics_token;
 mod navbar;
 mod notif;
 mod search;
 pub use media_grid::*;
 pub use media_item::*;
+pub use metrics_token::*;
 pub use navbar::*;
 pub use notif::*;
 pub use search::*;

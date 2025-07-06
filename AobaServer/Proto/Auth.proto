@@ -1,33 +1,12 @@
 syntax = "proto3";
 
 option csharp_namespace = "Aoba.RPC.Auth";
-package aoba.Auth;
+package aoba;
+
+import "Proto/Types.proto";
 
 service AuthRpc {
 	rpc Login(Credentials) returns (LoginResponse);
 	rpc LoginPasskey(PassKeyPayload) returns (LoginResponse);
 }
 
-message Credentials{
-	string user = 1;
-	string password = 2;
-}
-
-message PassKeyPayload {
-
-}
-
-message Jwt{
-	string token = 1;
-}
-
-message LoginResponse{
-	oneof result {
-		Jwt jwt = 1;
-		LoginError error = 2;
-	}
-}
-
-message LoginError{
-	string message = 1;
-}

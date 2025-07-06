@@ -12,7 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace AobaServer.Services;
 
-public class MetricsRpcService(AuthConfigService authConfig): Aoba.RPC.Metrics.Metrics.MetricsBase
+public class MetricsRpcService(AuthConfigService authConfig): Aoba.RPC.Metrics.MetricsRpc.MetricsRpcBase
 {
 	[AllowAnonymous]
 	public override async Task<Jwt> GetToken(Empty request, ServerCallContext context)

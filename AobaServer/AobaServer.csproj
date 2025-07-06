@@ -35,6 +35,7 @@
 	  <Protobuf Include="Proto\Aoba.proto"></Protobuf>
 	  <Protobuf Include="Proto\Auth.proto"></Protobuf>
 	  <Protobuf Include="Proto\Metrics.proto"></Protobuf>
+	  <Protobuf Include="Proto\Types.proto"></Protobuf>
   </ItemGroup>
 
 </Project>
