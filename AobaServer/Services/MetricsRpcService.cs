@@ -14,7 +14,6 @@ namespace AobaServer.Services;
 
 public class MetricsRpcService(AuthConfigService authConfig): Aoba.RPC.Metrics.MetricsRpc.MetricsRpcBase
 {
-	[AllowAnonymous]
 	public override async Task<Jwt> GetToken(Empty request, ServerCallContext context)
 	{
 		var authInfo = await authConfig.GetAuthInfoAsync("aoba", "metrics");
