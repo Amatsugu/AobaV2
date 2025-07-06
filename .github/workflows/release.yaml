@@ -34,4 +34,4 @@ jobs:
           context: .
           push: true
           tags: git.kaisei.app/amatsugu/aoba:${{ env.VERSION }}
-          build-args: VERSION=${ env.VERSION }
+          build-args: VERSION=${{ env.VERSION }}
