@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, AccountsService accountsService, AuthInfo authInfo) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, AccountsService accountsService, AuthConfigService authConfig) : AobaRpc.AobaRpcBase
 {
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
@@ -37,6 +37,7 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 		var user = await accountsService.GetUserAsync(userId, context.CancellationToken);
 		if (user == null)
 			return new ShareXResponse { Error = "User does not exist" };
+		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
 		var token = user.GetToken(authInfo);
 		var dest = new ShareXDestination
 		{
