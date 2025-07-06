@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Extensions.DiagnosticSources;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(o =>
@@ -33,8 +36,21 @@ builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdMo
 builder.Services.AddObersability(builder.Configuration);
 builder.Services.AddGrpc();
 
-var authInfo = AuthInfo.LoadOrCreate("Auth.json", "aobaV2", "aoba");
-builder.Services.AddSingleton(authInfo);
+//DB
+var dbString = config["DB_STRING"];
+var settings = MongoClientSettings.FromConnectionString(dbString);
+settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
+var dbClient = new MongoClient(settings);
+var db = dbClient.GetDatabase("Aoba");
+
+builder.Services.AddSingleton(dbClient);
+builder.Services.AddSingleton<IMongoDatabase>(db);
+
+var authCfg = new AuthConfigService(db);
+builder.Services.AddSingleton(authCfg);
+
+
+var authInfo = authCfg.GetDefaultAuthInfoAsync().GetAwaiter().GetResult();
 var signingKey = new SymmetricSecurityKey(authInfo.SecureKey);
 
 var validationParams = new TokenValidationParameters
@@ -66,6 +82,7 @@ builder.Services.AddCors(o =>
 	});
 });
 
+var metricsAuthInfo = authCfg.GetAuthInfoAsync("aoba", "metrics").GetAwaiter().GetResult();
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,7 +90,7 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
 	options.TokenValidationParameters = validationParams;
-	options.TokenHandlers.Add(new MetricsTokenValidator(authInfo));
+	options.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
 	options.Events = new JwtBearerEvents
 	{
 		OnMessageReceived = ctx => //Retreive token from cookie if not found in headers
@@ -102,8 +119,8 @@ builder.Services.AddAuthentication(options =>
 	};
 }).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", null);
 
-var dbString = config["DB_STRING"];
-builder.Services.AddAoba(dbString ?? "mongodb://localhost:27017");
+
+builder.Services.AddAoba();
 builder.Services.Configure<FormOptions>(opt =>
 {
 	opt.ValueLengthLimit = int.MaxValue;

@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson.IO;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization.Attributes;
 
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -7,6 +9,8 @@ namespace AobaServer.Models;
 
 public class AuthInfo
 {
+	[BsonId]
+	public ObjectId Id { get; set; }
 	public required string Issuer { get; set; }
 	public required string Audience { get; set; }
 	public required byte[] SecureKey { get; set; }

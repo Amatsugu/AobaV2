@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option csharp_namespace = "Aoba.RPC.Metrics";
+package aoba.Metrics;
+
+import "Proto/Auth.proto";
+import "google/protobuf/empty.proto";
+
+
+service Metrics {
+	rpc GetToken(google.protobuf.Empty) returns (Auth.Jwt);
+}

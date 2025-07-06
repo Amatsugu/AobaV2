@@ -16,15 +16,9 @@ using System.Threading.Tasks;
 namespace AobaCore;
 public static class Extensions
 {
-	public static IServiceCollection AddAoba(this IServiceCollection services, string dbString)
+	public static IServiceCollection AddAoba(this IServiceCollection services)
 	{
-		var settings = MongoClientSettings.FromConnectionString(dbString);
-		settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
-		var dbClient = new MongoClient(settings);
-		var db = dbClient.GetDatabase("Aoba");
-
-		services.AddSingleton(dbClient);
-		services.AddSingleton<IMongoDatabase>(db);
+		
 		services.AddSingleton<AobaService>();
         services.AddSingleton<ThumbnailService>();
 		services.AddSingleton<AccountsService>();
