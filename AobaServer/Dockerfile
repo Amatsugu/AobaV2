@@ -38,7 +38,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 # This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AobaServer/AobaServer.csproj", "AobaServer/"]
@@ -47,7 +47,7 @@ COPY . .
 # Copy Built bundle from client builder
 COPY --from=client-builder /app/AobaClient/target/dx/aoba-client/release/web/public /src/AobaServer/wwwroot
 WORKDIR "/src/AobaServer"
-RUN dotnet build "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# RUN dotnet build "./AobaServer.csproj" -c $BUILD_CONFIGURATION #-o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
@@ -57,8 +57,9 @@ RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-
+USER root
+RUN apt-get update && apt-get install -y ffmpeg
 COPY --from=publish /app/publish .
-COPY --from=client-builder /bin/ffmpeg /bin/ffprobe /bin/ffplay /usr/bin/
+ARG VERSION
 ENV APP_VERSION=$VERSION
 ENTRYPOINT ["dotnet", "AobaServer.dll"]
