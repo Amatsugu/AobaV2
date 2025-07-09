@@ -32,6 +32,7 @@ RUN dx bundle --platform web
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+RUN apt-get update && apt-get install -y ffmpeg
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -57,9 +58,8 @@ RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-USER root
-RUN apt-get update && apt-get install -y ffmpeg
 COPY --from=publish /app/publish .
 ARG VERSION
+
 ENV APP_VERSION=$VERSION
 ENTRYPOINT ["dotnet", "AobaServer.dll"]
