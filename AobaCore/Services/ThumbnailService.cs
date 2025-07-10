@@ -121,25 +121,35 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	public Maybe<Stream> GenerateVideoThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var w = (int)size;
-		var source = new MemoryStream();
+		var fn = ObjectId.GenerateNewId().ToString();
+		var filePath = $"/tmp/{fn}.in";
+		using var source = new FileStream(filePath, FileMode.CreateNew);
 		data.CopyTo(source);
-		source.Position = 0;
-		var output = new MemoryStream();
-		FFMpegArguments.FromPipeInput(new StreamPipeSource(source), opt =>
+		source.Flush();
+		source.Dispose();
+		data.Dispose();
+		try
 		{
-			opt.WithCustomArgument("-t 5");
-		}).OutputToPipe(new StreamPipeSink(output), opt =>
+			var output = new MemoryStream();
+			FFMpegArguments.FromFileInput(filePath, false, opt =>
+			{
+				opt.WithCustomArgument("-t 5");
+			}).OutputToPipe(new StreamPipeSink(output), opt =>
+			{
+				opt.WithCustomArgument($"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0 -r 15")
+				.ForceFormat("webp");
+			}).ProcessSynchronously();
+			output.Position = 0;
+			return output;
+		}
+		catch(Exception ex)
 		{
-			opt.WithCustomArgument($"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}\" -loop 0 -r 15")
-			.ForceFormat("webp");
-		}).Configure(cfg =>
+			return ex;
+		}
+		finally
 		{
-#if !DEBUG
-			cfg.BinaryFolder = "/usr/bin";
-#endif
-		}).ProcessSynchronously();
-		output.Position = 0;
-		return output;
+			File.Delete(filePath);
+		}
 	}
 
 	public async Task<Maybe<Stream>> GenerateDocumentThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
