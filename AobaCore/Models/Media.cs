@@ -50,6 +50,10 @@ public class Media
 			{ ".xml", MediaType.Code },
 			{ ".json", MediaType.Code },
 			{ ".py", MediaType.Code },
+			{ ".rs", MediaType.Code },
+			{ ".zed", MediaType.Code },
+			{ ".ts", MediaType.Code },
+			{ ".astro", MediaType.Code },
 		};
 
 	[BsonConstructor]

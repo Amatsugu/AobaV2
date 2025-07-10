@@ -2,13 +2,15 @@ using AobaCore.Models;
 
 using MaybeError.Errors;
 
+using Microsoft.Extensions.Logging;
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
-public class AobaService(IMongoDatabase db)
+public class AobaService(IMongoDatabase db, ThumbnailService thumbnailService, ILogger<AobaService> logger)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	private readonly GridFSBucket _gridFs = new(db);
@@ -69,6 +71,7 @@ public class AobaService(IMongoDatabase db)
 		{
 			var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
 			var media = new Media(fileId, filename, owner);
+			
 			await AddMediaAsync(media, cancellationToken);
 			return media;
 		}

@@ -24,7 +24,6 @@ namespace AobaCore.Services;
 public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
-	private Lock _lock = new();
 
 	/// <summary>
 	///
