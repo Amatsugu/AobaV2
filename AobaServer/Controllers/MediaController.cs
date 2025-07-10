@@ -17,7 +17,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> MediaAsync(ObjectId id, [FromServices] MongoClient client, CancellationToken cancellationToken)
 	{
-		var file = await aobaService.GetFileStreamAsync(id, cancellationToken: cancellationToken);
+		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
 		if (file.HasError)
 		{
 			logger.LogError(file.Error.Exception, "Failed to load media stream");
