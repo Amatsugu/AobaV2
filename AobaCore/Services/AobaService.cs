@@ -10,7 +10,7 @@ using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
-public class AobaService(IMongoDatabase db, ThumbnailService thumbnailService, ILogger<AobaService> logger)
+public class AobaService(IMongoDatabase db)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	private readonly GridFSBucket _gridFs = new(db);
