@@ -56,6 +56,7 @@ public static class ProtoExtensions
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
 			ThumbUrl = thumbUrl,
+			MediaUrl = media.GetMediaUrl()
 		};
 	}
 

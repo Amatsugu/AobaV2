@@ -1,6 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
+using SixLabors.ImageSharp;
+
 namespace AobaCore.Models;
 
 [BsonIgnoreExtraElements]
@@ -16,6 +18,7 @@ public class Media
 	public ObjectId Owner { get; set; }
 	public DateTime UploadDate { get; set; }
 	public string[] Tags { get; set; } = [];
+	public Size? Dimensions { get; set; }
 	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
 
 
@@ -82,7 +85,7 @@ public class Media
 	{
 		return this switch
 		{
-			//Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code} => $"/i/dl/{MediaId}/{Filename}",
+			Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code } => $"/m/{MediaId}/{Uri.EscapeDataString(Filename)}",
 			_ => $"/m/{MediaId}"
 		};
 	}

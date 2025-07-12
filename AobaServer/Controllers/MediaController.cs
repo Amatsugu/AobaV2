@@ -14,6 +14,7 @@ namespace AobaServer.Controllers;
 public class MediaController(AobaService aobaService, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
+	[HttpGet("{id}/*")]
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> MediaAsync(ObjectId id, [FromServices] MongoClient client, CancellationToken cancellationToken)
 	{
@@ -58,6 +59,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	}
 
 	[HttpGet("/t/{id}")]
+	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken = default)
 	{
 		var thumb = await thumbnailService.GetThumbnailByFileIdAsync(id, cancellationToken);

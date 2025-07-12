@@ -82,6 +82,7 @@ message MediaModel {
 	int32 viewCount = 5;
 	Id owner = 6;
 	string thumbUrl = 7;
+	string mediaUrl = 8;
 }
 
 enum MediaType {
@@ -98,4 +99,15 @@ message ShareXResponse {
 		string destination = 1;
 		string error = 2;
 	}
+}
+
+
+message SearchQuery {
+	optional string queryText = 1;
+	repeated Filter filters = 2;
+}
+
+message Filter {
+	string key = 1;
+	repeated string values = 2;
 }
