@@ -2,6 +2,8 @@
 @import "colors";
 * {
 	box-sizing: border-box;
+	scrollbar-color: $accentColor transparent;
+	scrollbar-width: thin;
 }
 
 :root {
@@ -18,6 +20,7 @@
 .stickyTop {
 	top: 0;
 	position: sticky;
+	z-index: 100;
 }
 
 body {
@@ -34,6 +37,8 @@ body {
 #content {
 	grid-area: Content;
 	overflow-x: hidden;
+	overflow-y: auto;
+	height: 100dvh;
 	padding: 10px;
 	/* margin-left: $navBarSize; */
 }
