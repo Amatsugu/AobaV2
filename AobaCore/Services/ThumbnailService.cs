@@ -3,6 +3,9 @@
 using FFMpegCore;
 using FFMpegCore.Pipes;
 
+using HeyRed.ImageSharp.Heif.Formats.Avif;
+using HeyRed.ImageSharp.Heif.Formats.Heif;
+
 using MaybeError.Errors;
 
 using MongoDB.Bson;
@@ -10,6 +13,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Processing;
 
 using System;
@@ -91,16 +95,32 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	{
 		return type switch
 		{
-			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, cancellationToken),
+			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
 			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
 			MediaType.Text or MediaType.Code => await GenerateDocumentThumbnailAsync(stream, size, cancellationToken),
 			_ => new Error($"No Thumbnail for {type}"),
 		};
 	}
 
-	public static async Task<Stream> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, CancellationToken cancellationToken = default)
+	private static Image LoadImageAsync(Stream stream, string ext)
 	{
-		var img = Image.Load(stream);
+		if (ext is ".heif" or ".avif")
+		{
+			var decoderOptions = new DecoderOptions()
+			{
+				Configuration = new Configuration(
+					new AvifConfigurationModule(),
+					new HeifConfigurationModule())
+			};
+			return Image.Load(decoderOptions, stream);
+		}
+		else
+			return Image.Load(stream);
+	}
+
+	public static async Task<Stream> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
+	{
+		var img = LoadImageAsync(stream, ext);
 		img.Mutate(o =>
 		{
 			var size =
@@ -141,7 +161,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 			output.Position = 0;
 			return output;
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			return ex;
 		}
