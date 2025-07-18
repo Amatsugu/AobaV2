@@ -3,8 +3,6 @@
 using FFMpegCore;
 using FFMpegCore.Pipes;
 
-using HeyRed.ImageSharp.Heif.Formats.Avif;
-using HeyRed.ImageSharp.Heif.Formats.Heif;
 
 using MaybeError.Errors;
 
@@ -102,26 +100,22 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		};
 	}
 
-	private static Image LoadImageAsync(Stream stream, string ext)
+	private static Maybe<Image> LoadImageAsync(Stream stream, string ext)
 	{
 		if (ext is ".heif" or ".avif")
 		{
-			var decoderOptions = new DecoderOptions()
-			{
-				Configuration = new Configuration(
-					new AvifConfigurationModule(),
-					new HeifConfigurationModule())
-			};
-			return Image.Load(decoderOptions, stream);
+			return new Error("Unsupported image type");
 		}
 		else
 			return Image.Load(stream);
 	}
 
-	public static async Task<Stream> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
+	public static async Task<Maybe<Stream>> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
 	{
 		var img = LoadImageAsync(stream, ext);
-		img.Mutate(o =>
+		if (img.HasError)
+			return img.Error;
+		img.Value.Mutate(o =>
 		{
 			var size =
 			o.Resize(new ResizeOptions
@@ -132,7 +126,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 			});
 		});
 		var result = new MemoryStream();
-		await img.SaveAsWebpAsync(result, cancellationToken);
+		await img.Value.SaveAsWebpAsync(result, cancellationToken);
 		result.Position = 0;
 		return result;
 	}
