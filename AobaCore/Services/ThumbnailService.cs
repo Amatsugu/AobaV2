@@ -100,7 +100,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		};
 	}
 
-	private static Maybe<Image> LoadImageAsync(Stream stream, string ext)
+	private static Maybe<Image> LoadImage(Stream stream, string ext)
 	{
 		if (ext is ".heif" or ".avif")
 		{
@@ -112,7 +112,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 
 	public static async Task<Maybe<Stream>> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
 	{
-		var img = LoadImageAsync(stream, ext);
+		var img = LoadImage(stream, ext);
 		if (img.HasError)
 			return img.Error;
 		img.Value.Mutate(o =>
@@ -125,6 +125,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 				Size = new Size(300, 300)
 			});
 		});
+		img.Value.Dispose();
 		var result = new MemoryStream();
 		await img.Value.SaveAsWebpAsync(result, cancellationToken);
 		result.Position = 0;

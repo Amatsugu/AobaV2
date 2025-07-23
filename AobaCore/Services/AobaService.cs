@@ -79,6 +79,10 @@ public class AobaService(IMongoDatabase db)
 		{
 			return ex;
 		}
+		finally
+		{
+			data.Dispose();
+		}
 	}
 
 	public async Task<MaybeEx<GridFSDownloadStream, GridFSException>> GetFileStreamAsync(ObjectId mediaId, bool seekable = false, CancellationToken cancellationToken = default)
