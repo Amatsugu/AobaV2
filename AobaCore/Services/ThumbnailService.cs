@@ -125,9 +125,9 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 				Size = new Size(300, 300)
 			});
 		});
-		img.Value.Dispose();
 		var result = new MemoryStream();
 		await img.Value.SaveAsWebpAsync(result, cancellationToken);
+		img.Value.Dispose();
 		result.Position = 0;
 		return result;
 	}
