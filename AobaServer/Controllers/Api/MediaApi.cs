@@ -22,6 +22,7 @@ public class MediaApi(AobaService aoba) : ControllerBase
 		if (media.HasError)
 			return Problem(detail: media.Error.Message, statusCode: StatusCodes.Status400BadRequest);
 
+
 		return Ok(new
 		{
 			media = media.Value,
