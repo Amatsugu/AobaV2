@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::MediaItem,
+	components::{ContextMenu, MediaItem},
 	rpc::{aoba::PageFilter, get_rpc_client},
 };
 
@@ -46,15 +46,32 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 		}
 	}));
 
+	let mut context_menu: Signal<Element> = use_signal(|| rsx! {});
+	let oncontext = move |event: Event<MouseData>| {
+		event.prevent_default();
+		let data = event.data();
+		let pos = data.coordinates().client();
+		let left = pos.x;
+		let top = pos.y;
+		context_menu.set(rsx! { ContextMenu{
+			left: left,
+			top: top
+		}});
+	};
+
 	match media_result.cloned() {
 		Some(value) => match value {
 			Ok(result) => rsx! {
 				div {
 					class: "mediaGrid",
+					onclick: move |_e| {
+						context_menu.set(rsx!{});
+					},
 					{result.items.iter().map(|itm| rsx!{
-						MediaItem { item: Some(itm.clone()) }
+						MediaItem { item: Some(itm.clone()), oncontextmenu: oncontext }
 					})},
 				}
+				{context_menu.cloned()}
 			},
 			Err(msg) => rsx! {
 				div {

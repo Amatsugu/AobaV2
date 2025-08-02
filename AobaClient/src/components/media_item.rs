@@ -5,6 +5,7 @@ use crate::{HOST, rpc::aoba::MediaModel};
 #[derive(PartialEq, Clone, Props)]
 pub struct MediaItemProps {
 	pub item: Option<MediaModel>,
+	pub oncontextmenu: Option<EventHandler<Event<MouseData>>>,
 }
 
 #[component]
@@ -15,11 +16,17 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 		let id = item.id.unwrap().value;
 		let thumb = item.thumb_url;
 		let url = item.media_url;
+
 		return rsx! {
 			a {
 				class: "mediaItem",
 				href: "{HOST}/{url}",
 				target: "_blank",
+				oncontextmenu: move |e| {
+					if let Some(handler) = props.oncontextmenu{
+						handler.call(e);
+					}
+				},
 				"data-id" : id,
 				img { src: "{HOST}{thumb}" }
 				span { class: "info",
@@ -29,7 +36,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 						span { "{item.view_count}" }
 					}
 				}
-			}
+			},
 		};
 	} else {
 		return rsx! {

@@ -7,7 +7,7 @@ pub struct InputProps {
 	pub label: Option<String>,
 	pub placeholder: Option<String>,
 	pub name: String,
-	pub oninput: Option<EventHandler<FormEvent>>,
+	pub oninput: Option<EventHandler<Event<FormData>>>,
 	pub required: Option<bool>,
 }
 
@@ -22,9 +22,12 @@ pub fn Input(props: InputProps) -> Element {
 				r#type: props.r#type.unwrap_or("text".into()),
 				value: props.value,
 				oninput: move |e| {
-				    if let Some(mut s) = props.value {
-				        s.set(e.value());
-				    }
+					if let Some(mut s) = props.value {
+						s.set(e.value());
+					}
+					if let Some(handler) = props.oninput{
+						handler.call(e);
+					}
 				},
 				name: props.name,
 				placeholder: ph,
