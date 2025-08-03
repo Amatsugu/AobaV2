@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::{ContextMenu, MediaItem},
+	components::{ContextMenu, ContextMenuItem, MediaItem},
 	rpc::{aoba::PageFilter, get_rpc_client},
 };
 
@@ -53,10 +53,29 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 		let pos = data.coordinates().client();
 		let left = pos.x;
 		let top = pos.y;
-		context_menu.set(rsx! { ContextMenu{
-			left: left,
-			top: top
-		}});
+		context_menu.set(rsx! {
+			ContextMenu{
+				left: left,
+				top: top,
+				items: vec![
+					rsx!{
+						ContextMenuItem{
+							name: "Details"
+						}
+					},
+					rsx!{
+						ContextMenuItem{
+							name: "Download"
+						}
+					},
+					rsx!{
+						ContextMenuItem{
+							name: "Delete"
+						}
+					},
+				]
+			}
+		});
 	};
 
 	match media_result.cloned() {

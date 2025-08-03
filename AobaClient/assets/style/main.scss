@@ -157,3 +157,35 @@ form {
 	padding: 5px;
 	user-select: all;
 }
+
+.contextMenu {
+	backdrop-filter: blur(10px) brightness(0.5) grayscale(1);
+	position: absolute;
+
+	.itemList {
+		display: flex;
+		flex-direction: column;
+		max-width: 300px;
+	}
+
+	.contextItem {
+		border-left: 4px solid $featureColor;
+		$size: 30px;
+		display: grid;
+		grid-template-columns: $size 1fr auto;
+		height: $size;
+		transition: border 0.1s ease-out;
+
+		.label {
+			display: flex;
+			align-items: center;
+			padding: 5px 10px;
+		}
+
+		&:hover {
+			background-color: $accentColor;
+			color: $invertTextColor;
+			border-left: 10px solid $focusColor;
+		}
+	}
+}
