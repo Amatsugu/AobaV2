@@ -20,7 +20,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 		return rsx! {
 			a {
 				class: "mediaItem",
-				href: "{HOST}/{url}",
+				href: "{HOST}{url}",
 				target: "_blank",
 				oncontextmenu: move |e| {
 					if let Some(handler) = props.oncontextmenu{

@@ -44,20 +44,32 @@ body {
 }
 
 $mediaItemSize: 300px;
+$mediaItemSizeMin: 200px;
 
 .mediaGrid {
-	display: flex;
+	/* display: flex;
 	flex-wrap: wrap;
-	justify-content: center;
+	justify-content: center; */
+
+	display: grid;
+	grid-template-columns: repeat(
+		10,
+		minmax($mediaItemSizeMin, $mediaItemSize)
+	);
+
+	@small-container {
+	}
 	gap: 10px;
 	margin: 10px 0;
 
 	.mediaItem {
+		/* min-width: $mediaItemSizeMin; */
 		width: $mediaItemSize;
-		height: $mediaItemSize;
+		/* height: $mediaItemSize; */
+		aspect-ratio: 1/1;
 		overflow: hidden;
 		display: grid;
-		grid-template-columns: $mediaItemSize;
+		grid-template-columns: 100%;
 		grid-template-areas: "A";
 		box-shadow: 0 0 2px #000;
 		color: $mainTextColor;
