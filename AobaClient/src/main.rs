@@ -11,6 +11,8 @@ use contexts::AuthContext;
 use dioxus::prelude::*;
 use route::Route;
 
+use crate::components::ContextMenuRenderer;
+
 #[cfg(debug_assertions)]
 pub const HOST: &'static str = "http://localhost:8081";
 #[cfg(debug_assertions)]
@@ -31,6 +33,7 @@ fn main() {
 #[component]
 fn App() -> Element {
 	let _auth_state = use_context_provider(|| AuthContext::new());
+	let _renderer = use_context_provider(|| ContextMenuRenderer::default());
 	rsx! {
 		document::Link { rel: "icon", href: FAVICON }
 		document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }
@@ -41,6 +44,7 @@ fn App() -> Element {
 			rel: "stylesheet",
 			href: "https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap",
 		}
-		Router::<Route> {}
+
+		Router::<Route> { }
 	}
 }

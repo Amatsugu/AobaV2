@@ -161,6 +161,7 @@ form {
 .contextMenu {
 	backdrop-filter: blur(10px) brightness(0.5) grayscale(1);
 	position: absolute;
+	z-index: 100;
 
 	.itemList {
 		display: flex;

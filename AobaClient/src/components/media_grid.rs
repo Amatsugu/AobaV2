@@ -2,7 +2,10 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::{ContextMenu, ContextMenuItem, MediaItem},
+	components::{
+		ContextMenuRenderer, MediaItem,
+		props::{ContextMenu, ContextMenuItem},
+	},
 	rpc::{aoba::PageFilter, get_rpc_client},
 };
 
@@ -46,36 +49,32 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 		}
 	}));
 
-	let mut context_menu: Signal<Element> = use_signal(|| rsx! {});
+	let mut ct_renderer = use_context::<ContextMenuRenderer>();
+
 	let oncontext = move |event: Event<MouseData>| {
 		event.prevent_default();
 		let data = event.data();
 		let pos = data.coordinates().client();
 		let left = pos.x;
 		let top = pos.y;
-		context_menu.set(rsx! {
-			ContextMenu{
-				left: left,
-				top: top,
-				items: vec![
-					rsx!{
-						ContextMenuItem{
-							name: "Details"
-						}
-					},
-					rsx!{
-						ContextMenuItem{
-							name: "Download"
-						}
-					},
-					rsx!{
-						ContextMenuItem{
-							name: "Delete"
-						}
-					},
-				]
-			}
-		});
+		ct_renderer.menu.set(Some(ContextMenu {
+			left: left,
+			top: top,
+			items: Some(vec![
+				ContextMenuItem {
+					name: "Details".to_string(),
+					..Default::default()
+				},
+				ContextMenuItem {
+					name: "Download".to_string(),
+					..Default::default()
+				},
+				ContextMenuItem {
+					name: "Delete".to_string(),
+					..Default::default()
+				},
+			]),
+		}));
 	};
 
 	match media_result.cloned() {
@@ -83,14 +82,10 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 			Ok(result) => rsx! {
 				div {
 					class: "mediaGrid",
-					onclick: move |_e| {
-						context_menu.set(rsx!{});
-					},
 					{result.items.iter().map(|itm| rsx!{
 						MediaItem { item: Some(itm.clone()), oncontextmenu: oncontext }
 					})},
 				}
-				{context_menu.cloned()}
 			},
 			Err(msg) => rsx! {
 				div {

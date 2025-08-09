@@ -1,6 +1,11 @@
 use dioxus::prelude::*;
 
-use crate::{Route, components::Navbar, contexts::AuthContext, views::Login};
+use crate::{
+	Route,
+	components::{ContextMenuRoot, Navbar},
+	contexts::AuthContext,
+	views::Login,
+};
 
 #[component]
 pub fn MainLayout() -> Element {
@@ -13,6 +18,7 @@ pub fn MainLayout() -> Element {
 	}
 
 	return rsx! {
+		ContextMenuRoot {  }
 		Navbar {}
 		div { id: "content", Outlet::<Route> {} }
 	};
