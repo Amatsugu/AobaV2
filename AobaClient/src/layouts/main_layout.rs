@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::{
 	Route,
-	components::{ContextMenuRoot, Navbar},
+	components::{ContextMenuRenderer, ContextMenuRoot, Navbar},
 	contexts::AuthContext,
 	views::Login,
 };
@@ -13,13 +13,24 @@ pub fn MainLayout() -> Element {
 
 	if auth_context.jwt.cloned().is_none() {
 		return rsx! {
-			Login {}
+			Login { }
 		};
 	}
 
+	let mut ct_renderer = use_context::<ContextMenuRenderer>();
+
 	return rsx! {
 		ContextMenuRoot {  }
-		Navbar {}
-		div { id: "content", Outlet::<Route> {} }
+		Navbar { }
+		div {
+			id: "content",
+			onclick: move |_| {
+				ct_renderer.close();
+			},
+			oncontextmenu: move |_| {
+				ct_renderer.close();
+			},
+			Outlet::<Route> { }
+		}
 	};
 }

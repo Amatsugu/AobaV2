@@ -2,10 +2,7 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::{
-		ContextMenuRenderer, MediaItem,
-		props::{ContextMenu, ContextMenuItem},
-	},
+	components::MediaItem,
 	rpc::{aoba::PageFilter, get_rpc_client},
 };
 
@@ -49,41 +46,16 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 		}
 	}));
 
-	let mut ct_renderer = use_context::<ContextMenuRenderer>();
-
-	let oncontext = move |event: Event<MouseData>| {
-		event.prevent_default();
-		let data = event.data();
-		let pos = data.coordinates().client();
-		let left = pos.x;
-		let top = pos.y;
-		ct_renderer.menu.set(Some(ContextMenu {
-			left: left,
-			top: top,
-			items: Some(vec![
-				ContextMenuItem {
-					name: "Details".to_string(),
-					..Default::default()
-				},
-				ContextMenuItem {
-					name: "Download".to_string(),
-					..Default::default()
-				},
-				ContextMenuItem {
-					name: "Delete".to_string(),
-					..Default::default()
-				},
-			]),
-		}));
-	};
-
 	match media_result.cloned() {
 		Some(value) => match value {
 			Ok(result) => rsx! {
 				div {
 					class: "mediaGrid",
+					// oncontextmenu: oncontext,
 					{result.items.iter().map(|itm| rsx!{
-						MediaItem { item: Some(itm.clone()), oncontextmenu: oncontext }
+						MediaItem {
+							item: itm.clone()
+						}
 					})},
 				}
 			},
@@ -100,7 +72,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 			div{
 				class: "mediaGrid",
 				{(0..50).map(|_| rsx!{
-					MediaItem {}
+					MediaItem { }
 				})}
 			}
 		},

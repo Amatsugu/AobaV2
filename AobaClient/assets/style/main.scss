@@ -176,6 +176,11 @@ form {
 		grid-template-columns: $size 1fr auto;
 		height: $size;
 		transition: border 0.1s ease-out;
+		cursor: default;
+
+		&.clickable {
+			cursor: pointer;
+		}
 
 		.label {
 			display: flex;

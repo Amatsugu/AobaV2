@@ -2,26 +2,27 @@ use core::str;
 
 use dioxus::prelude::*;
 
-pub mod props {
+mod props {
 	use dioxus::prelude::*;
 
 	#[derive(PartialEq, Clone, Props)]
 	pub struct ContextMenu {
 		pub top: f64,
 		pub left: f64,
-		pub items: Option<Vec<ContextMenuItem>>,
+		pub items: Element,
 	}
 
 	#[derive(PartialEq, Clone, Props, Default)]
 	pub struct ContextMenuItem {
 		pub name: String,
-		pub sub_items: Option<Vec<ContextMenuItem>>,
+		pub sub_items: Option<Element>,
+		pub onclick: Option<EventHandler<MouseEvent>>,
 	}
 }
 
 #[derive(Clone, Copy, Default)]
 pub struct ContextMenuRenderer {
-	pub menu: Signal<Option<props::ContextMenu>>,
+	pub menu: Signal<Option<Element>>,
 }
 
 impl ContextMenuRenderer {
@@ -32,11 +33,7 @@ impl ContextMenuRenderer {
 	pub fn render(&self) -> Element {
 		if let Some(menu) = self.menu.cloned() {
 			rsx! {
-				ContextMenu{
-					items: menu.items,
-					left: menu.left,
-					top: menu.top
-				}
+				{menu}
 			}
 		} else {
 			rsx! {}
@@ -53,43 +50,40 @@ pub fn ContextMenuRoot() -> Element {
 }
 
 #[component]
-fn ContextMenu(props: props::ContextMenu) -> Element {
-	let menu_items = if let Some(items) = props.items {
-		rsx! {
-			ItemList { items }
-		}
-	} else {
-		rsx! {}
-	};
-
+pub fn ContextMenu(props: props::ContextMenu) -> Element {
 	rsx! {
 		div {
 			class: "contextMenu",
 			style: "left: {props.left}px; top: {props.top}px;",
-			{menu_items}
+			ItemList { items: props.items }
 		}
 	}
 }
 
 #[component]
-fn ItemList(items: Vec<props::ContextMenuItem>) -> Element {
+fn ItemList(items: Element) -> Element {
 	rsx! {
 		div{
 			class: "itemList",
-			{items.iter().map(|e| rsx!{
-				ContextMenuItem{
-					name: e.name.clone(),
-					sub_items: e.sub_items.clone()
-				}
-			})}
+			{items}
 		}
 	}
 }
 
 #[component]
-fn ContextMenuItem(props: props::ContextMenuItem) -> Element {
+pub fn ContextMenuItem(props: props::ContextMenuItem) -> Element {
+	let mut renderer = use_context::<ContextMenuRenderer>();
+	if let Some(_sub) = props.sub_items {
+		todo!("Sub Menu");
+	}
 	rsx! {
 		div{
+			onclick: move |e|{
+				if let Some(handler) = props.onclick{
+					handler.call(e);
+				}
+				renderer.close();
+			},
 			class: "contextItem",
 			div {
 				class: "icon"
