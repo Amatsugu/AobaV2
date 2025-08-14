@@ -1,0 +1,46 @@
+pipeline:
+    build-and-push:
+        image: plugins/docker
+        settings:
+            dockerfile: AobaServer/Dockerfile
+            context: .
+            repo: git.kaisei.app/amatsugu/aoba
+            tags: latest
+            username:
+                from_secret: docker_user
+            password:
+                from_secret: docker_pass
+
+    deploy:
+        image: appleboy/ssh
+        settings:
+            host: your-app-host.internal
+            username: deploy
+            key:
+                from_secret: ssh_key
+            port: 22
+            script:
+                - docker pull git.kaisei.app/amatsugu/aoba:latest
+
+                # Run temporary container on docker network, no port binding
+                - docker run -d --rm \
+                  --name aoba-temp \
+                  --network aoba-net \
+                  git.kaisei.app/amatsugu/aoba:latest
+
+                # Wait for it to become healthy
+                - sleep 3
+                - curl -f http://aoba-temp:8080 --connect-timeout 2 || (echo "Health check failed" && docker stop aoba-temp && exit 1)
+
+                # Stop old container (bound to host port)
+                - docker stop aoba || true
+
+                # Start new container on network and bind to host port 8080
+                - docker run -d --rm \
+                  --name aoba \
+                  --network aoba-net \
+                  -p 9432:8080 \
+                  git.kaisei.app/amatsugu/aoba:latest
+
+                # Stop temp container
+                - docker stop aoba-temp || true
