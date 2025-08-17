@@ -121,6 +121,9 @@ builder.Services.AddAuthentication(options =>
 
 
 builder.Services.AddAoba();
+#if DEBUG
+builder.Services.AddHostedService<DebugService>();
+#endif
 builder.Services.Configure<FormOptions>(opt =>
 {
 	opt.ValueLengthLimit = int.MaxValue;

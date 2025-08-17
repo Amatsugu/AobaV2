@@ -27,6 +27,28 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
 
+	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size)
+	{
+		var thumbId = await aobaService.GetThumbnailIdAsync(mediaId, size);
+		if (thumbId == default)
+			return null;
+		try
+		{
+			await _gridfs.DeleteAsync(thumbId);
+			await aobaService.RemoveThumbnailAsync(mediaId, size);
+		}
+		catch (GridFSFileNotFoundException)
+		{
+			//Ignore if the file was not found (somehow already deleted)
+			await aobaService.RemoveThumbnailAsync(mediaId, size);
+		}
+		catch (Exception e)
+		{
+			return new ExceptionError(e);
+		}
+		return null;
+	}
+
 	/// <summary>
 	///
 	/// </summary>
@@ -36,6 +58,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	/// <returns></returns>
 	public async Task<Maybe<Stream>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
+
 		var existingThumb = await GetThumbnailAsync(mediaId, size, cancellationToken);
 		if (existingThumb != null)
 			return existingThumb;
@@ -112,6 +135,9 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 
 	public static async Task<Maybe<Stream>> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
 	{
+		if(ext == ".avif")
+			return GenerateAvifThumbnail(stream, size, cancellationToken);
+
 		var img = LoadImage(stream, ext);
 		if (img.HasError)
 			return img.Error;
@@ -132,7 +158,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		return result;
 	}
 
-	public Maybe<Stream> GenerateVideoThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public static Maybe<Stream> GenerateVideoThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
@@ -157,6 +183,49 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 			return output;
 		}
 		catch (Exception ex)
+		{
+			return ex;
+		}
+		finally
+		{
+			File.Delete(filePath);
+		}
+	}
+
+	public static Maybe<Stream> GenerateAvifThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken)
+	{
+		var w = (int)size;
+		var fn = ObjectId.GenerateNewId().ToString();
+		var filePath = $"/tmp/{fn}.in";
+		using var source = new FileStream(filePath, FileMode.CreateNew);
+		data.CopyTo(source);
+		source.Flush();
+		source.Dispose();
+		data.Dispose();
+		try
+		{
+			var output = new MemoryStream();
+			FFMpegArguments.FromFileInput(filePath, false, opt =>
+			{
+				//opt.WithCustomArgument("-vf  ");
+			})
+			.OutputToPipe(new StreamPipeSink(output), opt =>
+			{
+				var tonemap = ",format=gbrpf32le,zscale=primaries=bt2020:transfer=smpte2084:matrix=gbr,tonemap=hable,zscale=primaries=bt709:transfer=bt709:matrix=bt709,format=yuv420p";
+				var args = $"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w},"
+				+ $"{tonemap}\""
+				//+ "zscale=primaries=bt2020:transfer=smpte2084:matrix=bt2020nc,format=gbrpf32le,"
+				//+ "zscale=primaries=bt709:transfer=bt709:matrix=bt709:range=tv,tonemap=hable,"
+				//+ "zscale=matrix=bt709:transfer=bt709:primaries=bt709,"
+				//+ "format=yuv420p\" "
+				+ "-colorspace bt709";
+				opt.WithCustomArgument(args)
+				.ForceFormat("webp");
+			}).ProcessSynchronously();
+			output.Position = 0;
+			return output;
+		}
+		catch(Exception ex)
 		{
 			return ex;
 		}

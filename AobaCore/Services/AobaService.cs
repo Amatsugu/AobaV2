@@ -40,6 +40,11 @@ public class AobaService(IMongoDatabase db)
 		return new PagedResult<Media>(items, page, pageSize, total);
 	}
 
+	public async Task<List<Media>> FindMediaWithExtAsync(string ext, CancellationToken cancellationToken = default)
+	{
+		var filter = Builders<Media>.Filter.Eq(m => m.Ext, ext);
+		return await _media.Find(filter).ToListAsync();
+	}
 
 	public Task AddMediaAsync(Media media, CancellationToken cancellationToken = default)
 	{
@@ -49,6 +54,13 @@ public class AobaService(IMongoDatabase db)
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var upate = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);
+
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, upate, cancellationToken: cancellationToken);
+	}
+
+	public async Task RemoveThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		var upate = Builders<Media>.Update.Unset(m => m.Thumbnails[size]);
 
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, upate, cancellationToken: cancellationToken);
 	}
