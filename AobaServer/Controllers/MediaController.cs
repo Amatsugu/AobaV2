@@ -14,7 +14,7 @@ namespace AobaServer.Controllers;
 public class MediaController(AobaService aobaService, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
-	[HttpGet("{id}/*")]
+	[HttpGet("{id}/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> MediaAsync(ObjectId id, [FromServices] MongoClient client, CancellationToken cancellationToken)
 	{
@@ -27,6 +27,22 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
 		_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
 		return File(file, mime, true);
+	}
+
+	[HttpGet("{id}/dl")]
+	[HttpGet("{id}/dl/{*fn}")]
+	[ResponseCache(Duration = int.MaxValue)]
+	public async Task<IActionResult> DownloadMediaAsync(ObjectId id, [FromServices] MongoClient client, [FromQuery] string? fn = null, CancellationToken cancellationToken = default)
+	{
+		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
+		if (file.HasError)
+		{
+			logger.LogError(file.Error.Exception, "Failed to load media stream");
+			return NotFound();
+		}
+		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
+		_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
+		return File(file, mime, fn ?? file.Value.FileInfo.Filename, true);
 	}
 
 	/// <summary>
