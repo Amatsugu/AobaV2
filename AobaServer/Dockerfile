@@ -22,7 +22,7 @@ RUN apt install -y protobuf-compiler libprotobuf-dev ffmpeg
 
 # Install `dx`
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall dioxus-cli@0.6.3 --root /.cargo -y --force
+RUN cargo binstall dioxus-cli@0.7.2 --root /.cargo -y --force
 ENV PATH="/.cargo/bin:$PATH"
 ARG VERSION
 ENV APP_VERSION=$VERSION

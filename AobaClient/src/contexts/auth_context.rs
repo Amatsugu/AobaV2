@@ -1,4 +1,4 @@
-use dioxus::signals::{Signal, Writable};
+use dioxus::signals::{Signal, WritableExt};
 use web_sys::window;
 
 use crate::rpc::{login, logout};
