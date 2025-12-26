@@ -27,7 +27,7 @@ ENV PATH="/.cargo/bin:$PATH"
 ARG VERSION
 ENV APP_VERSION=$VERSION
 # Create the final bundle folder. Bundle always executes in release mode with optimizations enabled
-RUN dx bundle --platform web
+RUN dx bundle --release --platform web
 
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
