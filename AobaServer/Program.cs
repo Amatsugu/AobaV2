@@ -127,7 +127,7 @@ builder.Services.AddHostedService<DebugService>();
 builder.Services.Configure<FormOptions>(opt =>
 {
 	opt.ValueLengthLimit = int.MaxValue;
-	opt.MultipartBodyLengthLimit = int.MaxValue;
+	opt.MultipartBodyLengthLimit = long.MaxValue;
 });
 
 var app = builder.Build();
