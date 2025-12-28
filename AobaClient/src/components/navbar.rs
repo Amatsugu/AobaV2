@@ -22,7 +22,7 @@ pub fn Navbar() -> Element {
 pub fn MainNaviagation() -> Element {
 	rsx! {
 		div { class: "mainNav",
-			Link { class: "navItem", to: Route::Home {}, "Home" }
+			Link { class: "navItem", to: Route::Home { }, "Home" }
 			Link { class: "navItem", to: Route::Settings {}, "Settings" }
 		}
 	}

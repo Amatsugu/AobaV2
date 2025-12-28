@@ -1,6 +1,6 @@
 use crate::{
 	layouts::MainLayout,
-	views::{Home, Settings},
+	views::{Home, Media, Settings},
 };
 use dioxus::prelude::*;
 
@@ -8,8 +8,11 @@ use dioxus::prelude::*;
 #[rustfmt::skip]
 pub enum Route {
 	#[layout(MainLayout)]
+
 		#[route("/")]
-		Home {},
+		Home { },
+		#[route("/media/:id")]
+		Media { id: String },
 		#[route("/settings")]
 		Settings {},
 	// #[end_layout]

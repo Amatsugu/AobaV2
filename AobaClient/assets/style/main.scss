@@ -195,3 +195,24 @@ form {
 		}
 	}
 }
+
+.pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 5;
+	padding: 2px;
+
+	a {
+		transition: all 0.25s ease-out;
+		cursor: pointer;
+		user-select: none;
+		padding: 5px 10px;
+		background-color: $featureColor;
+		border-radius: 4px;
+
+		&:hover {
+			background-color: $focusColor;
+		}
+	}
+}

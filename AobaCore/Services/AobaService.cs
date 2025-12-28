@@ -37,7 +37,7 @@ public class AobaService(IMongoDatabase db)
 		var total = await find.CountDocumentsAsync();
 		page -= 1;
 		var items = await find.Sort(sort).Skip(page * pageSize).Limit(pageSize).ToListAsync();
-		return new PagedResult<Media>(items, page, pageSize, total);
+		return new PagedResult<Media>(items, page, pageSize, (int)total);
 	}
 
 	public async Task<List<Media>> FindMediaWithExtAsync(string ext, CancellationToken cancellationToken = default)

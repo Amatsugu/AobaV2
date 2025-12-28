@@ -9,6 +9,8 @@ use crate::{
 #[derive(PartialEq, Clone, Props)]
 pub struct MediaGridProps {
 	pub query: Option<String>,
+	pub max_page: Signal<i32>,
+	pub total_items: Signal<i32>,
 	#[props(default = Some(1))]
 	pub page: Option<i32>,
 	#[props(default = Some(100))]
@@ -33,12 +35,13 @@ impl Into<PageFilter> for MediaGridProps {
 }
 
 #[component]
-pub fn MediaGrid(props: MediaGridProps) -> Element {
+pub fn MediaGrid(mut props: MediaGridProps) -> Element {
 	let media_result = use_resource(use_reactive!(|(props)| async move {
 		let mut client = get_rpc_client();
 		let result = client.list_media(props.into_request()).await;
 		if let Ok(items) = result {
-			return Ok(items.into_inner());
+			let res = items.into_inner();
+			return Ok(res);
 		} else {
 			let err = result.err().unwrap();
 			let message = err.message();
@@ -48,17 +51,24 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 
 	match media_result.cloned() {
 		Some(value) => match value {
-			Ok(result) => rsx! {
-				div {
-					class: "mediaGrid",
-					// oncontextmenu: oncontext,
-					{result.items.iter().map(|itm| rsx!{
-						MediaItem {
-							item: itm.clone()
-						}
-					})},
-				}
-			},
+			Ok(result) => {
+				let pagination = result.pagination.unwrap();
+				let total_pages = pagination.total_pages;
+				let total_items = pagination.total_items;
+				props.max_page.set(total_pages.max(1));
+				props.total_items.set(total_items.max(1));
+				return rsx! {
+					div {
+						class: "mediaGrid",
+						// oncontextmenu: oncontext,
+						{result.items.iter().map(|itm| rsx!{
+							MediaItem {
+								item: itm.clone()
+							}
+						})},
+					}
+				};
+			}
 			Err(msg) => rsx! {
 				div {
 					class: "mediaGrid",
