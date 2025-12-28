@@ -8,8 +8,11 @@ pub fn Home() -> Element {
 	let max_page = use_signal(|| 1 as i32);
 	let item_count = use_signal(|| 0 as i32);
 	rsx! {
-		Search { query, page },
-		Pagination { page, max_page, item_count },
+		div	{
+			class: "stickyTop",
+			Search { query, page },
+			Pagination { page, max_page, item_count },
+		}
 		MediaGrid { query: query.cloned(), page: page.cloned(), max_page, total_items: item_count }
 	}
 }

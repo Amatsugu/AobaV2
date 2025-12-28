@@ -21,6 +21,8 @@
 	top: 0;
 	position: sticky;
 	z-index: 100;
+	backdrop-filter: blur(20px);
+	box-shadow: 0 3px 10px $mainBGColor;
 }
 
 body {
@@ -201,7 +203,7 @@ form {
 	justify-content: center;
 	align-items: center;
 	gap: 5;
-	padding: 2px;
+	padding: 10px;
 
 	a {
 		transition: all 0.25s ease-out;

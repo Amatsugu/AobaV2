@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn Search(query: Signal<String>, page: Signal<i32>) -> Element {
 	rsx! {
-		div { class: "searchBar stickyTop",
+		div { class: "searchBar",
 			input {
 				r#type: "search",
 				placeholder: "Search Files",
