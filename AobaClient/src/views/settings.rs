@@ -1,14 +1,21 @@
 use dioxus::prelude::*;
 
-use crate::{components::MetricsToken, rpc::get_rpc_client};
+use crate::{
+	components::{MetricsToken, PasskeyRegistrationButton},
+	rpc::get_rpc_client,
+};
 
 #[component]
-pub fn Settings() -> Element {
+pub fn Settings() -> Element
+{
 	let dst = use_resource(async move || {
 		let result = get_rpc_client().get_share_x_destination(()).await;
-		if let Ok(d) = result {
-			if let Some(r) = d.into_inner().dst_result {
-				return match r {
+		if let Ok(d) = result
+		{
+			if let Some(r) = d.into_inner().dst_result
+			{
+				return match r
+				{
 					crate::rpc::aoba::share_x_response::DstResult::Destination(json) => json,
 					crate::rpc::aoba::share_x_response::DstResult::Error(err) => err,
 				};
@@ -28,5 +35,6 @@ pub fn Settings() -> Element {
 			pre { class: "codeSelect", "{d}" }
 		}
 		MetricsToken {  }
+		PasskeyRegistrationButton { }
 	}
 }

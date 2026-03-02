@@ -7,6 +7,6 @@ import "Proto/Types.proto";
 
 service AuthRpc {
 	rpc Login(Credentials) returns (LoginResponse);
-	rpc LoginPasskey(PassKeyPayload) returns (LoginResponse);
+	rpc LoginPasskey(PasskeyPayload) returns (LoginResponse);
 }
 

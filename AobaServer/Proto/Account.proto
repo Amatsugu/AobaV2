@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "Aoba.RPC.Account";
+package aoba;
+
+import "google/protobuf/empty.proto";
+import "Proto/Types.proto";
+
+service AccountRpc {
+	rpc RegisterPasskey(google.protobuf.Empty) returns (PasskeyRegistrationCreds);
+	rpc CompletePasskeyRegistration(PasskeyPublicKey) returns (google.protobuf.Empty);
+}
+

@@ -1,5 +1,8 @@
+ARG NET_VERSION="10.0"
+ARG DX_VERSION="0.7.3"
+
 # Client Side build - prep deps
-FROM rust:1 AS chef
+FROM rust:1-trixie AS chef
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install cargo-chef
 WORKDIR /app
@@ -22,7 +25,8 @@ RUN apt install -y protobuf-compiler libprotobuf-dev ffmpeg
 
 # Install `dx`
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall dioxus-cli@0.7.2 --root /.cargo -y --force
+ARG DX_VERSION
+RUN cargo binstall dioxus-cli@${DX_VERSION} --root /.cargo -y --force
 ENV PATH="/.cargo/bin:$PATH"
 ARG VERSION
 ENV APP_VERSION=$VERSION
@@ -31,7 +35,7 @@ RUN dx bundle --release --platform web
 
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} AS base
 RUN apt-get update && apt-get install -y ffmpeg #libvips libvips-tools
 USER $APP_UID
 WORKDIR /app
@@ -39,11 +43,11 @@ EXPOSE 8080
 EXPOSE 8081
 
 # This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION}-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AobaServer/AobaServer.csproj", "AobaServer/"]
-RUN dotnet restore "./AobaServer/AobaServer.csproj"
+RUN dotnet restore "/src/AobaServer/AobaServer.csproj"
 COPY . .
 # Copy Built bundle from client builder
 COPY --from=client-builder /app/AobaClient/target/dx/aoba-client/release/web/public /src/AobaServer/wwwroot

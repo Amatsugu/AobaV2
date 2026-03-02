@@ -9,9 +9,7 @@ message Credentials{
 	string password = 2;
 }
 
-message PassKeyPayload {
 
-}
 
 
 message Jwt{
@@ -110,4 +108,15 @@ message SearchQuery {
 message Filter {
 	string key = 1;
 	repeated string values = 2;
+}
+
+message PasskeyPayload {
+
+}
+
+message PasskeyRegistrationCreds{
+
+}
+message PasskeyPublicKey{
+
 }

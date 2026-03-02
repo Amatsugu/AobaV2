@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>9ffcc706-7f1b-48e3-bf30-eab69a90fded</UserSecretsId>
@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Fido2" Version="4.0.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.71.0" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
@@ -33,6 +34,7 @@
 
   <ItemGroup>
 	  <Protobuf Include="Proto\Aoba.proto"></Protobuf>
+	  <Protobuf Include="Proto\Account.proto" />
 	  <Protobuf Include="Proto\Auth.proto"></Protobuf>
 	  <Protobuf Include="Proto\Metrics.proto"></Protobuf>
 	  <Protobuf Include="Proto\Types.proto"></Protobuf>
