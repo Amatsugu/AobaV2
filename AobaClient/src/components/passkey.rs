@@ -17,6 +17,8 @@ pub fn PasskeyRegistrationButton() -> Element
 
 fn start_passkey_registration() {}
 
+fn create_credential() {}
+
 #[component]
 pub fn PasskeyLoginButton() -> Element
 {
