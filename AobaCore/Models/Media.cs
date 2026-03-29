@@ -20,6 +20,7 @@ public class Media
 	public string[] Tags { get; set; } = [];
 	public Size? Dimensions { get; set; }
 	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
+	public MediaClass Class { get; set; }
 
 
 	public static readonly Dictionary<string, MediaType> KnownTypes = new()
@@ -116,4 +117,11 @@ public enum MediaType
 	Text,
 	Code,
 	Raw
+}
+
+public enum MediaClass
+{
+	Standard,
+	NSFW,
+	Secret
 }

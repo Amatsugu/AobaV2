@@ -9,10 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
 
-using MongoDB.Bson.IO;
-
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace AobaServer.Services;
 
@@ -20,7 +17,7 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 {
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
-		var media = await aobaService.GetMediaFromLegacyIdAsync(request.ToObjectId());
+		var media = await aobaService.GetMediaFromLegacyIdAsync(request.ToObjectId(), context.CancellationToken);
 		return media.ToResponse();
 	}
 
@@ -29,6 +26,12 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 		var user = context.GetUserId();
 		var result = await aobaService.FindMediaAsync(request.Query, user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
 		return result.ToResponse();
+	}
+
+	public override async Task<Empty> SetMediaClass(SetMediaClassRequest request, ServerCallContext context)
+	{
+		await aobaService.SetMediaClassAsync(request.Id.ToObjectId(), (AobaCore.Models.MediaClass)request.Class, context.CancellationToken);
+		return new Empty();
 	}
 
 	public override async Task<ShareXResponse> GetShareXDestination(Empty request, ServerCallContext context)
@@ -50,10 +53,7 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 		};
 		return new ShareXResponse
 		{
-			Destination = JsonSerializer.Serialize(dest, new JsonSerializerOptions
-			{
-				WriteIndented = true
-			})
+			Destination = JsonSerializer.Serialize(dest)
 		};
 	}
 

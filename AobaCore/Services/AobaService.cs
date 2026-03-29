@@ -25,30 +25,40 @@ public class AobaService(IMongoDatabase db)
 		return await _media.Find(m => m.MediaId == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<PagedResult<Media>> FindMediaAsync(string? query, ObjectId userId, int page = 1, int pageSize = 100)
+	public async Task<PagedResult<Media>> FindMediaAsync(string? query, ObjectId userId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
 	{
-		var filter = Builders<Media>.Filter.And([
+		var filters = new List<FilterDefinition<Media>>()
+		{
 			string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query),
 			Builders<Media>.Filter.Eq(m => m.Owner, userId)
-		]);
+		};
+		if (string.IsNullOrWhiteSpace(query))
+			filters.Add(Builders<Media>.Filter.Ne(m => m.Class, MediaClass.Secret));
 		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);
-		var find = _media.Find(filter);
+		var find = _media.Find(Builders<Media>.Filter.And(filters));
 
-		var total = await find.CountDocumentsAsync();
+		var total = await find.CountDocumentsAsync(cancellationToken);
 		page -= 1;
-		var items = await find.Sort(sort).Skip(page * pageSize).Limit(pageSize).ToListAsync();
+		var items = await find.Sort(sort).Skip(page * pageSize).Limit(pageSize).ToListAsync(cancellationToken);
 		return new PagedResult<Media>(items, page, pageSize, (int)total);
 	}
 
 	public async Task<List<Media>> FindMediaWithExtAsync(string ext, CancellationToken cancellationToken = default)
 	{
 		var filter = Builders<Media>.Filter.Eq(m => m.Ext, ext);
-		return await _media.Find(filter).ToListAsync();
+		return await _media.Find(filter).ToListAsync(cancellationToken);
 	}
 
 	public Task AddMediaAsync(Media media, CancellationToken cancellationToken = default)
 	{
 		return _media.InsertOneAsync(media, null, cancellationToken);
+	}
+
+	public async Task SetMediaClassAsync(ObjectId mediaId, MediaClass mediaClass, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update
+			.Set(m => m.Class, mediaClass);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)

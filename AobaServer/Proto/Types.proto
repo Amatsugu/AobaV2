@@ -9,7 +9,10 @@ message Credentials{
 	string password = 2;
 }
 
-
+message SetMediaClassRequest{
+	Id id = 1;
+	MediaClass class = 2;
+}
 
 
 message Jwt{
@@ -81,6 +84,7 @@ message MediaModel {
 	Id owner = 6;
 	string thumbUrl = 7;
 	string mediaUrl = 8;
+	MediaClass class = 9;
 }
 
 enum MediaType {
@@ -90,6 +94,12 @@ enum MediaType {
 	Text = 3;
 	Code = 4;
 	Raw = 5;
+}
+
+enum MediaClass {
+	Standard = 0;
+	NSFW = 1;
+	Secret = 2;
 }
 
 message ShareXResponse {

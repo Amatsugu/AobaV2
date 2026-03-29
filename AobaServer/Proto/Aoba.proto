@@ -12,5 +12,6 @@ service AobaRpc {
   rpc ListMedia(PageFilter) returns (ListResponse);
   rpc GetUser(Id) returns (UserResponse);
   rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
+  rpc SetMediaClass(SetMediaClassRequest) returns(google.protobuf.Empty);
 }
 
