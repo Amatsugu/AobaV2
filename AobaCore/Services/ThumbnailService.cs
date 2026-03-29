@@ -64,7 +64,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		if (existingThumb != null)
 			return existingThumb;
 
-		var media = await aobaService.GetMediaFromFileAsync(mediaId, cancellationToken);
+		var media = await aobaService.GetMediaAsync(mediaId, cancellationToken);
 
 		if (media == null)
 			return new Error("Media does not exist");

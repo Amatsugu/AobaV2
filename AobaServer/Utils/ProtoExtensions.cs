@@ -35,7 +35,7 @@ public static class ProtoExtensions
 	public static MediaResponse ToResponse(this Media? media)
 	{
 		if(media == null) 
-			return new MediaResponse() { Empty = new Empty() };
+			return new MediaResponse() {};
 		return new MediaResponse()
 		{
 			Value = media.ToMediaModel()

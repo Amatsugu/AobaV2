@@ -17,7 +17,7 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 {
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
-		var media = await aobaService.GetMediaFromLegacyIdAsync(request.ToObjectId(), context.CancellationToken);
+		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
 		return media.ToResponse();
 	}
 

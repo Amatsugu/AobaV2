@@ -41,10 +41,7 @@ message Id {
 }
 
 message MediaResponse {
-	oneof result {
-		MediaModel value = 1;
-		google.protobuf.Empty empty = 2;
-	}
+	optional MediaModel value = 1;
 }
 
 message ListResponse {

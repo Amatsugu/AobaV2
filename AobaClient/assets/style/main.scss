@@ -112,6 +112,14 @@ $mediaItemSize: 300px;
 
 		&.placeholder {
 		}
+
+		&.nsfw img {
+			filter: blur(20px);
+			transition: filter 0.25s ease-out;
+		}
+		&.nsfw:hover img {
+			filter: blur(0px);
+		}
 	}
 }
 
@@ -170,34 +178,42 @@ form {
 		flex-direction: column;
 		max-width: 300px;
 	}
+}
+.contextItem {
+	border-left: 4px solid $featureColor;
+	$size: 30px;
+	display: grid;
+	grid-template-columns: $size 1fr;
+	grid-template-areas: "Icon Label";
+	height: $size;
+	transition: border 0.1s ease-out;
+	cursor: default;
+	width: 100%;
 
-	.contextItem {
-		border-left: 4px solid $featureColor;
-		$size: 30px;
-		display: grid;
-		grid-template-columns: $size 1fr auto;
-		height: $size;
-		transition: border 0.1s ease-out;
-		cursor: default;
+	&.clickable {
+		cursor: pointer;
+	}
 
-		&.clickable {
-			cursor: pointer;
-		}
+	.label {
+		grid-area: Label;
+		display: flex;
+		align-items: center;
+		padding: 5px 10px;
+	}
 
-		.label {
-			display: flex;
-			align-items: center;
-			padding: 5px 10px;
-		}
+	.icon {
+		grid-area: Icon;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-		&:hover {
-			background-color: $accentColor;
-			color: $invertTextColor;
-			border-left: 10px solid $focusColor;
-		}
+	&:hover {
+		background-color: $accentColor;
+		color: $invertTextColor;
+		border-left: 10px solid $focusColor;
 	}
 }
-
 .pagination {
 	display: flex;
 	justify-content: center;

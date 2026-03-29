@@ -20,7 +20,7 @@ public class AobaService(IMongoDatabase db)
 		return await _media.Find(m => m.LegacyId == id).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<Media?> GetMediaFromFileAsync(ObjectId id, CancellationToken cancellationToken = default)
+	public async Task<Media?> GetMediaAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
 		return await _media.Find(m => m.MediaId == id).FirstOrDefaultAsync(cancellationToken);
 	}
