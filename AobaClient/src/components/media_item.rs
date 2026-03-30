@@ -73,7 +73,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 						class: "contextItem",
 						div{
 							class: "label",
-							"Details {class_signal()}"
+							"Details"
 						}
 					}
 				},
@@ -129,7 +129,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 								class: "contextItem",
 								div{
 									class: "label",
-									"Mark blur"
+									"Mark NSFW"
 								}
 							}
 						}}

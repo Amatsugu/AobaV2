@@ -21,7 +21,12 @@ pub struct MediaGridProps
 #[component]
 pub fn MediaGrid(mut props: MediaGridProps) -> Element
 {
+	let mut error_display = use_signal(|| {
+		rsx! {}
+	});
+	let mut items = use_signal::<Option<Vec<MediaModel>>>(|| None);
 	let media_result = use_resource(use_reactive!(|(props)| async move {
+		items.set(None);
 		let mut client = get_rpc_client();
 		let request = PageFilter {
 			page_size: Some(props.page_size.cloned()),
@@ -43,19 +48,7 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 		}
 	}));
 
-	let mut media_grid_display = use_signal(|| {
-		rsx! {
-			div{
-				class: "mediaGrid",
-				{(0..50).map(|_| rsx!{
-					MediaItemPlaceHolder { }
-				})}
-			}
-		}
-	});
-	let mut items = use_signal::<Vec<MediaModel>>(|| Vec::new());
-
-	use_memo(move || match media_result()
+	use_effect(move || match media_result()
 	{
 		Some(value) => match value
 		{
@@ -68,34 +61,49 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 					props.max_page.set(total_pages.max(1));
 					props.total_items.set(total_items.max(1));
 				}
-				items.set(result.items);
-				media_grid_display.set(rsx! {
-					MediaList { items }
-				});
+				items.set(Some(result.items));
+				error_display.set(rsx! {});
 			}
-			Err(msg) => media_grid_display.set(rsx! {
+			Err(msg) => error_display.set(rsx! {
 				div{
 					"Failed to load results: {msg}"
 				}
 			}),
 		},
-		_ => (),
+		_ =>
+		{}
 	});
 
 	rsx! {
 		div {
 			class: "mediaGrid",
-			{media_grid_display}
+			{error_display}
+			{match items(){
+				Some(itms) => rsx!{MediaList { items: itms }},
+				None => rsx!{PlaceholderGrid { count: props.page_size.cloned() as usize }}
+			}}
 		}
 	}
 }
 
 #[component]
-fn MediaList(items: Signal<Vec<MediaModel>>) -> Element
+fn PlaceholderGrid(count: usize) -> Element
 {
-	let vec = items.cloned();
 	rsx! {
-		{vec.iter().map(|itm| rsx!{
+		div{
+			class: "mediaGrid",
+			{(0..count).map(|_| rsx!{
+				MediaItemPlaceHolder { }
+			})}
+		}
+	}
+}
+
+#[component]
+fn MediaList(items: Vec<MediaModel>) -> Element
+{
+	rsx! {
+		{items.iter().map(|itm| rsx!{
 			MediaItem {
 				item: itm.clone()
 			}
