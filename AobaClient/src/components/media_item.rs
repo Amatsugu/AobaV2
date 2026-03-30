@@ -5,9 +5,8 @@ use web_sys::window;
 
 use crate::{
 	HOST,
-	route::Route,
 	rpc::{
-		aoba::{Id, MediaClass, MediaModel, SetMediaClassRequest},
+		aoba::{Id, MediaModel, SetMediaClassRequest},
 		get_rpc_client,
 	},
 };
@@ -15,170 +14,180 @@ use crate::{
 #[derive(PartialEq, Clone, Props)]
 pub struct MediaItemProps
 {
-	pub item: Option<MediaModel>,
-	// pub oncontextmenu: Option<EventHandler<Event<MouseData>>>,
+	pub item: MediaModel,
 }
 
 #[component]
 pub fn MediaItem(props: MediaItemProps) -> Element
 {
-	let mut class_signal = use_signal(|| "");
-	if let Some(item) = props.item
+	let item = props.item;
+	let mtype = item.media_type().as_str_name();
+	let filename = item.file_name;
+	let id = item.id.unwrap().value;
+	let thumb = item.thumb_url;
+	let class = item.class;
+	let mut class_signal = use_signal(|| match class
 	{
-		let mtype = item.media_type().as_str_name();
-		let filename = item.file_name;
-		let id = item.id.unwrap().value;
-		let thumb = item.thumb_url;
-		let class = item.class;
-		let url = item.media_url;
-		let download = format!("{HOST}{url}");
+		1 => "blur",
+		2 => "secret",
+		_ => "",
+	});
+	let url = item.media_url;
+	let download = format!("{HOST}{url}");
 
-		match class
-		{
-			1 => class_signal.set("nsfw"),
-			2 => class_signal.set("secret"),
-			_ => class_signal.set(""),
-		};
+	// class_signal.set(match class
+	// {
+	// 	1 => "blur",
+	// 	2 => "secret",
+	// 	_ => "",
+	// });
 
-		return rsx! {
-			ContextMenu{
-				ContextMenuTrigger{
-					a {
-						class: "mediaItem {class_signal()}",
-						href: "{HOST}{url}",
-						target: "_blank",
-						"data-id" : id.clone(),
-						img { src: "{HOST}{thumb}" }
-						span { class: "info",
-							span { class: "name", "{filename}" }
-							span { class: "details",
-								span { "{mtype}" }
-								span { "{item.view_count}" }
-							}
+	return rsx! {
+		ContextMenu{
+			ContextMenuTrigger{
+				a {
+					class: "mediaItem {class_signal()}",
+					href: "{HOST}{url}",
+					target: "_blank",
+					"data-id" : id.clone(),
+					img { src: "{HOST}{thumb}" }
+					span { class: "info",
+						span { class: "name", "{filename}" }
+						span { class: "details",
+							span { "{mtype}" }
+							span { "{item.view_count}" }
 						}
-					},
+					}
 				},
-				ContextMenuContent{
-					ContextMenuItem {
-						index: 0 as usize,
-						value: id.clone(),
-						on_select: move |id: String|{
-							window().expect("Failed to get window")
-								.location().set_href(&format!("/media/{}", id))
-								.expect("Failed to open Url");
-						},
-						div{
-							class: "contextItem",
-							div{
-								class: "label",
-								"Details"
-							}
-						}
+			},
+			ContextMenuContent{
+				ContextMenuItem {
+					index: 0 as usize,
+					value: id.clone(),
+					on_select: move |id: String|{
+						window().expect("Failed to get window")
+							.location().set_href(&format!("/media/{}", id))
+							.expect("Failed to open Url");
 					},
-					ContextMenuItem {
-						index: 1 as usize,
-						value: "{download}",
-						on_select: move |url: String|{
-							window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
-						},
+					div{
+						class: "contextItem",
 						div{
-							class: "contextItem",
-							div{
-								class: "label",
-								"Download"
-							}
-						}
-					},
-					{
-						if class != 0 {
-							rsx!{ContextMenuItem {
-								index: 2 as usize,
-								value: "{id}",
-								on_select: async |id: String|{
-									_ = set_class(id, 0).await;
-								},
-								div{
-									class: "contextItem",
-									div{
-										class: "label",
-										"Mark Standard"
-									}
-								}
-							}}
-						}else{
-							rsx!{}
+							class: "label",
+							"Details {class_signal()}"
 						}
 					}
-					{
-						if class != 1 {
-							rsx!{ContextMenuItem {
-								index: 2 as usize,
-								value: "{id}",
-								on_select: async |id: String|{
-									_ = set_class(id, 1).await;
-								},
-								div{
-									class: "contextItem",
-									div{
-										class: "label",
-										"Mark NSFW"
-									}
-								}
-							}}
-						}else{
-							rsx!{}
-						}
-					}
-					{
-						if class != 1 {
-							rsx!{ContextMenuItem {
-								index: 2 as usize,
-								value: "{id}",
-								on_select: async |id: String|{
-									_ = set_class(id, 2).await;
-								},
-								div{
-									class: "contextItem",
-									div{
-										class: "label",
-										"Mark Secret"
-									}
-								}
-							}}
-						}else{
-							rsx!{}
-						}
-					}
-					ContextMenuItem {
-						index: 2 as usize,
-						value: "",
-						div{
-							class: "contextItem",
-							div{
-								class: "label",
-								"Delete"
-							}
-						}
+				},
+				ContextMenuItem {
+					index: 1 as usize,
+					value: "{download}",
+					on_select: move |url: String|{
+						window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
 					},
+					div{
+						class: "contextItem",
+						div{
+							class: "label",
+							"Download"
+						}
+					}
+				},
+				{
+					if class_signal() != "" {
+						rsx!{ContextMenuItem {
+							index: 2 as usize,
+							value: "{id}",
+							on_select: move |id: String|{
+								spawn(async move {
+									if let Ok(_) = set_class(id, 0).await{
+										class_signal.set("");
+									}
+								});
+							},
+							div{
+								class: "contextItem",
+								div{
+									class: "label",
+									"Mark Standard"
+								}
+							}
+						}}
+					}else{rsx!{}}
+				}
+				{
+					if class_signal() != "blur" {
+						rsx!{ContextMenuItem {
+							index: 2 as usize,
+							value: "{id}",
+							on_select: move |id: String|{
+								spawn(async move {
+									if let Ok(_) = set_class(id, 1).await{
+										class_signal.set("blur");
+									}
+								});
+							},
+							div{
+								class: "contextItem",
+								div{
+									class: "label",
+									"Mark blur"
+								}
+							}
+						}}
+					}else{rsx!{}}
+				}
+				{
+					if class_signal() != "secret" {
+						rsx!{ContextMenuItem {
+							index: 2 as usize,
+							value: "{id}",
+							on_select: move |id: String|{
+								spawn(async move {
+									if let Ok(_) = set_class(id, 2).await{
+										class_signal.set("secret");
+									}
+								});
+							},
+							div{
+								class: "contextItem",
+								div{
+									class: "label",
+									"Mark Secret"
+								}
+							}
+						}}
+					}else{rsx!{}}
+				}
+				ContextMenuItem {
+					index: 2 as usize,
+					value: "",
+					div{
+						class: "contextItem",
+						div{
+							class: "label",
+							"Delete"
+						}
+					}
+				},
+			}
+		}
+	};
+}
+
+#[component]
+pub fn MediaItemPlaceHolder() -> Element
+{
+	return rsx! {
+		div { class: "mediaItem placeholder",
+			img { },
+			span { class: "info",
+				span { class: "name" }
+				span { class: "details",
+					span { }
+					span { }
 				}
 			}
-		};
-	}
-	else
-	{
-		return rsx! {
-			div { class: "mediaItem placeholder",
-				img { },
-				span { class: "info",
-					span { class: "name" }
-					span { class: "details",
-						span { }
-						span { }
-					}
-				}
-			}
-		};
-	}
+		}
+	};
 }
 
 async fn set_class(id: String, class: i32) -> Result<Response<()>, Status>

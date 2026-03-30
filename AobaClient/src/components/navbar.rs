@@ -6,7 +6,8 @@ const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
 const NAV_ICON: Asset = asset!("/assets/favicon.ico");
 
 #[component]
-pub fn Navbar() -> Element {
+pub fn Navbar() -> Element
+{
 	rsx! {
 		document::Link { rel: "stylesheet", href: NAV_CSS }
 		nav {
@@ -19,17 +20,19 @@ pub fn Navbar() -> Element {
 }
 
 #[component]
-pub fn MainNaviagation() -> Element {
+pub fn MainNaviagation() -> Element
+{
 	rsx! {
 		div { class: "mainNav",
-			Link { class: "navItem", to: Route::Home { }, "Home" }
+			Link { class: "navItem", to: Route::Home { page: None, q: None }, "Home" }
 			Link { class: "navItem", to: Route::Settings {}, "Settings" }
 		}
 	}
 }
 
 #[component]
-pub fn Branding() -> Element {
+pub fn Branding() -> Element
+{
 	rsx! {
 		div { class: "branding",
 			img { src: NAV_ICON, alt: "Aoba" }
@@ -38,14 +41,16 @@ pub fn Branding() -> Element {
 }
 
 #[component]
-pub fn Widgets() -> Element {
+pub fn Widgets() -> Element
+{
 	rsx! {
 		div { class: "widgets" }
 	}
 }
 
 #[component]
-pub fn Utils() -> Element {
+pub fn Utils() -> Element
+{
 	let mut auth_context = use_context::<AuthContext>();
 	let version = APP_VERSION;
 	rsx! {

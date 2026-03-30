@@ -1,6 +1,6 @@
 use crate::{
 	layouts::MainLayout,
-	views::{Home, HomePaged, Media, Settings},
+	views::{Home, Media, Settings},
 };
 use dioxus::prelude::*;
 
@@ -9,10 +9,10 @@ use dioxus::prelude::*;
 pub enum Route {
 	#[layout(MainLayout)]
 
-		#[route("/")]
-		Home { },
 		#[route("/?:page&:q")]
-		HomePaged { page: i32, q: String },
+		Home { page: Option<i32>, q: Option<String> },
+		// #[route("/")]
+		// Home { },
 		#[route("/media/:id")]
 		Media { id: String },
 		#[route("/settings")]

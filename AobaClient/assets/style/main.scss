@@ -113,11 +113,11 @@ $mediaItemSize: 300px;
 		&.placeholder {
 		}
 
-		&.nsfw img {
+		&.blur img {
 			filter: blur(20px);
 			transition: filter 0.25s ease-out;
 		}
-		&.nsfw:hover img {
+		&.blur:hover img {
 			filter: blur(0px);
 		}
 	}

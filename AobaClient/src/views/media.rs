@@ -39,16 +39,16 @@ fn MediaPage(media: MediaModel) -> Element
 {
 	let url = media.thumb_url;
 	let id = media.id.expect("Media has no id").value.clone();
-	let cur_class = match media.class
+	let cur_class = use_signal(|| match media.class
 	{
 		0 => "Standard",
 		1 => "NSFW",
 		2 => "Secret",
 		_ => "Unkown",
-	};
+	});
 	rsx! {
 		img { src: "{HOST}{url}",  }
-		label { "Media Class: {cur_class}" }
+		label { "Media Class: {cur_class()}" }
 
 	}
 }
