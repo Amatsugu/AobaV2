@@ -53,6 +53,7 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 			}
 		}
 	});
+	let mut items = use_signal::<Vec<MediaModel>>(|| Vec::new());
 
 	use_memo(move || match media_result()
 	{
@@ -67,12 +68,9 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 					props.max_page.set(total_pages.max(1));
 					props.total_items.set(total_items.max(1));
 				}
+				items.set(result.items);
 				media_grid_display.set(rsx! {
-					{result.items.iter().map(|itm| rsx!{
-						MediaItem {
-							item: itm.clone()
-						}
-					})},
+					MediaList { items }
 				});
 			}
 			Err(msg) => media_grid_display.set(rsx! {
@@ -89,5 +87,18 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 			class: "mediaGrid",
 			{media_grid_display}
 		}
+	}
+}
+
+#[component]
+fn MediaList(items: Signal<Vec<MediaModel>>) -> Element
+{
+	let vec = items.cloned();
+	rsx! {
+		{vec.iter().map(|itm| rsx!{
+			MediaItem {
+				item: itm.clone()
+			}
+		})}
 	}
 }
