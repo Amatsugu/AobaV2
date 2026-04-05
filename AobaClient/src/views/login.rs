@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use tonic::IntoRequest;
 
 use crate::{
-	components::{basic::Input, Notif, NotifType},
+	components::{Notif, NotifType, PasskeyLoginButton, basic::Input},
 	contexts::AuthContext,
 	rpc::{aoba::Credentials, get_auth_rpc_client},
 };
@@ -72,6 +72,7 @@ pub fn Login() -> Element {
 					required: true,
 				}
 				button { onclick: login, "Login!" }
+				PasskeyLoginButton {}
 			}
 		}
 	}
