@@ -29,7 +29,7 @@ pub fn Media(id: String) -> Element {
 #[component]
 fn MediaPage(media: MediaModel) -> Element {
 	let url = media.thumb_url;
-	let id = media.id.expect("Media has no id").value.clone();
+	// let id = media.id.expect("Media has no id").value.clone();
 	let cur_class = use_signal(|| match media.class {
 		0 => "Standard",
 		1 => "NSFW",
