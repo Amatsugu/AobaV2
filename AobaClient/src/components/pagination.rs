@@ -2,8 +2,12 @@ use dioxus::prelude::*;
 use web_sys::window;
 
 #[component]
-pub fn Pagination(page: Signal<i32>, max_page: Signal<i32>, item_count: Signal<i32>) -> Element
-{
+pub fn Pagination(
+	page: Signal<i32>,
+	max_page: Signal<i32>,
+	item_count: Signal<i32>,
+	on_page_change: EventHandler<i32>,
+) -> Element {
 	let cur_page_val = page.cloned();
 	let max_page_val = max_page.cloned();
 	let item_count_val = item_count.cloned();
@@ -12,16 +16,16 @@ pub fn Pagination(page: Signal<i32>, max_page: Signal<i32>, item_count: Signal<i
 			class: "pagination",
 			a {
 				onclick: move|_| {
-					page.set(1);
-					on_page_change();
+					on_page_change.call(1);
+					scroll_document();
 				},
 				"First"
 			}
 			a {
 				onclick: move|_| {
 					let p = (cur_page_val - 1).max(1);
-					page.set(p);
-					on_page_change();
+					on_page_change.call(p);
+					scroll_document();
 				},
 				"Prev"
 			}
@@ -29,15 +33,15 @@ pub fn Pagination(page: Signal<i32>, max_page: Signal<i32>, item_count: Signal<i
 			a {
 				onclick: move|_| {
 					let p = (cur_page_val + 1).min(max_page_val);
-					page.set(p);
-					on_page_change();
+					on_page_change.call(p);
+					scroll_document();
 				},
 				"Next"
 			}
 			a {
 				onclick: move|_| {
-					page.set(max_page_val);
-					on_page_change();
+					on_page_change.call(max_page_val);
+					scroll_document();
 				},
 				"Last"
 			}
@@ -45,8 +49,7 @@ pub fn Pagination(page: Signal<i32>, max_page: Signal<i32>, item_count: Signal<i
 	}
 }
 
-fn on_page_change()
-{
+fn scroll_document() {
 	let window = window().expect("Failed to get window");
 	let document = window.document().expect("Failed to get document");
 	document

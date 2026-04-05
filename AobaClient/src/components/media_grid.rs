@@ -9,18 +9,22 @@ use crate::{
 };
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaGridProps
-{
+pub struct MediaGridProps {
 	pub query: Signal<String>,
 	pub max_page: Signal<i32>,
 	pub total_items: Signal<i32>,
 	pub page: Signal<i32>,
 	pub page_size: Signal<i32>,
+	pub on_page_loaded: Option<EventHandler<PaginationInfo>>,
+}
+
+pub struct PaginationInfo {
+	pub total_pages: i32,
+	pub total_items: i32,
 }
 
 #[component]
-pub fn MediaGrid(mut props: MediaGridProps) -> Element
-{
+pub fn MediaGrid(props: MediaGridProps) -> Element {
 	let mut error_display = use_signal(|| {
 		rsx! {}
 	});
@@ -34,32 +38,29 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 			query: Some(props.query.cloned()),
 		};
 		let result = client.list_media(request).await;
-		if let Ok(items) = result
-		{
+		if let Ok(items) = result {
 			let res = items.into_inner();
 
 			return Ok(res);
-		}
-		else
-		{
+		} else {
 			let err = result.err().unwrap();
 			let message = err.message();
 			return Err(format!("Failed to load results: {message}"));
 		}
 	}));
 
-	use_effect(move || match media_result()
-	{
-		Some(value) => match value
-		{
-			Ok(result) =>
-			{
-				if let Some(pagination) = result.pagination
-				{
+	use_effect(move || match media_result() {
+		Some(value) => match value {
+			Ok(result) => {
+				if let Some(pagination) = result.pagination {
 					let total_pages = pagination.total_pages;
 					let total_items = pagination.total_items;
-					props.max_page.set(total_pages.max(1));
-					props.total_items.set(total_items.max(1));
+					if let Some(handler) = props.on_page_loaded {
+						handler.call(PaginationInfo {
+							total_pages,
+							total_items,
+						});
+					}
 				}
 				items.set(Some(result.items));
 				error_display.set(rsx! {});
@@ -70,8 +71,7 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 				}
 			}),
 		},
-		_ =>
-		{}
+		_ => {}
 	});
 
 	rsx! {
@@ -87,8 +87,7 @@ pub fn MediaGrid(mut props: MediaGridProps) -> Element
 }
 
 #[component]
-fn PlaceholderGrid(count: usize) -> Element
-{
+fn PlaceholderGrid(count: usize) -> Element {
 	rsx! {
 		div{
 			class: "mediaGrid",
@@ -100,12 +99,12 @@ fn PlaceholderGrid(count: usize) -> Element
 }
 
 #[component]
-fn MediaList(items: Vec<MediaModel>) -> Element
-{
+fn MediaList(items: Vec<MediaModel>) -> Element {
 	rsx! {
-		{items.iter().map(|itm| rsx!{
+		{items.iter().enumerate().map(|(index, itm)| rsx!{
 			MediaItem {
-				item: itm.clone()
+				item: itm.clone(),
+				index
 			}
 		})}
 	}

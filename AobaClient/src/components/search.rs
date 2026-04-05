@@ -1,14 +1,18 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Search(query: Signal<String>, page: Signal<i32>) -> Element {
+pub fn Search(query: String, oninput: Option<EventHandler<String>>) -> Element {
 	rsx! {
 		div { class: "searchBar",
 			input {
 				r#type: "search",
 				placeholder: "Search Files",
 				value: query,
-				oninput: move |event| {query.set(event.value()); page.set(1);},
+				oninput: move |event| {
+					if let Some(handler) = oninput {
+						handler.call(event.value());
+					}
+				},
 			}
 		}
 	}
