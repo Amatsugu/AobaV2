@@ -1,5 +1,8 @@
-use crate::components::{MediaGrid, Pagination, PaginationInfo, Search};
-use dioxus::prelude::*;
+use crate::{
+	components::{MediaGrid, Pagination, PaginationInfo, Search},
+	route::Route,
+};
+use dioxus::{prelude::*, router::RouterConfig};
 
 // #[component]
 // pub fn Home() -> Element
@@ -19,7 +22,8 @@ use dioxus::prelude::*;
 // }
 
 #[component]
-pub fn Home(page: Option<i32>, q: Option<String>) -> Element {
+pub fn Home(page: Option<i32>, q: Option<String>) -> Element
+{
 	let mut query = use_signal(|| q.unwrap_or("".to_string()));
 	let mut page = use_signal(|| page.unwrap_or(1));
 	let page_size = use_signal::<i32>(|| 100);
@@ -33,12 +37,16 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element {
 				oninput: move |q| {
 					query.set(q);
 					page.set(1);
+				},
+				onchange: move |_|{
+					router().push(format!("/?page={}&q={}", page(), query()));
 				}
 			},
 			Pagination {
 				page, max_page, item_count,
 				on_page_change: move |p|{
 					page.set(p);
+					router().push(format!("/?page={}&q={}", page(), query()));
 				}
 			},
 		}

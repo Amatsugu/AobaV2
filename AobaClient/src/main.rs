@@ -8,7 +8,7 @@ pub mod rpc;
 pub mod views;
 
 use contexts::AuthContext;
-use dioxus::prelude::*;
+use dioxus::{prelude::*, router::RouterConfig};
 use route::Route;
 
 #[cfg(debug_assertions)]
@@ -34,7 +34,6 @@ fn main()
 fn App() -> Element
 {
 	use_context_provider(|| AuthContext::new());
-	// use_context_provider(|| ContextMenuRenderer::default());
 	rsx! {
 		document::Link { rel: "icon", href: FAVICON }
 		document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }
@@ -46,7 +45,17 @@ fn App() -> Element
 			rel: "stylesheet",
 			href: "https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap",
 		}
-
-		Router::<Route> { }
+		Router::<Route> { config: || RouterConfig::default()
+			.on_update(|state|{
+				match state.current() {
+					Route::Home {page, q} => {
+						info!("Page {}", page.unwrap_or(1));
+						return None;
+						// return Some(NavigationTarget::Internal(Route::Home { page, q }))
+					},
+					_ => None
+				}
+			})
+		}
 	}
 }

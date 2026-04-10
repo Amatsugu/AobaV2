@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Search(query: String, oninput: Option<EventHandler<String>>) -> Element {
+pub fn Search(query: String, oninput: Option<EventHandler<String>>, onchange: Option<EventHandler<String>>) -> Element
+{
 	rsx! {
 		div { class: "searchBar",
 			input {
@@ -13,6 +14,11 @@ pub fn Search(query: String, oninput: Option<EventHandler<String>>) -> Element {
 						handler.call(event.value());
 					}
 				},
+				onchange: move |event|{
+					if let Some(handler) = onchange {
+						handler.call(event.value());
+					}
+				}
 			}
 		}
 	}
