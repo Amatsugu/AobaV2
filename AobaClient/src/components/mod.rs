@@ -1,5 +1,5 @@
 pub mod basic;
-// mod context_menu;
+mod context_menu;
 mod icons;
 mod media_grid;
 mod media_item;
@@ -9,7 +9,7 @@ mod notif;
 mod pagination;
 mod passkey;
 mod search;
-// pub use context_menu::*;
+pub use context_menu::*;
 pub use media_grid::*;
 pub use media_item::*;
 pub use metrics_token::*;

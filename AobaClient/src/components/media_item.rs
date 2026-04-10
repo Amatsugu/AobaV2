@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-use dioxus_primitives::context_menu::{
-	ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger,
-};
+use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger};
 use tonic::{Response, Status};
 use web_sys::window;
 
@@ -13,13 +11,15 @@ use crate::{
 	},
 };
 
-pub struct MediaClassChangeEvent {
+pub struct MediaClassChangeEvent
+{
 	pub index: usize,
 	pub class: String,
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaItemProps {
+pub struct MediaItemProps
+{
 	pub item: MediaModel,
 	pub index: usize,
 	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
@@ -27,27 +27,22 @@ pub struct MediaItemProps {
 }
 
 #[component]
-pub fn MediaItem(props: MediaItemProps) -> Element {
+pub fn MediaItem(props: MediaItemProps) -> Element
+{
 	let item = props.item;
 	let mtype = item.media_type().as_str_name();
 	let filename = item.file_name;
 	let id = item.id.unwrap().value;
 	let thumb = item.thumb_url;
 	let class = item.class;
-	let mut class_signal = use_signal(|| match class {
+	let mut class_signal = use_signal(|| match class
+	{
 		1 => "blur",
 		2 => "secret",
 		_ => "",
 	});
 	let url = item.media_url;
 	let download = format!("{HOST}{url}");
-
-	// class_signal.set(match class
-	// {
-	// 	1 => "blur",
-	// 	2 => "secret",
-	// 	_ => "",
-	// });
 
 	return rsx! {
 		ContextMenu{
@@ -181,7 +176,8 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 }
 
 #[component]
-pub fn MediaItemPlaceHolder() -> Element {
+pub fn MediaItemPlaceHolder() -> Element
+{
 	return rsx! {
 		div { class: "mediaItem placeholder",
 			img { },
@@ -196,7 +192,8 @@ pub fn MediaItemPlaceHolder() -> Element {
 	};
 }
 
-async fn set_class(id: String, class: i32) -> Result<Response<()>, Status> {
+async fn set_class(id: String, class: i32) -> Result<Response<()>, Status>
+{
 	let mut client = get_rpc_client();
 	return client
 		.set_media_class(SetMediaClassRequest {
