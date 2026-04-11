@@ -1,4 +1,6 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Fido2NetLib.Objects;
+
+using Microsoft.IdentityModel.Tokens;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -19,6 +21,7 @@ public class User
 	public bool IsArgon { get; set; }
 	public ObjectId[] ApiKeys { get; set; } = [];
 	public List<ObjectId> RegTokens { get; set; } = [];
+	public List<PublicKeyCredentialDescriptor> CredentialDescriptors { get; set; } = [];
 
 	public ClaimsIdentity GetIdentity()
 	{

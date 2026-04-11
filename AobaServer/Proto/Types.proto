@@ -121,9 +121,19 @@ message PasskeyPayload {
 
 }
 
-message PasskeyRegistrationCreds{
-
+message PasskeyCredentialCreateOptions{
+	string challenge = 1;
+	string userId = 2;
 }
-message PasskeyPublicKey{
+message PasskeyRegistrationCredentials{
+	string id = 1;
+	string rawId = 2;
+	string type = 3;
+	CredentialsClientResponse response = 4;
+}
 
+message CredentialsClientResponse{
+	string clientDataJSON = 1;
+	string attestationObject = 2;
+	string authenticatorData = 3;
 }

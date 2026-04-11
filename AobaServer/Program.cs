@@ -121,6 +121,16 @@ builder.Services.AddAuthentication(options =>
 
 
 builder.Services.AddAoba();
+builder.Services.AddFido2(opts =>
+{
+	opts.ServerName = "Aoba";
+	opts.ServerDomain = "aoba.app";
+#if DEBUG
+	opts.Origins = new HashSet<string> { "http://localhost:8081", "http://127.0.0.1:8080" };
+#else
+	opts.Origins = new HashSet<string> { "https://aoba.app" };
+#endif
+});
 #if DEBUG
 builder.Services.AddHostedService<DebugService>();
 #endif

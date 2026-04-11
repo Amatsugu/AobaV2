@@ -1,5 +1,7 @@
 ﻿using AobaCore.Models;
 
+using Fido2NetLib.Objects;
+
 using Isopoh.Cryptography.Argon2;
 
 using MongoDB.Bson;
@@ -54,13 +56,18 @@ public class AccountsService(IMongoDatabase db)
 		/* Get the salt */
 		byte[] salt = new byte[16];
 		Array.Copy(hashBytes, 0, salt, 0, 16);
-		/* Compute the hash on the password the user entered */
-		var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA1);
-		byte[] hash = pbkdf2.GetBytes(20);
+
+		var hash= Rfc2898DeriveBytes.Pbkdf2(password, salt, 10000, HashAlgorithmName.SHA1, 20);
 		/* Compare the results */
 		for (int i = 0; i < 20; i++)
 			if (hashBytes[i + 16] != hash[i])
 				return false;
 		return true;
+	}
+
+	public async Task<List<PublicKeyCredentialDescriptor>> GetPublicKeyCredentialDescriptorsAsync(ObjectId id, CancellationToken cancellationToken = default)
+	{
+		var creds = await _users.Find(u => u.Id == id).Project(u => u.CredentialDescriptors).FirstOrDefaultAsync(cancellationToken);
+		return creds ?? [];
 	}
 }
