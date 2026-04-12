@@ -7,7 +7,7 @@ edition = "2024"
 
 [dependencies]
 dioxus = { version = "0.7.5", features = ["router"] }
-serde = "1.0.228"
+serde = { version = "1.0.228", features = ["derive"] }
 serde_repr = "0.1.20"
 tonic = { version = "*", default-features = false, features = [
 	"codegen",
@@ -15,8 +15,10 @@ tonic = { version = "*", default-features = false, features = [
 ] }
 prost = "0.13"
 tonic-web-wasm-client = "0.7"
-web-sys = { version = "0.3.91", features = ["Storage", "Window", "Navigator", "CredentialsContainer", "CredentialCreationOptions"] }
+web-sys = { version = "0.3.91", features = ["Storage", "Window", "Navigator", "CredentialsContainer", "CredentialCreationOptions", "AttestationConveyancePreference", "PublicKeyCredentialCreationOptions", "PublicKeyCredentialRpEntity", "PublicKeyCredentialUserEntity"] }
 dioxus-primitives = { git = "https://github.com/DioxusLabs/components", version = "0.0.1", default-features = false }
+serde-wasm-bindgen = "0.6.5"
+js-sys = "0.3.95"
 
 [build-dependencies]
 tonic-build = { version = "*", default-features = false, features = ["prost"] }

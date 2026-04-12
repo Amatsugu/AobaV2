@@ -32,13 +32,16 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts) : Account
 		var credOptions = fido2.RequestNewCredential(new RequestNewCredentialParams
 		{
 			User = user,
-			ExcludeCredentials = curUser.CredentialDescriptors
+			ExcludeCredentials = curUser.CredentialDescriptors,
+			AuthenticatorSelection = new AuthenticatorSelection
+			{
+				ResidentKey = Fido2NetLib.Objects.ResidentKeyRequirement.Required,
+				UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Preferred
+			}
 		});
-		return new PasskeyCredentialCreateOptions
-		{
-			Challenge = credOptions.Challenge.ToB64String().Replace('+', '-').Replace('/', '_'),
-			UserId = credOptions.User.Id.ToB64String().Replace('+', '-').Replace('/', '_')
-		};
+		
+
+		return credOptions.ToRPC();
 	}
 
 	public override Task<Empty> CompletePasskeyRegistration(PasskeyRegistrationCredentials request, ServerCallContext context)

@@ -123,8 +123,28 @@ message PasskeyPayload {
 
 message PasskeyCredentialCreateOptions{
 	string challenge = 1;
-	string userId = 2;
+	PublicKeyCredentialUser user = 2;
+	PublicKeyCredentialRpEntity rp = 3;
+	repeated PubKeyCredParam pubKeyParams = 4;
 }
+
+message PubKeyCredParam{
+	string alg = 1;
+	string type = 2;
+}
+
+message PublicKeyCredentialRpEntity{
+	string id = 1;
+	string icon = 2;
+	string name = 3;
+}
+
+message PublicKeyCredentialUser{
+	string id = 1;
+	string name = 2;
+	string displayName = 3;
+}
+
 message PasskeyRegistrationCredentials{
 	string id = 1;
 	string rawId = 2;
@@ -137,3 +157,10 @@ message CredentialsClientResponse{
 	string attestationObject = 2;
 	string authenticatorData = 3;
 }
+
+message PublicKeyCredentialDescriptor{
+	string type = 1;
+	string id = 2;
+	repeated string transports = 3;
+}
+

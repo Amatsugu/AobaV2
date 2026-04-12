@@ -6,7 +6,9 @@ use tonic_web_wasm_client::Client;
 
 use crate::{
 	RPC_HOST,
-	rpc::aoba::{auth_rpc_client::AuthRpcClient, metrics_rpc_client::MetricsRpcClient},
+	rpc::aoba::{
+		account_rpc_client::AccountRpcClient, auth_rpc_client::AuthRpcClient, metrics_rpc_client::MetricsRpcClient,
+	},
 };
 
 pub mod aoba
@@ -17,6 +19,7 @@ pub mod aoba
 static RPC_CLIENT: RpcConnection = RpcConnection {
 	aoba: RwLock::new(None),
 	auth: RwLock::new(None),
+	account: RwLock::new(None),
 	metrics: RwLock::new(None),
 	jwt: RwLock::new(None),
 };
@@ -26,6 +29,7 @@ pub struct RpcConnection
 {
 	aoba: RwLock<Option<AobaRpcClient<InterceptedService<Client, AuthInterceptor>>>>,
 	auth: RwLock<Option<AuthRpcClient<Client>>>,
+	account: RwLock<Option<AccountRpcClient<InterceptedService<Client, AuthInterceptor>>>>,
 	metrics: RwLock<Option<MetricsRpcClient<InterceptedService<Client, AuthInterceptor>>>>,
 	jwt: RwLock<Option<String>>,
 }
@@ -36,6 +40,12 @@ impl RpcConnection
 	{
 		self.ensure_client();
 		return self.aoba.read().unwrap().clone().unwrap();
+	}
+
+	pub fn get_account_client(&self) -> AccountRpcClient<InterceptedService<Client, AuthInterceptor>>
+	{
+		self.ensure_client();
+		return self.account.read().unwrap().clone().unwrap();
 	}
 
 	pub fn get_auth_client(&self) -> AuthRpcClient<Client>
@@ -58,6 +68,8 @@ impl RpcConnection
 			let aoba_client = AobaRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor);
 			*self.aoba.write().unwrap() = Some(aoba_client);
 			*self.auth.write().unwrap() = Some(AuthRpcClient::new(wasm_client.clone()));
+			*self.account.write().unwrap() =
+				Some(AccountRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor));
 			*self.metrics.write().unwrap() =
 				Some(MetricsRpcClient::with_interceptor(wasm_client.clone(), AuthInterceptor));
 		}
@@ -88,6 +100,11 @@ pub fn get_rpc_client() -> AobaRpcClient<InterceptedService<Client, AuthIntercep
 pub fn get_auth_rpc_client() -> AuthRpcClient<Client>
 {
 	return RPC_CLIENT.get_auth_client();
+}
+
+pub fn get_account_rpc_client() -> AccountRpcClient<InterceptedService<Client, AuthInterceptor>>
+{
+	return RPC_CLIENT.get_account_client();
 }
 
 pub fn get_metrics_rpc_client() -> MetricsRpcClient<InterceptedService<Client, AuthInterceptor>>
