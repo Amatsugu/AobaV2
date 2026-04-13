@@ -8,6 +8,7 @@ import "Proto/Types.proto";
 service AobaRpc {
   rpc GetMedia (Id) returns (MediaResponse);
   rpc DeleteMedia (Id) returns (google.protobuf.Empty);
+  rpc DeleteMediaBulk (IdList) returns (google.protobuf.Empty);
   rpc UpdateMedia (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc ListMedia(PageFilter) returns (ListResponse);
   rpc GetUser(Id) returns (UserResponse);

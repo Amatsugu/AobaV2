@@ -57,4 +57,15 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 		};
 	}
 
+	public override async Task<Empty> DeleteMedia(Id request, ServerCallContext context)
+	{
+		await aobaService.DeleteFileAsync(request.ToObjectId(), context.CancellationToken);
+		return new Empty();
+	}
+
+	public override async Task<Empty> DeleteMediaBulk(IdList request, ServerCallContext context)
+	{
+		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.CancellationToken);
+		return new Empty();
+	}
 }

@@ -40,6 +40,10 @@ message Id {
 	string value = 1;
 }
 
+message IdList {
+	repeated Id value = 1;
+}
+
 message MediaResponse {
 	optional MediaModel value = 1;
 }

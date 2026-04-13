@@ -133,6 +133,23 @@ public class AobaService(IMongoDatabase db)
 		}
 	}
 
+	public async Task DeleteFilesAsync(IEnumerable<ObjectId> mediaIds, CancellationToken cancellationToken = default)
+	{
+		foreach (var id in mediaIds)
+		{
+			try
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				await _gridFs.DeleteAsync(id, CancellationToken.None);
+				await _media.DeleteOneAsync(m => m.MediaId == id, CancellationToken.None);
+			}
+			catch (GridFSFileNotFoundException)
+			{
+				//ignore if file was not found
+			}
+		}
+	}
+
 	
 
 	public async Task DeriveTagsAsync(CancellationToken cancellationToken = default)

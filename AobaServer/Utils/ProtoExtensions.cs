@@ -70,4 +70,9 @@ public static class ProtoExtensions
 	{
 		return id.Value.ToObjectId();
 	}
+
+	public static IEnumerable<ObjectId> ToObjectId(this IdList id)
+	{
+		return id.Value.Select(v => v.ToObjectId());
+	}
 }

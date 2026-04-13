@@ -13,17 +13,16 @@ use crate::{
 
 pub struct MediaClassChangeEvent
 {
-	pub index: usize,
-	pub class: String,
+	pub id: String,
+	pub class: i32,
 }
 
 #[derive(PartialEq, Clone, Props)]
 pub struct MediaItemProps
 {
 	pub item: MediaModel,
-	pub index: usize,
 	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
-	pub on_deleted: Option<EventHandler<usize>>,
+	pub on_deleted: Option<EventHandler<String>>,
 }
 
 #[component]
@@ -100,8 +99,11 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
-									if let Ok(_) = set_class(id, 0).await{
+									if let Ok(_) = set_class(&id, 0).await{
 										class_signal.set("");
+										if let Some(handler) = props.on_class_changed{
+											handler.call(MediaClassChangeEvent { id, class: 0 });
+										}
 									}
 								});
 							},
@@ -118,12 +120,15 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				{
 					if class_signal() != "blur" {
 						rsx!{ContextMenuItem {
-							index: 2 as usize,
+							index: 3 as usize,
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
-									if let Ok(_) = set_class(id, 1).await{
+									if let Ok(_) = set_class(&id, 1).await{
 										class_signal.set("blur");
+										if let Some(handler) = props.on_class_changed{
+											handler.call(MediaClassChangeEvent { id, class: 1 });
+										}
 									}
 								});
 							},
@@ -140,12 +145,15 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				{
 					if class_signal() != "secret" {
 						rsx!{ContextMenuItem {
-							index: 2 as usize,
+							index: 4 as usize,
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
-									if let Ok(_) = set_class(id, 2).await{
+									if let Ok(_) = set_class(&id, 2).await{
 										class_signal.set("secret");
+										if let Some(handler) = props.on_class_changed{
+											handler.call(MediaClassChangeEvent { id, class: 2 });
+										}
 									}
 								});
 							},
@@ -160,8 +168,17 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 					}else{rsx!{}}
 				}
 				ContextMenuItem {
-					index: 2 as usize,
-					value: "",
+					index: 5 as usize,
+					value: "{id}",
+					on_select: move |id: String|{
+						spawn(async move {
+							if let Ok(_) = delete_media(id.clone()).await{
+								if let Some(handler) = props.on_deleted {
+									handler.call(id);
+								}
+							}
+						});
+					},
 					div{
 						class: "contextItem",
 						div{
@@ -192,13 +209,19 @@ pub fn MediaItemPlaceHolder() -> Element
 	};
 }
 
-async fn set_class(id: String, class: i32) -> Result<Response<()>, Status>
+async fn delete_media(id: String) -> Result<Response<()>, Status>
+{
+	let mut client = get_rpc_client();
+	return client.delete_media(Id { value: id }).await;
+}
+
+async fn set_class(id: &String, class: i32) -> Result<Response<()>, Status>
 {
 	let mut client = get_rpc_client();
 	return client
 		.set_media_class(SetMediaClassRequest {
 			class: class,
-			id: Some(Id { value: id }),
+			id: Some(Id { value: id.clone() }),
 		})
 		.await;
 }
