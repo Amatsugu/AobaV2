@@ -34,12 +34,12 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let id = item.id.unwrap().value;
 	let thumb = item.thumb_url;
 	let class = item.class;
-	let mut class_signal = use_signal(|| match class
+	let class_string = match class
 	{
 		1 => "blur",
 		2 => "secret",
 		_ => "",
-	});
+	};
 	let url = item.media_url;
 	let download = format!("{HOST}{url}");
 
@@ -47,7 +47,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		ContextMenu{
 			ContextMenuTrigger{
 				a {
-					class: "mediaItem {class_signal()}",
+					class: "mediaItem {class_string}",
 					href: "{HOST}{url}",
 					target: "_blank",
 					"data-id" : id.clone(),
@@ -93,14 +93,13 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 					}
 				},
 				{
-					if class_signal() != "" {
+					if class != 0 {
 						rsx!{ContextMenuItem {
 							index: 2 as usize,
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
 									if let Ok(_) = set_class(&id, 0).await{
-										class_signal.set("");
 										if let Some(handler) = props.on_class_changed{
 											handler.call(MediaClassChangeEvent { id, class: 0 });
 										}
@@ -118,14 +117,13 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 					}else{rsx!{}}
 				}
 				{
-					if class_signal() != "blur" {
+					if class != 1 {
 						rsx!{ContextMenuItem {
 							index: 3 as usize,
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
 									if let Ok(_) = set_class(&id, 1).await{
-										class_signal.set("blur");
 										if let Some(handler) = props.on_class_changed{
 											handler.call(MediaClassChangeEvent { id, class: 1 });
 										}
@@ -143,14 +141,13 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 					}else{rsx!{}}
 				}
 				{
-					if class_signal() != "secret" {
+					if class != 3 {
 						rsx!{ContextMenuItem {
 							index: 4 as usize,
 							value: "{id}",
 							on_select: move |id: String|{
 								spawn(async move {
 									if let Ok(_) = set_class(&id, 2).await{
-										class_signal.set("secret");
 										if let Some(handler) = props.on_class_changed{
 											handler.call(MediaClassChangeEvent { id, class: 2 });
 										}
