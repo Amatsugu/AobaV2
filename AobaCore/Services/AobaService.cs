@@ -87,6 +87,12 @@ public class AobaService(IMongoDatabase db)
 	}
 
 
+	public async Task SetMediaTypeAsync(ObjectId mediaId, MediaType type, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update.Set(m => m.MediaType, type);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+	}
+
 	public async Task<Maybe<Media>> UploadFileAsync(Stream data, string filename, ObjectId owner, CancellationToken cancellationToken = default)
 	{
 		try

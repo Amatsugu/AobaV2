@@ -119,6 +119,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		{
 			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
 			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
+			MediaType.Audio => GenerateAudioThumbnail(stream, size, ext, cancellationToken),
 			MediaType.Text or MediaType.Code => await GenerateDocumentThumbnailAsync(stream, size, cancellationToken),
 			_ => new Error($"No Thumbnail for {type}"),
 		};
@@ -154,6 +155,40 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		img.Value.Dispose();
 		result.Position = 0;
 		return result;
+	}
+
+	public static Maybe<Stream> GenerateAudioThumbnail(Stream data, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
+	{
+
+		var w = (int)size;
+		var fn = ObjectId.GenerateNewId().ToString();
+		var filePath = $"/tmp/{fn}{ext}";
+
+		using var source = new FileStream(filePath, FileMode.CreateNew);
+		data.CopyTo(source);
+		source.Flush();
+		source.Dispose();
+		data.Dispose();
+		//ffmpeg -i test.wav -lavfi "showspectrumpic=s=512x512:legend=0:color=plasma:scale=log" output3.png
+		try
+		{
+			var output = new MemoryStream();
+			FFMpegArguments.FromFileInput(filePath, false)
+				.OutputToPipe(new StreamPipeSink(output), opt =>
+				{
+					opt.WithCustomArgument("-lavfi \"showspectrumpic=s=512x512:legend=0:color=plasma:scale=log\"").ForceFormat("webp");
+				}).ProcessSynchronously();
+			output.Position = 0;
+			return output;
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
+		finally
+		{
+			File.Delete(filePath);
+		}
 	}
 
 	public static Maybe<Stream> GenerateVideoThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
