@@ -10,8 +10,11 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using System;
@@ -120,7 +123,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
 			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
 			MediaType.Audio => GenerateAudioThumbnail(stream, size, ext, cancellationToken),
-			MediaType.Text or MediaType.Code => await GenerateDocumentThumbnailAsync(stream, size, cancellationToken),
+			MediaType.Text or MediaType.Code => await GenerateTextThumbnailAsync(stream, size, cancellationToken),
 			_ => new Error($"No Thumbnail for {type}"),
 		};
 	}
@@ -266,8 +269,23 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		}
 	}
 
-	public async Task<Maybe<Stream>> GenerateDocumentThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Maybe<Stream>> GenerateTextThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
+		//var w = (int)size;
+		//using var image = new Image<Rgba32>(w, w);
+		//var reader = new StreamReader(data);
+		//var text = new char[500];
+		//reader.ReadBlock(text, 0, text.Length);
+		//image.Mutate(op =>
+		//{
+		//	op.BackgroundColor(Color.Black);
+		//	var font = new Font(), 11);
+		//	var textOpts = new RichTextOptions(font);
+		//	op.DrawText(, new string(text), new Brush
+		//	{
+				
+		//	});
+		//});
 		return new NotImplementedException();
 	}
 }

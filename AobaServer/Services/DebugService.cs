@@ -8,11 +8,5 @@ public class DebugService(AobaService aobaService, ThumbnailService thumbnailSer
 {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var mediaItems = await aobaService.FindMediaWithExtAsync(".ogg", stoppingToken);
-		foreach (var item in mediaItems)
-		{
-			if(item.MediaType != MediaType.Audio)
-				await aobaService.SetMediaTypeAsync(item.MediaId, MediaType.Audio);
-		}
 	}
 }
