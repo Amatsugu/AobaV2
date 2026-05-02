@@ -20,6 +20,7 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -45,6 +46,23 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		{
 			//Ignore if the file was not found (somehow already deleted)
 			await aobaService.RemoveThumbnailAsync(mediaId, size);
+		}
+		catch (Exception e)
+		{
+			return new ExceptionError(e);
+		}
+		return null;
+	}
+
+	public async Task<Error?> DeleteThumbnailDirectAsync(ObjectId thumbnailId)
+	{
+		try
+		{
+			await _gridfs.DeleteAsync(thumbnailId);
+		}
+		catch (GridFSFileNotFoundException)
+		{
+			//Ignore if the file was not found (somehow already deleted)
 		}
 		catch (Exception e)
 		{

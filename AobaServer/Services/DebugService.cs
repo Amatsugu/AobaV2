@@ -8,5 +8,6 @@ public class DebugService(AobaService aobaService, ThumbnailService thumbnailSer
 {
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		//todo: clean up orphaned thumbnails
 	}
 }

@@ -13,7 +13,7 @@ using System.Text.Json;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, AccountsService accountsService, AuthConfigService authConfig) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig) : AobaRpc.AobaRpcBase
 {
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
@@ -59,13 +59,30 @@ public class AobaRpcService(AobaService aobaService, AccountsService accountsSer
 
 	public override async Task<Empty> DeleteMedia(Id request, ServerCallContext context)
 	{
-		await aobaService.DeleteFileAsync(request.ToObjectId(), context.CancellationToken);
+		var media = await aobaService.GetMediaAsync(request.ToObjectId());
+		if (media == null)
+			return new Empty();
+		await aobaService.DeleteFileAsync(media.MediaId, context.CancellationToken);
+		foreach (var (_, id) in media.Thumbnails)
+		{
+			await thumbnailService.DeleteThumbnailDirectAsync(id);
+		}
 		return new Empty();
 	}
 
 	public override async Task<Empty> DeleteMediaBulk(IdList request, ServerCallContext context)
 	{
+		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
+		if(media.Count == 0)
+			return new Empty();
 		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.CancellationToken);
+		foreach (var item in media)
+		{
+			foreach (var (_, id) in item.Thumbnails)
+			{
+				await thumbnailService.DeleteThumbnailDirectAsync(id);
+			}
+		}
 		return new Empty();
 	}
 }
