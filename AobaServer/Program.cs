@@ -20,13 +20,13 @@ builder.WebHost.ConfigureKestrel(o =>
 	o.Limits.MaxRequestBodySize = null;
 #if !DEBUG
 	o.ListenAnyIP(8081, lo =>
-    {
-        lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
-    });
+	{
+		lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+	});
 	o.ListenAnyIP(8080, lo =>
-    {
-        lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
-    });
+	{
+		lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+	});
 #endif
 });
 var config = builder.Configuration;

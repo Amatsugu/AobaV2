@@ -47,6 +47,9 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		ContextMenu{
 			ContextMenuTrigger{
 				a {
+					onmousemove: move |e: MouseEvent|{
+
+					},
 					class: "mediaItem {class_string}",
 					href: "{HOST}{url}",
 					target: "_blank",
