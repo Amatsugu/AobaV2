@@ -53,6 +53,7 @@ $mediaItemSize: 300px;
 	justify-content: center;
 	gap: 10px;
 	margin: 10px 0;
+	user-select: none;
 
 	.mediaItem {
 		width: $mediaItemSize;
@@ -109,16 +110,39 @@ $mediaItemSize: 300px;
 				transform: translateY(0%);
 			}
 		}
-
-		&.placeholder {
-		}
-
 		&.blur img {
 			filter: blur(20px);
 			transition: filter 0.25s ease-out;
 		}
 		&.blur:hover img {
 			filter: blur(0px);
+		}
+
+		&::before {
+			grid-area: A;
+			display: flex;
+			align-self: start;
+			content: "Selected";
+			transform: translateY(-100%);
+			transition: transform 0.25s ease;
+			z-index: 3;
+			justify-content: center;
+			padding: 3px;
+			z-index: 3;
+		}
+
+		&.selected {
+			box-shadow: 0 0 8px $focusColor;
+			border: 1px solid $featureColor;
+
+			&::before {
+				background-color: $featureColor;
+				transform: translateY(0%);
+			}
+
+			.info {
+				transform: translateY(0%);
+			}
 		}
 	}
 }
@@ -231,6 +255,54 @@ form {
 
 		&:hover {
 			background-color: $focusColor;
+		}
+	}
+}
+#selectionBarContainer {
+	position: fixed;
+	bottom: 30px;
+	display: flex;
+	flex-direction: column;
+	width: calc(100% - $navBarSize);
+	height: auto;
+	left: $navBarSize;
+	z-index: 100;
+}
+#selectionBar {
+	align-self: center;
+	height: 80px;
+	width: calc(80% - $navBarSize);
+	background-color: $featureColor;
+	border-radius: 40px;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.5);
+	overflow: hidden;
+
+	.info {
+		display: flex;
+		vertical-align: baseline;
+		align-items: center;
+		margin-left: 20px;
+	}
+
+	.controls {
+		display: flex;
+		.button {
+			padding: 10px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			user-select: none;
+
+			&:hover {
+				background-color: $focusColor;
+				cursor: pointer;
+			}
+
+			&:last-child {
+				padding-right: 20px;
+			}
 		}
 	}
 }

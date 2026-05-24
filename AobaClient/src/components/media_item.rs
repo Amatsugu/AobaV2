@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{html::input_data::MouseButton, prelude::*};
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger};
 use tonic::{Response, Status};
 use web_sys::window;
@@ -21,8 +21,10 @@ pub struct MediaClassChangeEvent
 pub struct MediaItemProps
 {
 	pub item: MediaModel,
+	pub is_selected: bool,
 	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
 	pub on_deleted: Option<EventHandler<String>>,
+	pub on_selected: Option<EventHandler<(String, bool)>>,
 }
 
 #[component]
@@ -40,21 +42,36 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		2 => "secret",
 		_ => "",
 	};
+	let selected_class = match props.is_selected
+	{
+		true => "selected",
+		false => "",
+	};
 	let url = item.media_url;
 	let download = format!("{HOST}{url}");
+
+	let del_id = id.clone();
+	let onmove = move |e: MouseEvent| {
+		if e.data().held_buttons().contains(MouseButton::Primary)
+		{
+			if let Some(handler) = props.on_selected
+			{
+				handler.call((del_id.clone(), props.is_selected));
+			}
+		}
+	};
 
 	return rsx! {
 		ContextMenu{
 			ContextMenuTrigger{
 				a {
-					onmousemove: move |e: MouseEvent|{
-
-					},
-					class: "mediaItem {class_string}",
+					onmousemove: onmove,
+					class: "mediaItem {class_string} {selected_class}",
 					href: "{HOST}{url}",
 					target: "_blank",
+					draggable: false,
 					"data-id" : id.clone(),
-					img { src: "{HOST}{thumb}" }
+					img { src: "{HOST}{thumb}", draggable: false }
 					span { class: "info",
 						span { class: "name", "{filename}" }
 						span { class: "details",

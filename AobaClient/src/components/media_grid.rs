@@ -16,7 +16,11 @@ pub struct MediaGridProps
 	pub total_items: Signal<i32>,
 	pub page: Signal<i32>,
 	pub page_size: Signal<i32>,
+	pub selected_items: Vec<String>,
 	pub on_page_loaded: Option<EventHandler<PaginationInfo>>,
+	pub on_item_selected: Option<EventHandler<(String, bool)>>,
+	pub onmouseup: EventHandler<MouseEvent>,
+	pub onmousedown: EventHandler<MouseEvent>,
 }
 
 pub struct PaginationInfo
@@ -89,11 +93,15 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 	rsx! {
 		div {
 			class: "mediaGrid",
+			onmouseup: props.onmouseup,
+			onmousedown: props.onmousedown,
 			{error_display}
 			{match items(){
 				Some(itms) => rsx!{
 					MediaList {
 						items: itms,
+						selected: props.selected_items,
+						on_item_selected: props.on_item_selected,
 						on_item_deleted: move |id|{
 							if let Some(cur) = items.cloned(){
 								let filtered = cur.iter()
@@ -142,16 +150,24 @@ fn PlaceholderGrid(count: usize) -> Element
 #[component]
 fn MediaList(
 	items: Vec<MediaModel>,
+	selected: Vec<String>,
 	on_item_deleted: Option<EventHandler<String>>,
+	on_item_selected: Option<EventHandler<(String, bool)>>,
 	on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
 ) -> Element
 {
 	rsx! {
-		{items.iter().map(|itm| rsx!{
-			MediaItem {
-				item: itm.clone(),
-				on_deleted: on_item_deleted,
-				on_class_changed: on_class_changed
+		{items.iter().map(|itm| {
+			let id = itm.id.clone().expect("Failed to get item id").value;
+			let is_selected = selected.contains(&id);
+			rsx!{
+				MediaItem {
+					item: itm.clone(),
+					is_selected,
+					on_deleted: on_item_deleted,
+					on_selected: on_item_selected,
+					on_class_changed: on_class_changed
+				}
 			}
 		})}
 	}

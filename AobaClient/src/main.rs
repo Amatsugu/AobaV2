@@ -48,7 +48,7 @@ fn App() -> Element
 		Router::<Route> { config: || RouterConfig::default()
 			.on_update(|state|{
 				match state.current() {
-					Route::Home {page, q} => {
+					Route::Home {page, q: _} => {
 						info!("Page {}", page.unwrap_or(1));
 						return None;
 						// return Some(NavigationTarget::Internal(Route::Home { page, q }))

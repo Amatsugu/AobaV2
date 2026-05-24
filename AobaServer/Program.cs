@@ -25,7 +25,7 @@ builder.WebHost.ConfigureKestrel(o =>
 	});
 	o.ListenAnyIP(8080, lo =>
 	{
-		lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
+		lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
 	});
 #endif
 });
