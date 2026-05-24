@@ -14,6 +14,11 @@ message SetMediaClassRequest{
 	MediaClass class = 2;
 }
 
+message SetMediaClassBulkRequest{
+	IdList ids = 1;
+	MediaClass class = 2;
+}
+
 
 message Jwt{
 	string token = 1;
