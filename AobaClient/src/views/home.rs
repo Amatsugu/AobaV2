@@ -1,5 +1,12 @@
-use crate::components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar};
+use crate::{
+	components::{MediaGrid, Modal, Pagination, PaginationInfo, Search, SelectionBar},
+	rpc::{
+		aoba::{Id, IdList},
+		get_rpc_client,
+	},
+};
 use dioxus::{html::input_data::MouseButton, prelude::*};
+use tonic::IntoRequest;
 
 #[derive(Debug, Clone)]
 enum SelectionPhase
@@ -103,6 +110,19 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 			selected_items: selected_items.cloned(),
 			on_selection_cleared: move |_|{
 				selected_items.set(Vec::new());
+			},
+			on_items_delete: move |_|{
+				spawn(async move {
+					let mut client = get_rpc_client();
+					let item_ids = selected_items.cloned().iter().map(|id| Id { value: id.clone() }).collect();
+					let req = IdList{
+						value: item_ids
+					};
+					if let Err(err) = client.delete_media_bulk(req).await {
+						error!("Failed to delete items: {:?}", err);
+					}
+					query.set(query.cloned());
+				});
 			}
 		}
 	}

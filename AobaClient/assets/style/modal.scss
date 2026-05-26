@@ -1,0 +1,45 @@
+@import "mixins";
+@import "colors";
+
+.modalContainer {
+	position: fixed;
+	display: grid;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 50000;
+	backdrop-filter: blur(5px) brightness(0.8);
+
+	.modal {
+		display: grid;
+		grid-template-rows: 30px 1fr;
+		min-width: 500px;
+		align-self: center;
+		justify-self: center;
+		background-color: $mainBGColor;
+		overflow: hidden;
+
+		.titleBar {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			background-color: $featureColor;
+			padding: 5px;
+
+			.title {
+				display: flex;
+				align-items: center;
+			}
+
+			.controls {
+				display: flex;
+				gap: 5px;
+				flex-direction: row;
+			}
+		}
+
+		.content {
+			padding: 10px;
+		}
+	}
+}

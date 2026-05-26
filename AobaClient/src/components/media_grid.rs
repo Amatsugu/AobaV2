@@ -37,7 +37,6 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 	});
 	let mut items = use_signal::<Option<Vec<MediaModel>>>(|| None);
 	let media_result = use_resource(use_reactive!(|(props)| async move {
-		// items.set(None);
 		let mut client = get_rpc_client();
 		let request = PageFilter {
 			page_size: Some(props.page_size.cloned()),

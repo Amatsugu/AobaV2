@@ -23,6 +23,7 @@ pub const HOST: &'static str = "https://aoba.app";
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/style/main.scss");
 const INPUT_CSS: Asset = asset!("/assets/style/inputs.scss");
+const MODAL_CSS: Asset = asset!("/assets/style/modal.scss");
 const DX_COMPONENTS: Asset = asset!("/assets/style/dx-components.scss");
 
 fn main()
@@ -40,6 +41,7 @@ fn App() -> Element
 		document::Link { rel: "preconnect", href: "https://fonts.gstatic.com" }
 		document::Link { rel: "stylesheet", href: MAIN_CSS }
 		document::Link { rel: "stylesheet", href: INPUT_CSS }
+		document::Link { rel: "stylesheet", href: MODAL_CSS }
 		document::Link { rel: "stylesheet", href: DX_COMPONENTS }
 		document::Link {
 			rel: "stylesheet",

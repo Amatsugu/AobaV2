@@ -306,3 +306,25 @@ form {
 		}
 	}
 }
+
+.horizFlexBox {
+	display: flex;
+	flex-direction: row;
+}
+
+.vertFlexBox {
+	display: flex;
+	flex-direction: column;
+}
+
+.vertFlexBox,
+.horizFlexBox {
+	&.center {
+		justify-content: center;
+		align-items: center;
+	}
+
+	&.end {
+		align-items: flex-end;
+	}
+}

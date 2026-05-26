@@ -1,3 +1,6 @@
+@import "mixins";
+@import "colors";
+
 label {
 	display: flex;
 	flex-direction: column;
@@ -9,6 +12,11 @@ input[type="email"],
 input[type="number"],
 input[type="tel"],
 input[type="text"] {
+	background-color: $inputBGColor;
+
+	&:focus {
+		background-color: $inputBGColorFocus;
+	}
 }
 
 .searchBar {
@@ -19,10 +27,62 @@ input[type="text"] {
 		padding: 10px;
 		font-size: 1.5rem;
 		border-radius: 20px;
+		background-color: $inputBGColor;
+		border: none;
+		color: $invertTextColor;
+
+		&::-webkit-input-placeholder,
+		&::-moz-placeholder {
+			color: $inputPlaceholderColor;
+		}
+
+		&:focus {
+			outline-style: solid;
+			outline-color: $inputBGColorFocus;
+			outline-width: 3;
+		}
 	}
 }
 
 textarea {
 	min-height: 200px;
 	min-width: 500px;
+}
+
+button {
+	background-color: $featureColor;
+	border: none;
+	padding: 8px 10px;
+	border-radius: 5px;
+	color: $mainTextColor;
+	transition: background-color 0.25s ease-out;
+
+	&:hover {
+		background-color: $focusColor;
+		cursor: pointer;
+	}
+
+	&.accented {
+		background-color: $buttonAccentedBG;
+
+		&:hover {
+			background-color: $buttonAccentedBGHover;
+		}
+	}
+
+	&.cancel {
+		background-color: $buttonCancelBG;
+
+		&:hover {
+			background-color: $buttonCancelBGHover;
+		}
+	}
+
+	&.muted {
+		background-color: $buttonMutedBG;
+
+		&:hover {
+			background-color: $buttonMutedBGHover;
+		}
+	}
 }

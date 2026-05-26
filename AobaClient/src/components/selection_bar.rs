@@ -1,8 +1,18 @@
 use dioxus::prelude::*;
 
+use crate::components::{
+	Modal,
+	basic::{Button, ButtonVariant},
+};
+
 #[component]
-pub fn SelectionBar(selected_items: Vec<String>, on_selection_cleared: EventHandler) -> Element
+pub fn SelectionBar(
+	selected_items: Vec<String>,
+	on_selection_cleared: EventHandler,
+	on_items_delete: EventHandler,
+) -> Element
 {
+	let mut delete_modal_open = use_signal(|| false);
 	if selected_items.len() == 0
 	{
 		return rsx! {};
@@ -21,15 +31,17 @@ pub fn SelectionBar(selected_items: Vec<String>, on_selection_cleared: EventHand
 					},
 					div{
 						class: "controls",
-						Button{
+						BarButton{
 							onclick: move|_|{},
 							"Mark As"
 						}
-						Button{
-							onclick: move|_|{},
+						BarButton{
+							onclick: move|_|{
+								delete_modal_open.set(true);
+							},
 							"Delete"
 						}
-						Button{
+						BarButton{
 							onclick: move |_|{
 								on_selection_cleared.call(());
 							},
@@ -40,12 +52,38 @@ pub fn SelectionBar(selected_items: Vec<String>, on_selection_cleared: EventHand
 					}
 				}
 			}
+			Modal{
+				title: "Confirm Deletion of {selection_count} items",
+				is_open: delete_modal_open(),
+				div{
+					class: "vertFlexBox",
+					"Are you sure you want to delete these items? This cannot be undone!",
+					div{
+						class: "horizFlexBox center",
+						style: "gap:10px",
+						Button{
+							text: "Delete",
+							onclick: move |_|{
+								delete_modal_open.set(false);
+								on_items_delete.call(());
+							}
+						}
+						Button{
+							text: "Cancel",
+							variant: ButtonVariant::Cancel,
+							onclick: move |_|{
+								delete_modal_open.set(false);
+							}
+						}
+					}
+				}
+			}
 		};
 	}
 }
 
 #[component]
-pub fn Button(onclick: EventHandler<MouseEvent>, children: Element) -> Element
+pub fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element
 {
 	rsx! {
 		div{
