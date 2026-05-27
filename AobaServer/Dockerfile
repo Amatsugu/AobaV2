@@ -1,5 +1,5 @@
 ARG NET_VERSION="10.0"
-ARG DX_VERSION="0.7.3"
+ARG DX_VERSION="0.7.5"
 
 # Client Side build - prep deps
 FROM rust:1-trixie AS chef
