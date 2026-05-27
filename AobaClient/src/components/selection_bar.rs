@@ -1,9 +1,16 @@
+use crate::HOST;
 use dioxus::prelude::*;
+use web_sys::window;
 
 use crate::components::{
 	Modal,
 	basic::{Button, ButtonVariant},
 };
+
+const CLEAR_ICON: Asset = asset!("/assets/icons/clear.svg");
+const TRASH_ICON: Asset = asset!("/assets/icons/trash.svg");
+const TAG_ICON: Asset = asset!("/assets/icons/tag.svg");
+const COPY_ICON: Asset = asset!("/assets/icons/copy-doc.svg");
 
 #[component]
 pub fn SelectionBar(
@@ -32,21 +39,43 @@ pub fn SelectionBar(
 					div{
 						class: "controls",
 						BarButton{
+							onclick: move|_|{
+								let item_ids = selected_items.clone();
+								spawn(async move {
+									let links : Vec<String> = item_ids.iter()
+										.map(|id| format!("{HOST}/m/{id}"))
+										.collect();
+									let joined = links.join("\n");
+									match window().expect("Failed to get window").navigator().clipboard().write_text(joined.as_str()).await {
+										Ok(_) => (),
+										Err(_) => error!("Failed to write to clipboard"),
+									};
+								});
+							},
+							img{
+								src: COPY_ICON
+							}
+						}
+						BarButton{
 							onclick: move|_|{},
-							"Mark As"
+							img{
+								src: TAG_ICON
+							}
 						}
 						BarButton{
 							onclick: move|_|{
 								delete_modal_open.set(true);
 							},
-							"Delete"
+							img{
+								src: TRASH_ICON
+							}
 						}
 						BarButton{
 							onclick: move |_|{
 								on_selection_cleared.call(());
 							},
-							span{
-								"Deselect All"
+							img{
+								src: CLEAR_ICON
 							}
 						}
 					}
