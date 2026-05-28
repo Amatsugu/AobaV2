@@ -122,6 +122,7 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 						error!("Failed to delete items: {:?}", err);
 					}
 					query.set(query.cloned());
+					selected_items.set(Vec::new());
 				});
 			}
 		}
