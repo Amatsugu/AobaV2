@@ -36,4 +36,7 @@ jobs:
                   tags: |
                       git.kaisei.app/amatsugu/aoba:${{ env.VERSION }}
                       git.kaisei.app/amatsugu/aoba:latest
-                  build-args: VERSION=${{ env.VERSION }}
+                  build-args: |
+                      VERSION=${{ env.VERSION }}
+                  secrets: |
+                      "SixLaborsLicenseKey=${{ secrets.SixLaborsLicenseKey }}"

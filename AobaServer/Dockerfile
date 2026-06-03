@@ -47,17 +47,24 @@ FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION}-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AobaServer/AobaServer.csproj", "AobaServer/"]
-RUN dotnet restore "/src/AobaServer/AobaServer.csproj"
+# RUN dotnet restore "/src/AobaServer/AobaServer.csproj"
+# 1. Mount the secret here if your dotnet restore needs it
+RUN --mount=type=secret,id=SixLaborsLicenseKey \
+    # Optional: If SixLabors expects an environment variable during restore/build:
+    export SixLaborsLicenseKey=$(cat /run/secrets/SixLaborsLicenseKey) && \
+    dotnet restore "/src/AobaServer/AobaServer.csproj"
 COPY . .
 # Copy Built bundle from client builder
 COPY --from=client-builder /app/AobaClient/target/dx/aoba-client/release/web/public /src/AobaServer/wwwroot
 WORKDIR "/src/AobaServer"
-# RUN dotnet build "./AobaServer.csproj" -c $BUILD_CONFIGURATION #-o /app/build
+
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN --mount=type=secret,id=SixLaborsLicenseKey \
+    export SixLaborsLicenseKey=$(cat /run/secrets/SixLaborsLicenseKey) && \
+    dotnet publish "./AobaServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
