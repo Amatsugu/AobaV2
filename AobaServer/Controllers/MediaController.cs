@@ -3,6 +3,7 @@ using AobaCore.Services;
 
 using HeyRed.Mime;
 
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
@@ -11,6 +12,7 @@ using MongoDB.Driver;
 namespace AobaServer.Controllers;
 
 [Route("/m")]
+[EnableCors(PolicyName = "AllowAll")]
 public class MediaController(AobaService aobaService, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
