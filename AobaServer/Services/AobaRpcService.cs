@@ -85,4 +85,10 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		}
 		return new Empty();
 	}
+
+	public override async Task<Empty> SetMediaClassBulk(SetMediaClassBulkRequest request, ServerCallContext context)
+	{
+		await aobaService.SetMediaClassAsync(request.Ids.ToObjectId(), (AobaCore.Models.MediaClass)request.Class, context.CancellationToken);
+		return new Empty();
+	}
 }

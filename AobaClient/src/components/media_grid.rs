@@ -21,6 +21,7 @@ pub struct MediaGridProps
 	pub on_item_selected: Option<EventHandler<(String, bool)>>,
 	pub onmouseup: EventHandler<MouseEvent>,
 	pub onmousedown: EventHandler<MouseEvent>,
+	pub bulk_change_class: EventHandler<i32>,
 }
 
 pub struct PaginationInfo
@@ -100,7 +101,9 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 					MediaList {
 						items: itms,
 						selected: props.selected_items,
+						bulk_change_class: props.bulk_change_class,
 						on_item_selected: props.on_item_selected,
+
 						on_item_deleted: move |id|{
 							if let Some(cur) = items.cloned(){
 								let filtered = cur.iter()
@@ -153,6 +156,7 @@ fn MediaList(
 	on_item_deleted: Option<EventHandler<String>>,
 	on_item_selected: Option<EventHandler<(String, bool)>>,
 	on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
+	bulk_change_class: EventHandler<i32>,
 ) -> Element
 {
 	rsx! {
@@ -165,7 +169,8 @@ fn MediaList(
 					is_selected,
 					on_deleted: on_item_deleted,
 					on_selected: on_item_selected,
-					on_class_changed: on_class_changed
+					on_class_changed: on_class_changed,
+					bulk_change_class
 				}
 			}
 		})}

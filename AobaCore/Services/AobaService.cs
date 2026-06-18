@@ -66,6 +66,13 @@ public class AobaService(IMongoDatabase db)
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
+	public async Task SetMediaClassAsync(IEnumerable<ObjectId> mediaIds, MediaClass mediaClass, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update
+			.Set(m => m.Class, mediaClass);
+		await _media.UpdateManyAsync(m => mediaIds.Contains(m.MediaId), update, cancellationToken: cancellationToken);
+	}
+
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var upate = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);

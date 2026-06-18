@@ -5,6 +5,7 @@ use web_sys::window;
 
 use crate::{
 	HOST,
+	contexts::SelectionContext,
 	rpc::{
 		aoba::{Id, MediaModel, SetMediaClassRequest},
 		get_rpc_client,
@@ -25,12 +26,13 @@ pub struct MediaItemProps
 	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
 	pub on_deleted: Option<EventHandler<String>>,
 	pub on_selected: Option<EventHandler<(String, bool)>>,
+	pub bulk_change_class: EventHandler<i32>,
 }
 
 #[component]
 pub fn MediaItem(props: MediaItemProps) -> Element
 {
-	let item = props.item;
+	let item = props.item.clone();
 	let mtype = item.media_type().as_str_name();
 	let filename = item.file_name;
 	let id = item.id.unwrap().value;
@@ -48,7 +50,6 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		false => "",
 	};
 	let url = item.media_url;
-	let download = format!("{HOST}{url}");
 
 	let del_id = id.clone();
 	let onmove = move |e: MouseEvent| {
@@ -82,116 +83,73 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				},
 			},
 			ContextMenuContent{
-				ContextMenuItem {
-					index: 0 as usize,
-					value: id.clone(),
-					on_select: move |id: String|{
-						window().expect("Failed to get window")
-							.location().set_href(&format!("/media/{}", id))
-							.expect("Failed to open Url");
-					},
-					div{
-						class: "contextItem",
-						div{
-							class: "label",
-							"Details"
-						}
-					}
-				},
-				ContextMenuItem {
-					index: 1 as usize,
-					value: "{download}",
-					on_select: move |url: String|{
-						window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
-					},
-					div{
-						class: "contextItem",
-						div{
-							class: "label",
-							"Download"
-						}
-					}
-				},
-				{
-					if class != 0 {
-						rsx!{ContextMenuItem {
-							index: 2 as usize,
-							value: "{id}",
-							on_select: move |id: String|{
-								spawn(async move {
-									if let Ok(_) = set_class(&id, 0).await{
-										if let Some(handler) = props.on_class_changed{
-											handler.call(MediaClassChangeEvent { id, class: 0 });
-										}
-									}
-								});
-							},
-							div{
-								class: "contextItem",
-								div{
-									class: "label",
-									"Mark Standard"
-								}
-							}
-						}}
-					}else{rsx!{}}
+				MediaItemContextMenuItems{
+					item: props.item.clone(),
+					is_selected: props.is_selected,
+					on_class_changed: props.on_class_changed,
+					on_deleted: props.on_deleted,
+					on_selected: props.on_selected,
+					bulk_change_class: props.bulk_change_class
 				}
-				{
-					if class != 1 {
-						rsx!{ContextMenuItem {
-							index: 3 as usize,
-							value: "{id}",
-							on_select: move |id: String|{
-								spawn(async move {
-									if let Ok(_) = set_class(&id, 1).await{
-										if let Some(handler) = props.on_class_changed{
-											handler.call(MediaClassChangeEvent { id, class: 1 });
-										}
-									}
-								});
-							},
-							div{
-								class: "contextItem",
-								div{
-									class: "label",
-									"Mark NSFW"
-								}
-							}
-						}}
-					}else{rsx!{}}
+			}
+		}
+	};
+}
+
+#[component]
+fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
+{
+	let item = props.item;
+	let id = item.id.unwrap().value;
+	let url = item.media_url;
+	let download = format!("{HOST}{url}");
+	let class = item.class;
+	let selection_context: SelectionContext = use_context();
+	let selection_count = selection_context.selected_items.len();
+	rsx! {
+		div{
+			"This item"
+		}
+		ContextMenuItem {
+			index: 0 as usize,
+			value: id.clone(),
+			on_select: move |id: String|{
+				window().expect("Failed to get window")
+					.location().set_href(&format!("/media/{}", id))
+					.expect("Failed to open Url");
+			},
+			div{
+				class: "contextItem",
+				div{
+					class: "label",
+					"Details"
 				}
-				{
-					if class != 3 {
-						rsx!{ContextMenuItem {
-							index: 4 as usize,
-							value: "{id}",
-							on_select: move |id: String|{
-								spawn(async move {
-									if let Ok(_) = set_class(&id, 2).await{
-										if let Some(handler) = props.on_class_changed{
-											handler.call(MediaClassChangeEvent { id, class: 2 });
-										}
-									}
-								});
-							},
-							div{
-								class: "contextItem",
-								div{
-									class: "label",
-									"Mark Secret"
-								}
-							}
-						}}
-					}else{rsx!{}}
+			}
+		},
+		ContextMenuItem {
+			index: 1 as usize,
+			value: "{download}",
+			on_select: move |url: String|{
+				window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
+			},
+			div{
+				class: "contextItem",
+				div{
+					class: "label",
+					"Download"
 				}
-				ContextMenuItem {
-					index: 5 as usize,
+			}
+		},
+		{
+			if class != 0 {
+				rsx!{ContextMenuItem {
+					index: 2 as usize,
 					value: "{id}",
 					on_select: move |id: String|{
 						spawn(async move {
-							if let Ok(_) = delete_media(id.clone()).await{
-								if let Some(handler) = props.on_deleted {
-									handler.call(id);
+							if let Ok(_) = set_class(&id, 0).await{
+								if let Some(handler) = props.on_class_changed{
+									handler.call(MediaClassChangeEvent { id, class: 0 });
 								}
 							}
 						});
@@ -200,13 +158,128 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 						class: "contextItem",
 						div{
 							class: "label",
-							"Delete"
+							"Mark Standard"
 						}
 					}
+				}}
+			}else{rsx!{}}
+		}
+		{
+			if class != 1 {
+				rsx!{ContextMenuItem {
+					index: 3 as usize,
+					value: "{id}",
+					on_select: move |id: String|{
+						spawn(async move {
+							if let Ok(_) = set_class(&id, 1).await{
+								if let Some(handler) = props.on_class_changed{
+									handler.call(MediaClassChangeEvent { id, class: 1 });
+								}
+							}
+						});
+					},
+					div{
+						class: "contextItem",
+						div{
+							class: "label",
+							"Mark NSFW"
+						}
+					}
+				}}
+			}else{rsx!{}}
+		}
+		{
+			if class != 3 {
+				rsx!{ContextMenuItem {
+					index: 4 as usize,
+					value: "{id}",
+					on_select: move |id: String|{
+						spawn(async move {
+							if let Ok(_) = set_class(&id, 2).await{
+								if let Some(handler) = props.on_class_changed{
+									handler.call(MediaClassChangeEvent { id, class: 2 });
+								}
+							}
+						});
+					},
+					div{
+						class: "contextItem",
+						div{
+							class: "label",
+							"Mark Secret"
+						}
+					}
+				}}
+			}else{rsx!{}}
+		}
+		ContextMenuItem {
+			index: 5 as usize,
+			value: "{id}",
+			on_select: move |id: String|{
+				spawn(async move {
+					if let Ok(_) = delete_media(id.clone()).await{
+						if let Some(handler) = props.on_deleted {
+							handler.call(id);
+						}
+					}
+				});
+			},
+			div{
+				class: "contextItem",
+				div{
+					class: "label",
+					"Delete"
+				}
+			}
+		},
+		if selection_count > 0{
+			div{
+				"{selection_count} Selected Items"
+			}
+			ContextMenuItem {
+				index: 6 as usize,
+				value: "{id}",
+				on_select: move |_id|{
+					props.bulk_change_class.call(1);
 				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark as NSFW"
+					}
+				}
+			}
+			ContextMenuItem {
+				index: 7 as usize,
+				value: "{id}",
+				on_select: move |_id|{
+					props.bulk_change_class.call(2);
+				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark as Secret"
+					}
+				}
+			}
+			ContextMenuItem {
+				index: 8 as usize,
+				value: "{id}",
+				on_select: move |_id|{
+					props.bulk_change_class.call(0);
+				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark as Standard"
+					}
+				}
 			}
 		}
-	};
+	}
 }
 
 #[component]

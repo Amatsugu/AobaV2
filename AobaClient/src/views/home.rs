@@ -1,12 +1,12 @@
 use crate::{
-	components::{MediaGrid, Modal, Pagination, PaginationInfo, Search, SelectionBar},
+	components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar},
+	contexts::SelectionContext,
 	rpc::{
-		aoba::{Id, IdList},
+		aoba::{Id, IdList, SetMediaClassBulkRequest},
 		get_rpc_client,
 	},
 };
 use dioxus::{html::input_data::MouseButton, prelude::*};
-use tonic::IntoRequest;
 
 #[derive(Debug, Clone)]
 enum SelectionPhase
@@ -31,7 +31,9 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	let page_size = use_signal::<i32>(|| 100);
 	let mut max_page = use_signal(|| 1 as i32);
 	let mut item_count = use_signal(|| 0 as i32);
-	let mut selected_items: Signal<Vec<String>> = use_signal(|| Vec::new());
+	let mut selection_context = use_context_provider(|| SelectionContext::default());
+
+	// let mut selected_items: Signal<Vec<String>> = use_signal(|| Vec::new());
 	let mut seletion_mode: Signal<SelectionMode> = use_signal(|| SelectionMode::Add);
 	let mut seletion_phase: Signal<SelectionPhase> = use_signal(|| SelectionPhase::Start);
 	rsx! {
@@ -60,14 +62,14 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 			page: page,
 			max_page,
 			total_items: item_count,
-			selected_items: selected_items.cloned(),
+			selected_items: selection_context.selected_items.cloned(),
 			page_size,
 			on_page_loaded: move |p: PaginationInfo| {
 				max_page.set(p.total_pages);
 				item_count.set(p.total_items);
 			},
 			on_item_selected: move |select: (String, bool)| {
-				let mut items = selected_items.cloned();
+				let mut items = selection_context.selected_items.cloned();
 				let (id, selected) = select;
 				match seletion_phase.cloned(){
 					SelectionPhase::Start => {
@@ -86,8 +88,9 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 					SelectionPhase::Idle => (),
 				}
 
-				selected_items.set(items);
+				selection_context.selected_items.set(items);
 			},
+			bulk_change_class,
 			onmouseup: move |e: MouseEvent|{
 				if let Some(button) = e.data().trigger_button()
 				{
@@ -107,14 +110,14 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 			},
 		}
 		SelectionBar{
-			selected_items: selected_items.cloned(),
+			selected_items: selection_context.selected_items.cloned(),
 			on_selection_cleared: move |_|{
-				selected_items.set(Vec::new());
+				selection_context.selected_items.set(Vec::new());
 			},
 			on_items_delete: move |_|{
 				spawn(async move {
 					let mut client = get_rpc_client();
-					let item_ids = selected_items.cloned().iter().map(|id| Id { value: id.clone() }).collect();
+					let item_ids = selection_context.selected_items.cloned().iter().map(|id| Id { value: id.clone() }).collect();
 					let req = IdList{
 						value: item_ids
 					};
@@ -122,7 +125,7 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 						error!("Failed to delete items: {:?}", err);
 					}
 					query.set(query.cloned());
-					selected_items.set(Vec::new());
+					selection_context.selected_items.set(Vec::new());
 				});
 			}
 		}
@@ -145,4 +148,31 @@ fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String)
 			*items = items.iter().filter(|i| *i != &id).map(|i| i.clone()).collect();
 		}
 	}
+}
+
+fn bulk_change_class(class: i32)
+{
+	spawn(async move {
+		let mut client = get_rpc_client();
+		let mut selection_context: SelectionContext = use_context();
+		info!("Changing class to {}", class);
+		let ids = selection_context
+			.selected_items
+			.cloned()
+			.iter()
+			.map(|id| Id { value: id.clone() })
+			.collect();
+		if client
+			.set_media_class_bulk(SetMediaClassBulkRequest {
+				class,
+				ids: Some(IdList { value: ids }),
+			})
+			.await
+			.is_err()
+		{
+			error!("Failed to bulk change class for items")
+		}
+
+		selection_context.selected_items.set(Vec::new());
+	});
 }
