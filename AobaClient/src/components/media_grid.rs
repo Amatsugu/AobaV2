@@ -1,4 +1,7 @@
-use dioxus::prelude::*;
+use dioxus::{
+	html::geometry::{ClientSpace, euclid::Point2D},
+	prelude::*,
+};
 
 use crate::{
 	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder},
@@ -18,7 +21,7 @@ pub struct MediaGridProps
 	pub page_size: Signal<i32>,
 	pub selected_items: Vec<String>,
 	pub on_page_loaded: Option<EventHandler<PaginationInfo>>,
-	pub on_item_selected: Option<EventHandler<(String, bool)>>,
+	pub on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	pub onmouseup: EventHandler<MouseEvent>,
 	pub onmousedown: EventHandler<MouseEvent>,
 	pub bulk_change_class: EventHandler<i32>,
@@ -154,7 +157,7 @@ fn MediaList(
 	items: Vec<MediaModel>,
 	selected: Vec<String>,
 	on_item_deleted: Option<EventHandler<String>>,
-	on_item_selected: Option<EventHandler<(String, bool)>>,
+	on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
 	bulk_change_class: EventHandler<i32>,
 ) -> Element

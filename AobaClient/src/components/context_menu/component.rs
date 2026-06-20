@@ -18,7 +18,7 @@ pub fn ContextMenuTrigger(props: ContextMenuTriggerProps) -> Element
 	rsx! {
 		div{
 			class: "contextMenuTrigger",
-			oncontextmenu: move|e|{
+			oncontextmenu: move|_e|{
 
 			},
 			{props.children}

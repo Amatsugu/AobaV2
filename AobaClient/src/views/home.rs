@@ -6,7 +6,16 @@ use crate::{
 		get_rpc_client,
 	},
 };
-use dioxus::{html::input_data::MouseButton, prelude::*};
+use dioxus::{
+	html::{
+		geometry::{
+			ClientSpace,
+			euclid::{Point2D, default::Vector2D},
+		},
+		input_data::MouseButton,
+	},
+	prelude::*,
+};
 
 #[derive(Debug, Clone)]
 enum SelectionPhase
@@ -23,6 +32,8 @@ enum SelectionMode
 	Remove,
 }
 
+const MIN_DRAG_DISTANCE: f64 = 4.0;
+
 #[component]
 pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 {
@@ -32,7 +43,7 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	let mut max_page = use_signal(|| 1 as i32);
 	let mut item_count = use_signal(|| 0 as i32);
 	let mut selection_context = use_context_provider(|| SelectionContext::default());
-
+	let mut last_pos = use_signal(|| None::<Point2D<f64, ClientSpace>>);
 	// let mut selected_items: Signal<Vec<String>> = use_signal(|| Vec::new());
 	let mut seletion_mode: Signal<SelectionMode> = use_signal(|| SelectionMode::Add);
 	let mut seletion_phase: Signal<SelectionPhase> = use_signal(|| SelectionPhase::Start);
@@ -68,9 +79,19 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 				max_page.set(p.total_pages);
 				item_count.set(p.total_items);
 			},
-			on_item_selected: move |select: (String, bool)| {
+			on_item_selected: move |select: (String, bool, Point2D<f64, ClientSpace>)| {
 				let mut items = selection_context.selected_items.cloned();
-				let (id, selected) = select;
+				let (id, selected, pos) = select;
+				let delta = if let Some(last_pos) = last_pos.cloned() {
+					(last_pos - pos).length()
+				}else{
+					0.0
+				};
+				last_pos.set(Some(pos));
+				if delta <= MIN_DRAG_DISTANCE {
+					return;
+				}
+				info!("Delta {:?}", delta);
 				match seletion_phase.cloned(){
 					SelectionPhase::Start => {
 						let mode = match selected {

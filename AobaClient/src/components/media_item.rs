@@ -1,4 +1,10 @@
-use dioxus::{html::input_data::MouseButton, prelude::*};
+use dioxus::{
+	html::{
+		geometry::{ClientSpace, euclid::Point2D},
+		input_data::MouseButton,
+	},
+	prelude::*,
+};
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger};
 use tonic::{Response, Status};
 use web_sys::window;
@@ -25,7 +31,7 @@ pub struct MediaItemProps
 	pub is_selected: bool,
 	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
 	pub on_deleted: Option<EventHandler<String>>,
-	pub on_selected: Option<EventHandler<(String, bool)>>,
+	pub on_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	pub bulk_change_class: EventHandler<i32>,
 }
 
@@ -57,7 +63,8 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		{
 			if let Some(handler) = props.on_selected
 			{
-				handler.call((del_id.clone(), props.is_selected));
+				let p = e.data().coordinates().client();
+				handler.call((del_id.clone(), props.is_selected, p));
 			}
 		}
 	};
