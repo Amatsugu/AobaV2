@@ -22,9 +22,10 @@ pub fn PasskeyRegistrationButton() -> Element
 
 fn start_passkey_registration()
 {
-	create_credential(todo!());
+	// create_credential(todo!());
 }
 
+#[allow(dead_code)]
 fn create_credential(req_opts: PasskeyCredentialCreateOptions)
 {
 	let window = window().expect("Window does not exist");
@@ -32,10 +33,11 @@ fn create_credential(req_opts: PasskeyCredentialCreateOptions)
 
 	let opts = opts_from_rpc(req_opts);
 
-	let result = credentaials.create_with_options(&opts);
+	let _result = credentaials.create_with_options(&opts);
 	todo!()
 }
 
+#[allow(dead_code)]
 fn opts_from_rpc(rpc_opts: PasskeyCredentialCreateOptions) -> CredentialCreationOptions
 {
 	let opt_user = &rpc_opts.user.expect("user is missing");
@@ -61,7 +63,8 @@ fn opts_from_rpc(rpc_opts: PasskeyCredentialCreateOptions) -> CredentialCreation
 	return opts;
 }
 
-fn to_u8_array(value: &String) -> Uint8Array
+#[allow(dead_code)]
+fn to_u8_array(_value: &String) -> Uint8Array
 {
 	todo!()
 }

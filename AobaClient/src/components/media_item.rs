@@ -137,6 +137,26 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 			index: 1 as usize,
 			value: "{download}",
 			on_select: move |url: String|{
+				spawn(async move {
+					window().expect("Failed to get window")
+						.navigator()
+						.clipboard()
+						.write_text(&url).await
+						.expect("Failed to copy url");
+				});
+			},
+			div{
+				class: "contextItem",
+				div{
+					class: "label",
+					"Copy Url"
+				}
+			}
+		},
+		ContextMenuItem {
+			index: 1 as usize,
+			value: "{download}",
+			on_select: move |url: String|{
 				window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
 			},
 			div{
@@ -147,84 +167,78 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 				}
 			}
 		},
-		{
-			if class != 0 {
-				rsx!{ContextMenuItem {
-					index: 2 as usize,
-					value: "{id}",
-					on_select: move |id: String|{
-						spawn(async move {
-							if let Ok(_) = set_class(&id, 0).await{
-								if let Some(handler) = props.on_class_changed{
-									handler.call(MediaClassChangeEvent { id, class: 0 });
-								}
+		if class != 0 {
+			ContextMenuItem {
+				index: 2 as usize,
+				value: "{id}",
+				on_select: move |id: String|{
+					spawn(async move {
+						if set_class(&id, 0).await.is_ok(){
+							if let Some(handler) = props.on_class_changed{
+								handler.call(MediaClassChangeEvent { id, class: 0 });
 							}
-						});
-					},
-					div{
-						class: "contextItem",
-						div{
-							class: "label",
-							"Mark Standard"
 						}
+					});
+				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark Standard"
 					}
-				}}
-			}else{rsx!{}}
+				}
+			}
 		}
-		{
-			if class != 1 {
-				rsx!{ContextMenuItem {
-					index: 3 as usize,
-					value: "{id}",
-					on_select: move |id: String|{
-						spawn(async move {
-							if let Ok(_) = set_class(&id, 1).await{
-								if let Some(handler) = props.on_class_changed{
-									handler.call(MediaClassChangeEvent { id, class: 1 });
-								}
+		if class != 1 {
+			ContextMenuItem {
+				index: 3 as usize,
+				value: "{id}",
+				on_select: move |id: String|{
+					spawn(async move {
+						if set_class(&id, 1).await.is_ok(){
+							if let Some(handler) = props.on_class_changed{
+								handler.call(MediaClassChangeEvent { id, class: 1 });
 							}
-						});
-					},
-					div{
-						class: "contextItem",
-						div{
-							class: "label",
-							"Mark NSFW"
 						}
+					});
+				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark NSFW"
 					}
-				}}
-			}else{rsx!{}}
+				}
+			}
 		}
-		{
-			if class != 3 {
-				rsx!{ContextMenuItem {
-					index: 4 as usize,
-					value: "{id}",
-					on_select: move |id: String|{
-						spawn(async move {
-							if let Ok(_) = set_class(&id, 2).await{
-								if let Some(handler) = props.on_class_changed{
-									handler.call(MediaClassChangeEvent { id, class: 2 });
-								}
+		if class != 2 {
+			ContextMenuItem {
+				index: 4 as usize,
+				value: "{id}",
+				on_select: move |id: String|{
+					spawn(async move {
+						if set_class(&id, 2).await.is_ok(){
+							if let Some(handler) = props.on_class_changed{
+								handler.call(MediaClassChangeEvent { id, class: 2 });
 							}
-						});
-					},
-					div{
-						class: "contextItem",
-						div{
-							class: "label",
-							"Mark Secret"
 						}
+					});
+				},
+				div{
+					class: "contextItem",
+					div{
+						class: "label",
+						"Mark Secret"
 					}
-				}}
-			}else{rsx!{}}
+				}
+			}
 		}
 		ContextMenuItem {
 			index: 5 as usize,
 			value: "{id}",
 			on_select: move |id: String|{
 				spawn(async move {
-					if let Ok(_) = delete_media(id.clone()).await{
+					if delete_media(id.clone()).await.is_ok(){
 						if let Some(handler) = props.on_deleted {
 							handler.call(id);
 						}

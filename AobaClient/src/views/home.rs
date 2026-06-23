@@ -8,10 +8,7 @@ use crate::{
 };
 use dioxus::{
 	html::{
-		geometry::{
-			ClientSpace,
-			euclid::{Point2D, default::Vector2D},
-		},
+		geometry::{ClientSpace, euclid::Point2D},
 		input_data::MouseButton,
 	},
 	prelude::*,
@@ -91,7 +88,6 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 				if delta <= MIN_DRAG_DISTANCE {
 					return;
 				}
-				info!("Delta {:?}", delta);
 				match seletion_phase.cloned(){
 					SelectionPhase::Start => {
 						let mode = match selected {

@@ -128,6 +128,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 										return itm;
 									})
 									.collect();
+								info!("Class changed");
 								items.set(Some(updated));
 							}
 						}
