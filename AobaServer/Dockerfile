@@ -36,7 +36,7 @@ RUN dx bundle --release --platform web
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} AS base
-RUN apt-get update && apt-get install -y ffmpeg #libvips libvips-tools
+RUN apt-get update && apt-get install -y ffmpeg libvips libvips-tools
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -46,8 +46,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION}-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["AobaServer/AobaServer.csproj", "AobaServer/"]
-# RUN dotnet restore "/src/AobaServer/AobaServer.csproj"
+COPY ["AobaServer/AobaServer.csproj", "AobaCore/AobaCore.csproj", "AobaServer/"]
 # 1. Mount the secret here if your dotnet restore needs it
 RUN --mount=type=secret,id=SixLaborsLicenseKey \
     # Optional: If SixLabors expects an environment variable during restore/build:

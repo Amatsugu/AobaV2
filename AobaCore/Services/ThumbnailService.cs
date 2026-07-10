@@ -137,7 +137,11 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	{
 		return type switch
 		{
-			MediaType.Image => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
+			MediaType.Image => ext switch
+			{
+				".avif" => GenerateAvifThumbnail(stream, size, cancellationToken),
+				_ => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
+			},
 			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
 			MediaType.Audio => GenerateAudioThumbnail(stream, size, ext, cancellationToken),
 			MediaType.Text or MediaType.Code => await GenerateTextThumbnailAsync(stream, size, cancellationToken),
