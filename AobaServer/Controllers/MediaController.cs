@@ -73,7 +73,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 			logger.LogError("Failed to generate thumbnail: {}", thumb.Error);
 			return DefaultThumbnailAsync();
 		}
-		return File(thumb, "image/webp", true);
+		return File(thumb.Value.thumb, thumb.Value.mimeType, true);
 	}
 
 	[HttpGet("/t/{id}")]
@@ -81,9 +81,9 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken = default)
 	{
 		var thumb = await thumbnailService.GetThumbnailByFileIdAsync(id, cancellationToken);
-		if(thumb == null) 
+		if(thumb.thumb == null || thumb.mimeType == null) 
 			return NotFound();
-		return File(thumb, "image/webp", true);
+		return File(thumb.thumb, thumb.mimeType, true);
 	}
 
 	[NonAction]

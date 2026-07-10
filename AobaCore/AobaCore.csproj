@@ -13,6 +13,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
 		<PackageReference Include="MaybeError" Version="1.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+		<PackageReference Include="MimeTypesMap" Version="1.0.9" />
 		<PackageReference Include="MongoDB.Driver" Version="3.9.0" />
 		<PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="3.0.0" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="3.0.0" />

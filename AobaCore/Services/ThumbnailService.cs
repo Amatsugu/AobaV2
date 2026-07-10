@@ -3,6 +3,7 @@
 using FFMpegCore;
 using FFMpegCore.Pipes;
 
+using HeyRed.Mime;
 
 using MaybeError.Errors;
 
@@ -77,12 +78,12 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	/// <param name="size"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task<Maybe<Stream>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Maybe<(Stream thumb, string mimeType)>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 
 		var existingThumb = await GetThumbnailAsync(mediaId, size, cancellationToken);
-		if (existingThumb != null)
-			return existingThumb;
+		if (existingThumb.thumb != null && existingThumb.mimeType != null)
+			return existingThumb!;
 
 		var media = await aobaService.GetMediaAsync(mediaId, cancellationToken);
 
@@ -98,11 +99,17 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 				return thumb.Error;
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var thumbId = await _gridfs.UploadFromStreamAsync($"{media.Filename}.webp", thumb, cancellationToken: CancellationToken.None);
+			var thumbExt = media.Ext switch
+			{
+				".avif" => ".avif",
+				_ => ".webp"
+			};
+
+			var thumbId = await _gridfs.UploadFromStreamAsync($"{media.Filename}{media.Ext}", thumb, cancellationToken: CancellationToken.None);
 			await aobaService.AddThumbnailAsync(mediaId, thumbId, size, cancellationToken);
 
 			thumb.Value.Position = 0;
-			return thumb;
+			return (thumb, MimeTypesMap.GetMimeType(thumbExt));
 		}
 		catch (Exception ex)
 		{
@@ -117,20 +124,20 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 	/// <param name="size"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task<Stream?> GetThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<(Stream? thumb, string? mimeType)> GetThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var thumb = await aobaService.GetThumbnailIdAsync(mediaId, size, cancellationToken);
 		if (thumb == default)
-			return null;
+			return (null, null);
 
 		var thumbData = await _gridfs.OpenDownloadStreamAsync(thumb, cancellationToken: cancellationToken);
-		return thumbData;
+		return (thumbData, MimeTypesMap.GetMimeType(thumbData.FileInfo.Filename));
 	}
 
-	public async Task<Stream?> GetThumbnailByFileIdAsync(ObjectId thumbId, CancellationToken cancellationToken = default)
+	public async Task<(Stream? thumb, string? mimeType)> GetThumbnailByFileIdAsync(ObjectId thumbId, CancellationToken cancellationToken = default)
 	{
 		var thumbData = await _gridfs.OpenDownloadStreamAsync(thumbId, cancellationToken: cancellationToken);
-		return thumbData;
+		return (thumbData, MimeTypesMap.GetMimeType(thumbData.FileInfo.Filename));
 	}
 
 	public async Task<Maybe<Stream>> GenerateThumbnailAsync(Stream stream, ThumbnailSize size, MediaType type, string ext, CancellationToken cancellationToken = default)
@@ -254,25 +261,33 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
 		var inFilePath = $"/tmp/{fn}.avif";
-		var outFilePath = $"/tmp/{fn}.webp";
+		var outFilePath = $"/tmp/{fn}.avif";
 		using var source = new FileStream(inFilePath, FileMode.CreateNew);
 		data.CopyTo(source);
 		source.Flush();
 		source.Dispose();
+		source.Close();
 		data.Dispose();
 		try
 		{
 			var process = Process.Start(new ProcessStartInfo
 			{
+#if DEBUG
+				FileName = "H:\\Tools\\vips-dev-8.18\\bin\\vips.exe",
+#else
 				FileName = "vips",
-				Arguments = $"smartcrop \"{inFilePath}\" \"{outFilePath}\"[Q=75] {w} {w}",
-				WorkingDirectory = "/tmp"
+#endif
+				Arguments = $"thumbnail \"{inFilePath}\" \"{outFilePath}\"[Q=75] {w} --crop attention --intent relative",
+				//WorkingDirectory = "/tmp"
 			});
 			if (process == null)
 				return new Error("Failed to run vips command");
 			process.WaitForExit();
 			if (process.ExitCode != 0)
-				return new Error("Failed to convert");
+			{
+				var err = process.StandardError.ReadToEnd();
+				return new Error("Failed to convert", err);
+			}
 			var output = new MemoryStream();
 			using var oFile = File.OpenRead(outFilePath);
 			oFile.CopyTo(output);
