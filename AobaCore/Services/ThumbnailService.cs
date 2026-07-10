@@ -261,7 +261,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
 		var inFilePath = $"/tmp/{fn}.avif";
-		var outFilePath = $"/tmp/{fn}.avif";
+		var outFilePath = $"/tmp/tn_{fn}.avif";
 		using var source = new FileStream(inFilePath, FileMode.CreateNew);
 		data.CopyTo(source);
 		source.Flush();
@@ -273,11 +273,11 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 			var process = Process.Start(new ProcessStartInfo
 			{
 #if DEBUG
-				FileName = "H:\\Tools\\vips-dev-8.18\\bin\\vips.exe",
+				FileName = "H:\\Tools\\vips-dev-8.18\\bin\\vipsthumbnail.exe",
 #else
-				FileName = "vips",
+				FileName = "vipsthumbnail",
 #endif
-				Arguments = $"thumbnail \"{inFilePath}\" \"{outFilePath}\"[Q=75] {w} --crop attention --intent relative",
+				Arguments = $"\"{inFilePath}\" --size {w} --crop",
 				//WorkingDirectory = "/tmp"
 			});
 			if (process == null)
