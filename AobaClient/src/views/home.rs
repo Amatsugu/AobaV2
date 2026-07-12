@@ -113,6 +113,7 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 				{
 					if button == MouseButton::Primary{
 						seletion_phase.set(SelectionPhase::Idle);
+                        last_pos.set(None);
 					}
 				}
 
