@@ -29,7 +29,7 @@ enum SelectionMode
 	Remove,
 }
 
-const MIN_DRAG_DISTANCE: f64 = 4.0;
+const MIN_DRAG_DISTANCE: f64 = 8.0;
 
 #[component]
 pub fn Home(page: Option<i32>, q: Option<String>) -> Element
