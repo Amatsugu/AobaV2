@@ -277,7 +277,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 #else
 				FileName = "vipsthumbnail",
 #endif
-				Arguments = $"\"{inFilePath}\" --size {w} --crop",
+				Arguments = $"\"{inFilePath}\" --size {w} --crop --path {outFilePath}",
 				//WorkingDirectory = "/tmp"
 			});
 			if (process == null)
@@ -319,7 +319,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 		//	var textOpts = new RichTextOptions(font);
 		//	op.DrawText(, new string(text), new Brush
 		//	{
-				
+
 		//	});
 		//});
 		return new NotImplementedException();
