@@ -277,7 +277,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 #else
 				FileName = "vipsthumbnail",
 #endif
-				Arguments = $"\"{inFilePath}\" --size {w} --crop -output avif",
+				Arguments = $"\"{inFilePath}\" --size {w} --crop --output avif",
 				//WorkingDirectory = "/tmp"
 			});
 			if (process == null)
