@@ -138,7 +138,10 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		}
 		else
 		{
-			return await s3Media.GetFileAsync(media.GetS3Filename(), cancellationToken);
+			var result = await s3Media.GetFileAsync(media.GetS3Filename(), cancellationToken);
+			if (result.HasError)
+				return result.Error;
+			return result.Value;
 		}
 	}
 

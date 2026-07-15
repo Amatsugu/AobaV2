@@ -30,11 +30,4 @@ public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase
 			url = media.Value.GetMediaUrl(hostInfo)
 		});
 	}
-
-	[HttpDelete("{id}")]
-	public async Task<IActionResult> Delete(ObjectId id, CancellationToken cancellationToken)
-	{
-		await aoba.DeleteFileAsync(id, cancellationToken);
-		return Ok();
-	}
 }

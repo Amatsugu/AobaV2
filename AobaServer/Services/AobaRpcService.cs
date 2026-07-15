@@ -13,7 +13,7 @@ using System.Text.Json;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig, HostInfo host) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
 {
 
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
@@ -63,10 +63,21 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		var media = await aobaService.GetMediaAsync(request.ToObjectId());
 		if (media == null)
 			return new Empty();
-		await aobaService.DeleteFileAsync(media.MediaId, context.CancellationToken);
-		foreach (var (_, id) in media.Thumbnails)
+		if (media.Cdn != null)
 		{
-			await thumbnailService.DeleteThumbnailDirectAsync(id);
+			await s3.DeleteFileAsync(media.Cdn.Url, CancellationToken.None);
+			foreach (var (_, key) in media.Cdn.ThumbnailUrls)
+			{
+				await s3.DeleteFileAsync(key, CancellationToken.None);
+			}
+		}
+		else
+		{
+			await aobaService.DeleteFileAsync(media.MediaId, context.CancellationToken);
+			foreach (var (_, id) in media.Thumbnails)
+			{
+				await thumbnailService.DeleteThumbnailDirectAsync(id);
+			}
 		}
 		return new Empty();
 	}
@@ -79,9 +90,20 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.CancellationToken);
 		foreach (var item in media)
 		{
-			foreach (var (_, id) in item.Thumbnails)
+			if(item.Cdn != null)
 			{
-				await thumbnailService.DeleteThumbnailDirectAsync(id);
+				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);
+				foreach (var (_, key) in item.Cdn.ThumbnailUrls)
+				{
+					await s3.DeleteFileAsync(key, CancellationToken.None);
+				}
+			}
+			else
+			{
+				foreach (var (_, id) in item.Thumbnails)
+				{
+					await thumbnailService.DeleteThumbnailDirectAsync(id);
+				}
 			}
 		}
 		return new Empty();
