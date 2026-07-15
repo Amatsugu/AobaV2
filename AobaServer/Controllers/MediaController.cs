@@ -18,7 +18,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	[HttpGet("{id}")]
 	[HttpGet("{id}/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
-	public async Task<IActionResult> MediaAsync(ObjectId id, [FromServices] MongoClient client, CancellationToken cancellationToken)
+	public async Task<IActionResult> MediaAsync(ObjectId id, CancellationToken cancellationToken)
 	{
 		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
 		if (file.HasError)
@@ -34,7 +34,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	[HttpGet("{id}/dl")]
 	[HttpGet("{id}/dl/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
-	public async Task<IActionResult> DownloadMediaAsync(ObjectId id, [FromServices] MongoClient client, [FromQuery] string? fn = null, CancellationToken cancellationToken = default)
+	public async Task<IActionResult> DownloadMediaAsync(ObjectId id, [FromQuery] string? fn = null, CancellationToken cancellationToken = default)
 	{
 		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
 		if (file.HasError)
