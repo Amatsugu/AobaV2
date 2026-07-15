@@ -16,12 +16,16 @@ using System.Threading.Tasks;
 namespace AobaCore;
 public static class Extensions
 {
-	public static IServiceCollection AddAoba(this IServiceCollection services)
+	public static IServiceCollection AddAoba(this IServiceCollection services, bool s3 = false)
 	{
 		
 		services.AddSingleton<AobaService>();
-        services.AddSingleton<ThumbnailService>();
+		services.AddSingleton<ThumbnailService>();
 		services.AddSingleton<AccountsService>();
+		if (s3)
+		{
+			services.AddSingleton<S3MediaService>();
+		}
 		services.AddHostedService<AobaIndexCreationService>();
 		return services;
 	}
