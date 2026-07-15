@@ -3,6 +3,8 @@
 using FFMpegCore;
 using FFMpegCore.Pipes;
 
+using Flurl;
+
 using HeyRed.Mime;
 
 using MaybeError.Errors;
@@ -18,7 +20,7 @@ using System.Diagnostics;
 
 namespace AobaCore.Services;
 
-public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media)
+public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media, HostInfo hostInfo)
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
 
@@ -68,17 +70,16 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 	/// <param name="size"></param>
 	/// <param name="cancellationToken"></param>
 	/// <returns></returns>
-	public async Task<Maybe<(Stream thumb, string mimeType)>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Maybe<string>> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-
-		var existingThumb = await GetThumbnailAsync(mediaId, size, cancellationToken);
-		if (existingThumb.thumb != null && existingThumb.mimeType != null)
-			return existingThumb!;
-
 		var media = await aobaService.GetMediaAsync(mediaId, cancellationToken);
-
 		if (media == null)
 			return new Error("Media does not exist");
+		var existingThumb = GetExistingThumbUrl(media, size);
+		if (existingThumb != null)
+			return existingThumb!;
+
+
 
 		try
 		{
@@ -91,18 +92,21 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 
 				if (thumb.HasError)
 					return thumb.Error;
-				cancellationToken.ThrowIfCancellationRequested();
-
-				var thumbExt = media.Ext switch
+				using (thumb.Value)
 				{
-					".avif" => ".avif",
-					_ => ".webp"
-				};
 
-				await UploadThumbnailAsync(media, size, thumb, $"{media.Filename}{media.Ext}", cancellationToken);
+					cancellationToken.ThrowIfCancellationRequested();
 
-				thumb.Value.Position = 0;
-				return (thumb, MimeTypesMap.GetMimeType(thumbExt));
+					var thumbExt = media.Ext switch
+					{
+						".avif" => ".avif",
+						_ => ".webp"
+					};
+
+					var thumbUrl = await UploadThumbnailAsync(media, size, thumb, $"{media.Filename}{media.Ext}", cancellationToken);
+
+					return thumbUrl;
+				}
 			}
 		}
 		catch (Exception ex)
@@ -111,9 +115,24 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		}
 	}
 
+	public string? GetExistingThumbUrl(Media media, ThumbnailSize size)
+	{
+		if (media.Cdn != null)
+		{
+			if (media.Cdn.ThumbnailUrls.ContainsKey(size))
+				return media.GetThumbnailUrl(size, hostInfo);
+		}
+		else
+		{
+			if (media.Thumbnails.ContainsKey(size))
+				return media.GetThumbnailUrl(size, hostInfo);
+		}
+		return null;
+	}
+
 	private async Task<Maybe<Stream>> GetMediaFileAsync(Media media, CancellationToken cancellationToken = default)
 	{
-		if(media.Cdn == null)
+		if (media.Cdn == null)
 		{
 			return await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
 		}
@@ -123,12 +142,28 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		}
 	}
 
-	private async Task UploadThumbnailAsync(Media media, ThumbnailSize size, Stream file, string filename, CancellationToken cancellationToken = default)
+	private async Task<Maybe<string>> UploadThumbnailAsync(Media media, ThumbnailSize size, Stream file, string filename, CancellationToken cancellationToken = default)
 	{
-		//todo: upload to cdn
-		var thumbId = await _gridfs.UploadFromStreamAsync(filename, file, cancellationToken: CancellationToken.None);
-		await aobaService.AddThumbnailAsync(media.MediaId, thumbId, size, cancellationToken);
-
+		try
+		{
+			if (media.Cdn != null)
+			{
+				var result = await s3Media.UploadFileAsync($"{media.MediaId}/thumb/{size}{Path.GetExtension(filename)}", MimeTypesMap.GetMimeType(filename), file, cancellationToken);
+				if (result.HasError)
+					return result.Error;
+				return hostInfo.CdnHost.AppendPathSegments(result.Value).ToString();
+			}
+			else
+			{
+				var thumbId = await _gridfs.UploadFromStreamAsync(filename, file, cancellationToken: CancellationToken.None);
+				await aobaService.AddThumbnailAsync(media.MediaId, thumbId, size, cancellationToken);
+				return hostInfo.Host.AppendPathSegments("t", thumbId).ToString();
+			}
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
 	}
 
 	/// <summary>
@@ -204,7 +239,6 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 
 	public static Maybe<Stream> GenerateAudioThumbnail(Stream data, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
 	{
-
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
 		var filePath = $"/tmp/{fn}{ext}";
@@ -308,7 +342,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 			output.Position = 0;
 			return output;
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			return ex;
 		}
@@ -333,7 +367,6 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		//	var textOpts = new RichTextOptions(font);
 		//	op.DrawText(, new string(text), new Brush
 		//	{
-
 		//	});
 		//});
 		return new NotImplementedException();

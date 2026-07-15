@@ -22,11 +22,15 @@ public static class Extensions
 		services.AddSingleton<AobaService>();
 		services.AddSingleton<ThumbnailService>();
 		services.AddSingleton<AccountsService>();
-		if (s3)
-		{
-			services.AddSingleton<S3MediaService>();
-		}
+		services.AddSingleton<HostInfo>();
 		services.AddHostedService<AobaIndexCreationService>();
+		return services;
+	}
+
+	public static IServiceCollection AddAobaS3(this IServiceCollection services)
+	{
+		services.AddSingleton<S3MediaService>();
+		services.AddHostedService<S3MigrationService>();
 		return services;
 	}
 

@@ -10,7 +10,6 @@ use tonic::{Response, Status};
 use web_sys::window;
 
 use crate::{
-	HOST,
 	contexts::SelectionContext,
 	rpc::{
 		aoba::{Id, MediaModel, SetMediaClassRequest},
@@ -75,11 +74,11 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				a {
 					onmousemove: onmove,
 					class: "mediaItem {class_string} {selected_class}",
-					href: "{HOST}{url}",
+					href: "{url}",
 					target: "_blank",
 					draggable: false,
 					"data-id" : id.clone(),
-					img { src: "{HOST}{thumb}", draggable: false }
+					img { src: "{thumb}", draggable: false }
 					span { class: "info",
 						span { class: "name", "{filename}" }
 						span { class: "details",
@@ -108,8 +107,7 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 {
 	let item = props.item;
 	let id = item.id.unwrap().value;
-	let url = item.media_url;
-	let download = format!("{HOST}{url}");
+	let download = item.media_url.clone();
 	let class = item.class;
 	let selection_context: SelectionContext = use_context();
 	let selection_count = selection_context.selected_items.len();

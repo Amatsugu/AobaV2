@@ -120,15 +120,16 @@ builder.Services.AddAuthentication(options =>
 }).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", null);
 
 
-builder.Services.AddAoba();
+builder.Services.AddAoba().AddAobaS3();
+var host = config["HOST"] ?? throw new NotImplementedException("HOST is not set");
 builder.Services.AddFido2(opts =>
 {
 	opts.ServerName = "Aoba";
-	opts.ServerDomain = "aoba.app";
+	opts.ServerDomain = new Uri(host).Host;
 #if DEBUG
 	opts.Origins = new HashSet<string> { "http://localhost:8081", "http://127.0.0.1:8080" };
 #else
-	opts.Origins = new HashSet<string> { "https://aoba.app" };
+	opts.Origins = new HashSet<string> { host };
 #endif
 });
 #if DEBUG

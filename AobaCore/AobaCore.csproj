@@ -10,6 +10,7 @@
 		<PackageReference Include="AWSSDK.S3" Version="4.0.101.1" />
 		<PackageReference Include="FFMpegCore" Version="5.4.0" />
 		<PackageReference Include="Fido2.Models" Version="4.0.1" />
+		<PackageReference Include="Flurl" Version="4.0.0" />
 		<PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
 		<PackageReference Include="MaybeError" Version="1.2.0" />

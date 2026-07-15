@@ -10,7 +10,7 @@ using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
-public class AobaService(IMongoDatabase db)
+public class AobaService(IMongoDatabase db, S3MediaService s3)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	private readonly GridFSBucket _gridFs = new(db);
@@ -105,12 +105,24 @@ public class AobaService(IMongoDatabase db)
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
 	}
 
+	public async Task SetCdnUrlAsync(ObjectId mediaId, string url, CancellationToken cancellationToken)
+	{
+		var update = Builders<Media>.Update.Set(m => m.Cdn!.Url, url);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+	}
+
 	public async Task<Maybe<Media>> UploadFileAsync(Stream data, string filename, ObjectId owner, CancellationToken cancellationToken = default)
 	{
 		try
 		{
-			var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
-			var media = new Media(fileId, filename, owner);
+			var media = new Media(ObjectId.GenerateNewId(), filename, owner);
+			var s3File = await s3.UploadFileAsync(media.GetS3Filename(), media.GetMimeType(), data, cancellationToken);
+			if (s3File.HasError)
+				return s3File.Error;
+			media.Cdn = new CdnData { Url = $"/{s3File.Value}" };
+
+			//var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
+			//var media = new Media(fileId, filename, owner);
 			
 			await AddMediaAsync(media, cancellationToken);
 			return media;

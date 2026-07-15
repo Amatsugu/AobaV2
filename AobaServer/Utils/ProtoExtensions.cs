@@ -3,18 +3,19 @@ using Aoba.RPC;
 
 using MongoDB.Bson;
 using Google.Protobuf.WellKnownTypes;
+using AobaCore.Services;
 
 namespace AobaServer.Utils;
 
 public static class ProtoExtensions
 {
-	public static ListResponse ToResponse(this PagedResult<Media> result)
+	public static ListResponse ToResponse(this PagedResult<Media> result, HostInfo host)
 	{
 		var res = new ListResponse()
 		{
 			Pagination = result.ToPagination(),
 		};
-		res.Items.AddRange(result.Items.Select(i => i.ToMediaModel()));
+		res.Items.AddRange(result.Items.Select(i => i.ToMediaModel(host)));
 		return res;
 	}
 
@@ -32,17 +33,17 @@ public static class ProtoExtensions
 		return p;
 	}
 
-	public static MediaResponse ToResponse(this Media? media)
+	public static MediaResponse ToResponse(this Media? media, HostInfo host)
 	{
 		if(media == null) 
 			return new MediaResponse() {};
 		return new MediaResponse()
 		{
-			Value = media.ToMediaModel()
+			Value = media.ToMediaModel(host)
 		};
 	}
 
-	public static MediaModel ToMediaModel(this Media media)
+	public static MediaModel ToMediaModel(this Media media, HostInfo host)
 	{
 		
 		return new MediaModel()
@@ -53,8 +54,8 @@ public static class ProtoExtensions
 			MediaType = (Aoba.RPC.MediaType)media.MediaType,
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
-			ThumbUrl = media.GetThumbnailUrl(ThumbnailSize.Medium),
-			MediaUrl = media.GetMediaUrl(),
+			ThumbUrl = media.GetThumbnailUrl(ThumbnailSize.Medium, host),
+			MediaUrl = media.GetMediaUrl(host),
 			Class = (Aoba.RPC.MediaClass)media.Class,
 		};
 	}

@@ -1,6 +1,8 @@
 ﻿using AobaCore.Models;
 using AobaCore.Services;
 
+using Flurl;
+
 using HeyRed.Mime;
 
 using Microsoft.AspNetCore.Cors;
@@ -13,24 +15,41 @@ namespace AobaServer.Controllers;
 
 [Route("/m")]
 [EnableCors(PolicyName = "AllowAll")]
-public class MediaController(AobaService aobaService, ILogger<MediaController> logger) : Controller
+public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
 	[HttpGet("{id}/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> MediaAsync(ObjectId id, CancellationToken cancellationToken)
 	{
-		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
-		if (file.HasError)
+		var media = await aobaService.GetMediaAsync(id);
+		if (media == null)
 		{
-			logger.LogError(file.Error.Exception, "Failed to load media stream");
 			return NotFound();
 		}
-		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
-		_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
-		return File(file, mime, true);
+		else
+		{
+			if (media.Cdn != null)
+			{
+				_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
+				return Redirect(hostInfo.CdnHost.AppendPathSegment(media.Cdn.Url));
+			}
+			else
+			{
+				var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
+				if (file.HasError)
+				{
+					logger.LogError(file.Error.Exception, "Failed to load media stream");
+					return NotFound();
+				}
+				var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
+				_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
+				return File(file, mime, true);
+			}
+		}
 	}
 
+	[Obsolete("Use /m with file name instead")]
 	[HttpGet("{id}/dl")]
 	[HttpGet("{id}/dl/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
@@ -52,7 +71,6 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	/// </summary>
 	/// <param name="legacyId"></param>
 	/// <param name="rest"></param>
-	/// <param name="aoba"></param>
 	/// <returns></returns>
 	[HttpGet("/i/{legacyId}/{*rest}")]
 	public async Task<IActionResult> LegacyRedirectAsync(ObjectId legacyId, string rest, CancellationToken cancellationToken)
@@ -73,7 +91,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 			logger.LogError("Failed to generate thumbnail: {}", thumb.Error);
 			return DefaultThumbnailAsync();
 		}
-		return File(thumb.Value.thumb, thumb.Value.mimeType, true);
+		return RedirectPermanent(thumb.Value);
 	}
 
 	[HttpGet("/t/{id}")]
@@ -81,7 +99,7 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken = default)
 	{
 		var thumb = await thumbnailService.GetThumbnailByFileIdAsync(id, cancellationToken);
-		if(thumb.thumb == null || thumb.mimeType == null) 
+		if (thumb.thumb == null || thumb.mimeType == null)
 			return NotFound();
 		return File(thumb.thumb, thumb.mimeType, true);
 	}
@@ -89,6 +107,6 @@ public class MediaController(AobaService aobaService, ILogger<MediaController> l
 	[NonAction]
 	private IActionResult DefaultThumbnailAsync()
 	{
-		return NoContent();
+		return NotFound();
 	}
 }

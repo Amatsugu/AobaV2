@@ -13,19 +13,20 @@ using System.Text.Json;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig, HostInfo host) : AobaRpc.AobaRpcBase
 {
+
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
-		return media.ToResponse();
+		return media.ToResponse(host);
 	}
 
 	public override async Task<ListResponse> ListMedia(PageFilter request, ServerCallContext context)
 	{
 		var user = context.GetUserId();
 		var result = await aobaService.FindMediaAsync(request.Query, user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
-		return result.ToResponse();
+		return result.ToResponse(host);
 	}
 
 	public override async Task<Empty> SetMediaClass(SetMediaClassRequest request, ServerCallContext context)

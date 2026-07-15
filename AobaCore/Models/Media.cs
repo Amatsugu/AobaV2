@@ -1,4 +1,10 @@
-﻿using MongoDB.Bson;
+﻿using AobaCore.Services;
+
+using Flurl;
+
+using HeyRed.Mime;
+
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 using SixLabors.ImageSharp;
@@ -86,14 +92,14 @@ public class Media
 		Tags = DeriveTags(filename);
 	}
 
-	public string GetMediaUrl()
+	public string GetMediaUrl(HostInfo host)
 	{
 		if (Cdn != null)
-			return Cdn.Url;
+			return host.CdnHost.AppendPathSegment(Cdn.Url);
 		return this switch
 		{
-			Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code } => $"/m/{MediaId}/{Uri.EscapeDataString(Filename)}",
-			_ => $"/m/{MediaId}"
+			Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code } => host.Host.AppendPathSegments("m", MediaId, Uri.EscapeDataString(Filename)),
+			_ => host.Host.AppendPathSegments("m", MediaId)
 		};
 	}
 
@@ -102,12 +108,28 @@ public class Media
 		return $"{MediaId}{Ext}";
 	}
 
-	public string GetThumbnailUrl(ThumbnailSize size)
+	public string GetMimeType()
 	{
-		if (Thumbnails.TryGetValue(size, out var thumb))
-			return $"/t/{thumb}";
+		return MimeTypesMap.GetMimeType(Ext);
+	}
+
+	public string GetThumbnailUrl(ThumbnailSize size, HostInfo host)
+	{
+		if (Cdn != null)
+		{
+			if (Cdn.ThumbnailUrls.TryGetValue(size, out var thumb))
+			{
+				return host.CdnHost.AppendPathSegments(thumb);
+			} else
+				return host.Host.AppendPathSegments("m", MediaId, "thumb").SetQueryParam("size", size);
+		}
 		else
-			return $"/m/{MediaId}/thumb?size={size}";
+		{
+			if(Thumbnails.TryGetValue(size, out var thumb))
+				return host.Host.AppendPathSegments("t", thumb);
+			else
+				return host.Host.AppendPathSegments("m", MediaId, "thumb").SetQueryParam("size", size);
+		}
 	}
 
 	public static MediaType GetMediaType(string filename)

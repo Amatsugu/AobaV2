@@ -25,8 +25,8 @@ public class S3MediaService
 			ServiceURL = config["S3_URL"] ?? throw new NullReferenceException("S3_URL is not set"),
 			ForcePathStyle = true
 		};
-		var access = config["S3_ACCESS"] ?? throw new NullReferenceException("S3_ACCESS key is not set");
-		var secret = config["S3_SECRET"] ?? throw new NullReferenceException("S3_SECRET key is not set");
+		var access = config["AWS_ACCESS_KEY_ID"] ?? throw new NullReferenceException("AWS_ACCESS_KEY_ID key is not set");
+		var secret = config["AWS_SECRET_ACCESS_KEY"] ?? throw new NullReferenceException("AWS_SECRET_ACCESS_KEY key is not set");
 		_bucket = config["S3_BUCKET"] ?? "aoba";
 		_client = new AmazonS3Client(access, secret, cfg);
 	}
