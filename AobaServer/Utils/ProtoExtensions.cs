@@ -44,9 +44,7 @@ public static class ProtoExtensions
 
 	public static MediaModel ToMediaModel(this Media media)
 	{
-		var thumbUrl = $"/m/{media.MediaId}/thumb?size={ThumbnailSize.Medium}";
-		if (media.Thumbnails.TryGetValue(ThumbnailSize.Medium, out var thumb))
-			thumbUrl = $"/t/{thumb}";
+		
 		return new MediaModel()
 		{
 			Ext = media.Ext,
@@ -55,7 +53,7 @@ public static class ProtoExtensions
 			MediaType = (Aoba.RPC.MediaType)media.MediaType,
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
-			ThumbUrl = thumbUrl,
+			ThumbUrl = media.GetThumbnailUrl(ThumbnailSize.Medium),
 			MediaUrl = media.GetMediaUrl(),
 			Class = (Aoba.RPC.MediaClass)media.Class,
 		};

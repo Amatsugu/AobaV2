@@ -11,24 +11,14 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AobaCore.Services;
 
-public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
+public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media)
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
 
@@ -92,29 +82,53 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService)
 
 		try
 		{
-			using var mediaData = await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
-			var thumb = await GenerateThumbnailAsync(mediaData, size, media.MediaType, media.Ext, cancellationToken);
-
-			if (thumb.HasError)
-				return thumb.Error;
-			cancellationToken.ThrowIfCancellationRequested();
-
-			var thumbExt = media.Ext switch
+			var mediaData = await GetMediaFileAsync(media, cancellationToken);
+			if (mediaData.HasError)
+				return mediaData.Error;
+			using (mediaData.Value)
 			{
-				".avif" => ".avif",
-				_ => ".webp"
-			};
+				var thumb = await GenerateThumbnailAsync(mediaData.Value, size, media.MediaType, media.Ext, cancellationToken);
 
-			var thumbId = await _gridfs.UploadFromStreamAsync($"{media.Filename}{media.Ext}", thumb, cancellationToken: CancellationToken.None);
-			await aobaService.AddThumbnailAsync(mediaId, thumbId, size, cancellationToken);
+				if (thumb.HasError)
+					return thumb.Error;
+				cancellationToken.ThrowIfCancellationRequested();
 
-			thumb.Value.Position = 0;
-			return (thumb, MimeTypesMap.GetMimeType(thumbExt));
+				var thumbExt = media.Ext switch
+				{
+					".avif" => ".avif",
+					_ => ".webp"
+				};
+
+				await UploadThumbnailAsync(media, size, thumb, $"{media.Filename}{media.Ext}", cancellationToken);
+
+				thumb.Value.Position = 0;
+				return (thumb, MimeTypesMap.GetMimeType(thumbExt));
+			}
 		}
 		catch (Exception ex)
 		{
 			return ex;
 		}
+	}
+
+	private async Task<Maybe<Stream>> GetMediaFileAsync(Media media, CancellationToken cancellationToken = default)
+	{
+		if(media.Cdn == null)
+		{
+			return await _gridfs.OpenDownloadStreamAsync(media.MediaId, new GridFSDownloadOptions { Seekable = true }, cancellationToken);
+		}
+		else
+		{
+			return await s3Media.GetFileAsync(media.GetS3Filename(), cancellationToken);
+		}
+	}
+
+	private async Task UploadThumbnailAsync(Media media, ThumbnailSize size, Stream file, string filename, CancellationToken cancellationToken = default)
+	{
+		//todo: upload to cdn
+		var thumbId = await _gridfs.UploadFromStreamAsync(filename, file, cancellationToken: CancellationToken.None);
+		await aobaService.AddThumbnailAsync(media.MediaId, thumbId, size, cancellationToken);
+
 	}
 
 	/// <summary>

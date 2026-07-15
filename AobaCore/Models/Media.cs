@@ -5,13 +5,12 @@ using SixLabors.ImageSharp;
 
 namespace AobaCore.Models;
 
-
-
 [BsonIgnoreExtraElements]
 public class Media
 {
 	[BsonId]
 	public ObjectId LegacyId { get; set; }
+
 	public ObjectId MediaId { get; set; }
 	public string Filename { get; set; }
 	public MediaType MediaType { get; set; }
@@ -23,7 +22,7 @@ public class Media
 	public Size? Dimensions { get; set; }
 	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
 	public MediaClass Class { get; set; }
-
+	public CdnData? Cdn { get; set; }
 
 	public static readonly Dictionary<string, MediaType> KnownTypes = new()
 		{
@@ -89,11 +88,26 @@ public class Media
 
 	public string GetMediaUrl()
 	{
+		if (Cdn != null)
+			return Cdn.Url;
 		return this switch
 		{
 			Media { MediaType: MediaType.Raw or MediaType.Text or MediaType.Code } => $"/m/{MediaId}/{Uri.EscapeDataString(Filename)}",
 			_ => $"/m/{MediaId}"
 		};
+	}
+
+	public string GetS3Filename()
+	{
+		return $"{MediaId}{Ext}";
+	}
+
+	public string GetThumbnailUrl(ThumbnailSize size)
+	{
+		if (Thumbnails.TryGetValue(size, out var thumb))
+			return $"/t/{thumb}";
+		else
+			return $"/m/{MediaId}/thumb?size={size}";
 	}
 
 	public static MediaType GetMediaType(string filename)
@@ -112,6 +126,12 @@ public class Media
 			.SelectMany(v => v.Split(' '))
 			.ToArray();
 	}
+}
+
+public class CdnData
+{
+	public required string Url { get; set; }
+	public Dictionary<ThumbnailSize, string> ThumbnailUrls { get; set; } = [];
 }
 
 public enum MediaType
