@@ -1,16 +1,7 @@
-﻿using Amazon.Runtime;
-using Amazon.S3;
+﻿using Amazon.S3;
 using Amazon.S3.Model;
 
 using Microsoft.Extensions.Configuration;
-
-using MongoDB.Bson;
-
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AobaCore.Services;
 
