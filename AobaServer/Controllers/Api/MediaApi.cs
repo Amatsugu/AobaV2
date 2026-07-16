@@ -4,6 +4,7 @@ using AobaCore.Services;
 using AobaServer.Utils;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
@@ -12,6 +13,7 @@ namespace AobaServer.Controllers.Api;
 
 [ApiController, Authorize]
 [Route("/api/media")]
+[RequestTimeout("upload")]
 public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase
 {
 	[HttpPost("upload")]

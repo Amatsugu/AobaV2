@@ -81,6 +81,10 @@ builder.Services.AddCors(o =>
 		p.AllowAnyOrigin();
 	});
 });
+builder.Services.AddRequestTimeouts(cfg =>
+{
+	cfg.AddPolicy("upload", TimeSpan.FromMinutes(10));
+});
 
 var metricsAuthInfo = authCfg.GetAuthInfoAsync("aoba", "metrics").GetAwaiter().GetResult();
 builder.Services.AddAuthentication(options =>
