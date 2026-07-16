@@ -220,23 +220,29 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 	public static async Task<Maybe<Stream>> GenerateImageThumbnailAsync(Stream stream, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
 	{
 		var img = LoadImage(stream, ext);
+
 		if (img.HasError)
 			return img.Error;
-		img.Value.Mutate(o =>
+		using (img.Value)
 		{
-			var size =
-			o.Resize(new ResizeOptions
+			var w = (int)size;
+			img.Value.Mutate(o =>
 			{
-				Position = AnchorPositionMode.Center,
-				Mode = ResizeMode.Crop,
-				Size = new Size(300, 300)
+				var size =
+				o.Resize(new ResizeOptions
+				{
+					Position = AnchorPositionMode.Center,
+					Mode = ResizeMode.Crop,
+					Size = new Size(w, w)
+				});
 			});
-		});
-		var result = new MemoryStream();
-		await img.Value.SaveAsWebpAsync(result, cancellationToken);
-		img.Value.Dispose();
-		result.Position = 0;
-		return result;
+			var result = new MemoryStream();
+			await img.Value.SaveAsWebpAsync(result, cancellationToken);
+			img.Value.Dispose();
+			result.Position = 0;
+			stream.Dispose();
+			return result;
+		}
 	}
 
 	public static Maybe<Stream> GenerateAudioThumbnail(Stream data, ThumbnailSize size, string ext, CancellationToken cancellationToken = default)
@@ -250,14 +256,13 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		source.Flush();
 		source.Dispose();
 		data.Dispose();
-		//ffmpeg -i test.wav -lavfi "showspectrumpic=s=512x512:legend=0:color=plasma:scale=log" output3.png
 		try
 		{
 			var output = new MemoryStream();
 			FFMpegArguments.FromFileInput(filePath, false)
 				.OutputToPipe(new StreamPipeSink(output), opt =>
 				{
-					opt.WithCustomArgument("-lavfi \"showspectrumpic=s=512x512:legend=0:color=plasma:scale=log\"").ForceFormat("webp");
+					opt.WithCustomArgument($"-lavfi \"showspectrumpic=s={w}x{w}:legend=0:color=plasma:scale=log\"").ForceFormat("webp");
 				}).ProcessSynchronously();
 			output.Position = 0;
 			return output;
@@ -306,6 +311,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		}
 	}
 
+	[Obsolete("Use v2 instead")]
 	public static Maybe<Stream> GenerateAvifThumbnail(Stream data, ThumbnailSize size)
 	{
 		var w = (int)size;
@@ -378,7 +384,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 			output.Position = 0;
 			return output;
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			return ex;
 		}
