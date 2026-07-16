@@ -30,7 +30,9 @@ public static class Extensions
 	public static IServiceCollection AddAobaS3(this IServiceCollection services)
 	{
 		services.AddSingleton<S3MediaService>();
+#if DEBUG
 		services.AddHostedService<S3MigrationService>();
+#endif
 		return services;
 	}
 

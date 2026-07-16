@@ -70,6 +70,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			{
 				await s3.DeleteFileAsync(key, CancellationToken.None);
 			}
+			await aobaService.DeleteMediaAsync(media.MediaId, context.CancellationToken);
 		}
 		else
 		{

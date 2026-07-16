@@ -1,4 +1,5 @@
 ﻿using AobaCore.Models;
+using AobaCore.Tools;
 
 using FFMpegCore;
 using FFMpegCore.Pipes;
@@ -79,8 +80,6 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		if (existingThumb != null)
 			return existingThumb!;
 
-
-
 		try
 		{
 			var mediaData = await GetMediaFileAsync(media, cancellationToken);
@@ -94,7 +93,6 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 					return thumb.Error;
 				using (thumb.Value)
 				{
-
 					cancellationToken.ThrowIfCancellationRequested();
 
 					var thumbExt = media.Ext switch
@@ -154,6 +152,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 				var result = await s3Media.UploadFileAsync($"{media.MediaId}/thumb/{size}{Path.GetExtension(filename)}", MimeTypesMap.GetMimeType(filename), file, cancellationToken);
 				if (result.HasError)
 					return result.Error;
+				await aobaService.AddS3ThumbnailAsync(media.MediaId, result, size, cancellationToken);
 				return hostInfo.CdnHost.AppendPathSegments(result.Value).ToString();
 			}
 			else
@@ -198,7 +197,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		{
 			MediaType.Image => ext switch
 			{
-				".avif" => GenerateAvifThumbnail(stream, size, cancellationToken),
+				".avif" => await GenerateAvifThumbnailV2Async(stream, size, cancellationToken),
 				_ => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
 			},
 			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
@@ -307,7 +306,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		}
 	}
 
-	public static Maybe<Stream> GenerateAvifThumbnail(Stream data, ThumbnailSize size, CancellationToken cancellationToken)
+	public static Maybe<Stream> GenerateAvifThumbnail(Stream data, ThumbnailSize size)
 	{
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
@@ -346,6 +345,40 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 			return output;
 		}
 		catch (Exception ex)
+		{
+			return ex;
+		}
+		finally
+		{
+			File.Delete(inFilePath);
+			File.Delete(outFilePath);
+		}
+	}
+
+	public static async Task<Maybe<Stream>> GenerateAvifThumbnailV2Async(Stream data, ThumbnailSize size, CancellationToken cancellationToken)
+	{
+		var w = (int)size;
+		var fn = ObjectId.GenerateNewId().ToString();
+		var inFilePath = $"/tmp/{fn}.avif";
+		var outFilePath = $"/tmp/thumb_{fn}.avif";
+		using var source = new FileStream(inFilePath, FileMode.CreateNew);
+		data.CopyTo(source);
+		source.Flush();
+		source.Dispose();
+		source.Close();
+		data.Dispose();
+		try
+		{
+			var error = await AVIFTools.CropImageAsync(inFilePath, outFilePath, w, cancellationToken: cancellationToken);
+			if (error != null)
+				return error;
+			var output = new MemoryStream();
+			using var oFile = File.OpenRead(outFilePath);
+			oFile.CopyTo(output);
+			output.Position = 0;
+			return output;
+		}
+		catch(Exception ex)
 		{
 			return ex;
 		}

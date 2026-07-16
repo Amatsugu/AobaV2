@@ -36,7 +36,7 @@ RUN dx bundle --release --platform web
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} AS base
-RUN apt-get update && apt-get install -y ffmpeg libvips libvips-tools
+RUN apt-get update && apt-get install -y ffmpeg libvips libvips-tools libavif-dev
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080

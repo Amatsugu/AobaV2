@@ -47,7 +47,7 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 			logger.LogError("Failed to upload to s3 {id} - {err}", media.MediaId, result.Error);
 			return;
 		}
-		var update = Builders<Media>.Update.Set(m => m.Cdn!.Url, $"/{result.Value}");
+		var update = Builders<Media>.Update.Set(m => m.Cdn!.Url, result.Value);
 		await _media.UpdateOneAsync(m => m.MediaId == media.MediaId, update);
 		await _gridFs.DeleteAsync(media.MediaId);
 

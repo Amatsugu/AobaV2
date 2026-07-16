@@ -19,7 +19,6 @@ public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase
 	[HttpPost("upload")]
 	public async Task<IActionResult> UploadAsync([FromForm] IFormFile file, CancellationToken cancellationToken)
 	{
-		//todo: switch to s3
 		var media = await aoba.UploadFileAsync(file.OpenReadStream(), file.FileName, User.GetId(), cancellationToken);
 
 		if (media.HasError)

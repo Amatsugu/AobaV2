@@ -75,17 +75,39 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var upate = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);
+		var update = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);
 
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, upate, cancellationToken: cancellationToken);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
+	}
+
+	public async Task AddS3ThumbnailAsync(ObjectId mediaId, string url, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update.Set(m => m.Cdn!.ThumbnailUrls[size], url);
+
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
 	public async Task RemoveThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var upate = Builders<Media>.Update.Unset(m => m.Thumbnails[size]);
+		var update = Builders<Media>.Update.Unset(m => m.Thumbnails[size]);
 
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, upate, cancellationToken: cancellationToken);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
+
+	public async Task RemoveS3ThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update.Unset(m => m.Cdn!.ThumbnailUrls[size]);
+
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
+	}
+
+#if DEBUG
+	public async Task ClearS3ThumbnailsAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update.Set(m => m.Cdn!.ThumbnailUrls, []);
+		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
+	}
+#endif
 
 	public async Task<ObjectId> GetThumbnailIdAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
@@ -119,7 +141,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 			var s3File = await s3.UploadFileAsync(media.GetS3Filename(), media.GetMimeType(), data, cancellationToken);
 			if (s3File.HasError)
 				return s3File.Error;
-			media.Cdn = new CdnData { Url = $"/{s3File.Value}" };
+			media.Cdn = new CdnData { Url = s3File.Value };
 
 			//var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
 			//var media = new Media(fileId, filename, owner);
@@ -147,6 +169,11 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 		{
 			return ex;
 		}
+	}
+
+	public async Task DeleteMediaAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
+	{
+		await _media.DeleteOneAsync(m => m.MediaId == mediaId, cancellationToken);
 	}
 
 	public async Task DeleteFileAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
