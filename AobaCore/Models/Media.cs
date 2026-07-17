@@ -94,6 +94,11 @@ public class Media
 
 	public string GetMediaUrl(HostInfo host)
 	{
+		return host.Host.AppendPathSegments("m", MediaId);
+	}
+
+	public string GetRawMediaUrl(HostInfo host)
+	{
 		if (Cdn != null)
 			return host.CdnHost.AppendPathSegment(Cdn.Url);
 		return this switch
