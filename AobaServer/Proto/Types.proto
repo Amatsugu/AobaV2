@@ -37,7 +37,7 @@ message LoginError{
 
 message PageFilter {
 	optional int32 page = 1;
-	optional int32 pageSize = 2;
+	optional int32 page_size = 2;
 	optional string query = 3;
 }
 
@@ -60,14 +60,14 @@ message ListResponse {
 
 message Pagination {
 	int32 page = 1;
-	int32 pageSize = 2;
-	int32 totalPages = 3;
-	int32 totalItems = 4;
+	int32 page_size = 2;
+	int32 total_pages = 3;
+	int32 total_items = 4;
 	optional string query = 5;
 }
 
 message UserResponse {
-	oneof userResult {
+	oneof user_result {
 		UserModel user = 1;
 		google.protobuf.Empty empty = 2;
 	}
@@ -77,19 +77,19 @@ message UserModel {
 	Id id = 1;
 	string username = 2;
 	string email = 3;
-	bool isAdmin = 4;
+	bool is_admin = 4;
 }
 
 
 message MediaModel {
 	Id id = 1;
-	string fileName = 2;
-	MediaType mediaType = 3;
+	string filename = 2;
+	MediaType media_type = 3;
 	string ext = 4;
-	int32 viewCount = 5;
+	int32 view_count = 5;
 	Id owner = 6;
-	string thumbUrl = 7;
-	string mediaUrl = 8;
+	string thumb_url = 7;
+	string media_url = 8;
 	MediaClass class = 9;
 }
 
@@ -109,7 +109,7 @@ enum MediaClass {
 }
 
 message ShareXResponse {
-	oneof dstResult {
+	oneof dst_result {
 		string destination = 1;
 		string error = 2;
 	}
@@ -117,7 +117,7 @@ message ShareXResponse {
 
 
 message SearchQuery {
-	optional string queryText = 1;
+	optional string query_text = 1;
 	repeated Filter filters = 2;
 }
 
@@ -173,3 +173,27 @@ message PublicKeyCredentialDescriptor{
 	repeated string transports = 3;
 }
 
+message UploadRequest{
+	string filename = 1;
+	uint64 size = 2;
+}
+
+message UploadTargetResponse {
+	oneof result {
+		UploadTarget target = 1;
+		string error = 2;
+	}
+}
+
+message UploadTarget{
+	string signed_url = 1;
+	string content_type = 2;
+	Id id = 3;
+}
+
+message UploadResult {
+	oneof result {
+		MediaModel media = 1;
+		string error_message = 2;
+	}
+}

@@ -39,7 +39,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 {
 	let item = props.item.clone();
 	let mtype = item.media_type().as_str_name();
-	let filename = item.file_name;
+	let filename = item.filename;
 	let id = item.id.unwrap().value;
 	let thumb = item.thumb_url;
 	let class = item.class;

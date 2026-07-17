@@ -35,7 +35,7 @@ public static class ProtoExtensions
 
 	public static MediaResponse ToResponse(this Media? media, HostInfo host)
 	{
-		if(media == null) 
+		if(media == null)
 			return new MediaResponse() {};
 		return new MediaResponse()
 		{
@@ -45,11 +45,11 @@ public static class ProtoExtensions
 
 	public static MediaModel ToMediaModel(this Media media, HostInfo host)
 	{
-		
+
 		return new MediaModel()
 		{
 			Ext = media.Ext,
-			FileName = media.Filename,
+			Filename = media.Filename,
 			Id = media.MediaId.ToId(),
 			MediaType = (Aoba.RPC.MediaType)media.MediaType,
 			Owner = media.Owner.ToId(),
@@ -65,7 +65,7 @@ public static class ProtoExtensions
 		return new Id() { Value = id.ToString() };
 	}
 
-	public static ObjectId ToObjectId(this Id id) 
+	public static ObjectId ToObjectId(this Id id)
 	{
 		return id.Value.ToObjectId();
 	}
