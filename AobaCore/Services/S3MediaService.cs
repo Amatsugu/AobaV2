@@ -1,7 +1,10 @@
-﻿using Amazon.S3;
+﻿using System.Collections.Concurrent;
+using Amazon.S3;
 using Amazon.S3.Model;
-
+using HeyRed.Mime;
+using MaybeError.Errors;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
 
 namespace AobaCore.Services;
 
@@ -9,6 +12,7 @@ public class S3MediaService
 {
 	private readonly string? _bucket;
 	private readonly AmazonS3Client _client;
+	private readonly ConcurrentDictionary<ObjectId, string> _pendingUploads = [];
 	public S3MediaService(IConfiguration config)
 	{
 		var cfg = new AmazonS3Config
@@ -37,7 +41,8 @@ public class S3MediaService
 
 			await _client.PutObjectAsync(request, cancellationToken);
 			return filename;
-		}catch(AmazonS3Exception e)
+		}
+		catch (AmazonS3Exception e)
 		{
 			return e;
 		}
@@ -59,7 +64,7 @@ public class S3MediaService
 			await _client.GetObjectMetadataAsync(_bucket, filename, cancellationToken);
 			return true;
 		}
-		catch (AmazonS3Exception ex) when(ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+		catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 		{
 			return false;
 		}
@@ -80,6 +85,55 @@ public class S3MediaService
 		catch (AmazonS3Exception e)
 		{
 			return e;
+		}
+	}
+
+	public Maybe<UploadInfo> CreateUploadUrl(string filename)
+	{
+		var ext = Path.GetExtension(filename);
+		var id = ObjectId.GenerateNewId();
+		var sign = new GetPreSignedUrlRequest
+		{
+			BucketName = _bucket,
+			ContentType = MimeTypesMap.GetMimeType(filename),
+			Expires = DateTime.UtcNow.AddMinutes(5),
+			Key = $"pending/{id}{ext}",
+			Verb = HttpVerb.PUT
+		};
+		var url = _client.GetPreSignedURL(sign);
+		if (!_pendingUploads.TryAdd(id, filename))
+			return new Error("Failed to prepare upload url", "Failed to add to pending dict");
+
+		return new UploadInfo(id, url, sign.ContentType);
+	}
+
+	public async Task<Maybe<(string filename, string cdnUrl)>> CompleteUploadAsync(ObjectId id, CancellationToken cancellationToken = default)
+	{
+		if (!_pendingUploads.TryRemove(id, out var filename))
+			return new Error("No Pending Upload exists with that id");
+		var ext = Path.GetExtension(filename);
+		var srcKey = $"pending/{id}{ext}";
+		var dstKey = $"{id}{ext}";
+
+		try
+		{
+
+			var req = new CopyObjectRequest
+			{
+				SourceBucket = _bucket,
+				DestinationBucket = _bucket,
+				SourceKey = srcKey,
+				DestinationKey = dstKey
+			};
+
+			await _client.CopyObjectAsync(req, cancellationToken);
+
+			await DeleteFileAsync(srcKey, cancellationToken);
+			return (filename, dstKey);
+		}
+		catch (Exception ex)
+		{
+			return new ExceptionError(ex);
 		}
 	}
 }

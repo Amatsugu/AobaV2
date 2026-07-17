@@ -24,7 +24,7 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 			{
 				await MigrateMediaItem(item);
 			}
-			catch(Exception ex) 
+			catch(Exception ex)
 			{
 				logger.LogError(ex, "Failed to migrate item: {}", item.MediaId);
 			}
@@ -67,7 +67,7 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 			_ => (".webp", "image/webp")
 		};
 		var cdnThumbnails = new Dictionary<ThumbnailSize, string>();
-		foreach (var (size, id) in media.Thumbnails) 
+		foreach (var (size, id) in media.Thumbnails)
 		{
 			using var file = await _gridFs.OpenDownloadStreamAsync(id);
 			var thumbUpload = await s3.UploadFileAsync($"{media.MediaId}/thumb/{size}{thumbExt}", mimeType, file);
@@ -82,4 +82,5 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 		var update = Builders<Media>.Update.Set(m => m.Cdn!.ThumbnailUrls, cdnThumbnails);
 		await _media.UpdateOneAsync(m => m.MediaId == media.MediaId, update);
 	}
+
 }

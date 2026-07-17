@@ -15,5 +15,7 @@ service AobaRpc {
   rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
   rpc SetMediaClass(SetMediaClassRequest) returns(google.protobuf.Empty);
   rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns(google.protobuf.Empty);
-}
 
+  rpc StartUpload(UploadRequest) returns(UploadTargetResponse);
+  rpc CompleteUpload(Id) returns(UploadResult);
+}

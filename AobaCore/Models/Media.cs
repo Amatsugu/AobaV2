@@ -87,7 +87,7 @@ public class Media
 		Filename = filename;
 		MediaId = fileId;
 		Owner = owner;
-		LegacyId = ObjectId.GenerateNewId();
+		LegacyId = fileId;
 		UploadDate = DateTime.UtcNow;
 		Tags = DeriveTags(filename);
 	}

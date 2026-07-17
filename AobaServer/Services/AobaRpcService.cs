@@ -8,7 +8,7 @@ using AobaServer.Utils;
 using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
-
+using HeyRed.Mime;
 using System.Text.Json;
 
 namespace AobaServer.Services;
@@ -86,12 +86,12 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 	public override async Task<Empty> DeleteMediaBulk(IdList request, ServerCallContext context)
 	{
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
-		if(media.Count == 0)
+		if (media.Count == 0)
 			return new Empty();
 		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.CancellationToken);
 		foreach (var item in media)
 		{
-			if(item.Cdn != null)
+			if (item.Cdn != null)
 			{
 				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);
 				foreach (var (_, key) in item.Cdn.ThumbnailUrls)
@@ -115,5 +115,52 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 	{
 		await aobaService.SetMediaClassAsync(request.Ids.ToObjectId(), (AobaCore.Models.MediaClass)request.Class, context.CancellationToken);
 		return new Empty();
+	}
+
+	public override Task<UploadTargetResponse> StartUpload(UploadRequest request, ServerCallContext context)
+	{
+		var info = s3.CreateUploadUrl(request.Filename);
+		if (info.HasError)
+		{
+			return Task.FromResult(new UploadTargetResponse
+			{
+				Error = info.Error
+			});
+		}
+		var tgt = new UploadTarget
+		{
+			ContentType = MimeTypesMap.GetMimeType(request.Filename),
+			Id = info.Value.Id.ToId(),
+			SignedUrl = info.Value.Url
+		};
+		return Task.FromResult(new UploadTargetResponse{
+			Target = tgt
+		});
+	}
+
+	public override async Task<UploadResult> CompleteUpload(Id id, ServerCallContext context)
+	{
+		var file = await s3.CompleteUploadAsync(id.ToObjectId());
+		if (file.HasError)
+		{
+			return new UploadResult
+			{
+				ErrorMessage = file.Error.ToString()
+			};
+		}
+		var media = new AobaCore.Models.Media(id.ToObjectId(), file.Value.filename, context.GetHttpContext().User.GetId())
+		{
+			Cdn = new()
+			{
+				Url = file.Value.cdnUrl,
+			}
+		};
+
+		await aobaService.AddMediaAsync(media, context.CancellationToken);
+
+		return new UploadResult
+		{
+			Media = media.ToMediaModel(host)
+		};
 	}
 }
