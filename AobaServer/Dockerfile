@@ -5,10 +5,10 @@ ARG DX_VERSION="0.7.5"
 FROM rust:1-trixie AS chef
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install cargo-chef
-WORKDIR /app
 
 FROM chef AS planner
-COPY . .
+WORKDIR /app
+COPY /AobaClient /app/AobaClient
 WORKDIR /app/AobaClient
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -70,18 +70,12 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ARG VERSION
-ARG AWS_SECRET_ACCESS_KEY
-ARG AWS_ACCESS_KEY_ID
-ARG S3_URL
-ARG S3_BUCKET="aoba"
-ARG CDN_HOST="https://aoba.app"
-ARG HOST="https://cdn.aboa.app"
+# ENV S3_URL
+ENV S3_BUCKET="aoba"
+ENV CDN_HOST="https://aoba.app"
+ENV HOST="https://cdn.aboa.app"
 
-ENV S3_URL=$S3_URL
-ENV S3_BUCKET=$S3_BUCKET
-ENV HOST=$HOST
-ENV CDN_HOST=$CDN_HOST
-ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+# ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+# ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
 ENV APP_VERSION=$VERSION
 ENTRYPOINT ["dotnet", "AobaServer.dll"]
