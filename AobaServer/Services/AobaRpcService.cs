@@ -119,23 +119,25 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 	public override Task<UploadTargetResponse> StartUpload(UploadRequest request, ServerCallContext context)
 	{
-		var info = s3.CreateUploadUrl(request.Filename);
-		if (info.HasError)
-		{
-			return Task.FromResult(new UploadTargetResponse
+		var response = new UploadTargetResponse();
+		foreach(var file in request.Files){
+			var info = s3.CreateUploadUrl(file.Filename);
+			if (info.HasError)
 			{
-				Error = info.Error
-			});
+				return Task.FromResult(new UploadTargetResponse
+				{
+					Error = info.Error
+				});
+			}
+			var tgt = new UploadTarget
+			{
+				ContentType = MimeTypesMap.GetMimeType(file.Filename),
+				Id = info.Value.Id.ToId(),
+				SignedUrl = info.Value.Url
+			};
+			response.Targets.Targets.Add(tgt);
 		}
-		var tgt = new UploadTarget
-		{
-			ContentType = MimeTypesMap.GetMimeType(request.Filename),
-			Id = info.Value.Id.ToId(),
-			SignedUrl = info.Value.Url
-		};
-		return Task.FromResult(new UploadTargetResponse{
-			Target = tgt
-		});
+		return Task.FromResult(response);
 	}
 
 	public override async Task<UploadResult> CompleteUpload(Id id, ServerCallContext context)

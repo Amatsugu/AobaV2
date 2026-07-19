@@ -1,5 +1,5 @@
 use crate::{
-	components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar},
+	components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar, UploadArea},
 	contexts::SelectionContext,
 	rpc::{
 		aoba::{Id, IdList, SetMediaClassBulkRequest},
@@ -65,86 +65,88 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 				}
 			},
 		}
-		MediaGrid {
-			query: query,
-			page: page,
-			max_page,
-			total_items: item_count,
-			selected_items: selection_context.selected_items.cloned(),
-			page_size,
-			on_page_loaded: move |p: PaginationInfo| {
-				max_page.set(p.total_pages);
-				item_count.set(p.total_items);
-			},
-			on_item_selected: move |select: (String, bool, Point2D<f64, ClientSpace>)| {
-				let mut items = selection_context.selected_items.cloned();
-				let (id, selected, pos) = select;
-				let delta = if let Some(last_pos) = last_pos.cloned() {
-					(last_pos - pos).length()
-				}else{
-					0.0
-				};
-				last_pos.set(Some(pos));
-				if delta <= MIN_DRAG_DISTANCE {
-					return;
-				}
-				match seletion_phase.cloned(){
-					SelectionPhase::Start => {
-						let mode = match selected {
-							true => SelectionMode::Remove,
-							false => SelectionMode::Add
-						};
-						process_selection(&mut items, mode.clone(), id.clone());
-						seletion_mode.set(mode);
-						seletion_phase.set(SelectionPhase::Selecting);
-					},
-					SelectionPhase::Selecting => {
-						let mode = seletion_mode.cloned();
-						process_selection(&mut items, mode, id.clone());
-					},
-					SelectionPhase::Idle => (),
-				}
-
-				selection_context.selected_items.set(items);
-			},
-			bulk_change_class,
-			onmouseup: move |e: MouseEvent|{
-				if let Some(button) = e.data().trigger_button()
-				{
-					if button == MouseButton::Primary{
-						seletion_phase.set(SelectionPhase::Idle);
-						last_pos.set(None);
-					}
-				}
-
-			},
-			onmousedown: move |e: MouseEvent|{
-				if let Some(button) = e.data().trigger_button()
-				{
-					if button == MouseButton::Primary{
-						seletion_phase.set(SelectionPhase::Start);
-					}
-				}
-			},
-		}
-		SelectionBar{
-			selected_items: selection_context.selected_items.cloned(),
-			on_selection_cleared: move |_|{
-				selection_context.selected_items.set(Vec::new());
-			},
-			on_items_delete: move |_|{
-				spawn(async move {
-					let mut client = get_rpc_client();
-					let item_ids = selection_context.selected_items.cloned().iter().map(|id| Id { value: id.clone() }).collect();
-					let req = IdList{
-						value: item_ids
+		UploadArea{
+			MediaGrid {
+				query: query,
+				page: page,
+				max_page,
+				total_items: item_count,
+				selected_items: selection_context.selected_items.cloned(),
+				page_size,
+				on_page_loaded: move |p: PaginationInfo| {
+					max_page.set(p.total_pages);
+					item_count.set(p.total_items);
+				},
+				on_item_selected: move |select: (String, bool, Point2D<f64, ClientSpace>)| {
+					let mut items = selection_context.selected_items.cloned();
+					let (id, selected, pos) = select;
+					let delta = if let Some(last_pos) = last_pos.cloned() {
+						(last_pos - pos).length()
+					}else{
+						0.0
 					};
-					if let Err(err) = client.delete_media_bulk(req).await {
-						error!("Failed to delete items: {:?}", err);
+					last_pos.set(Some(pos));
+					if delta <= MIN_DRAG_DISTANCE {
+						return;
 					}
-					query.set(query.cloned());
+					match seletion_phase.cloned(){
+						SelectionPhase::Start => {
+							let mode = match selected {
+								true => SelectionMode::Remove,
+								false => SelectionMode::Add
+							};
+							process_selection(&mut items, mode.clone(), id.clone());
+							seletion_mode.set(mode);
+							seletion_phase.set(SelectionPhase::Selecting);
+						},
+						SelectionPhase::Selecting => {
+							let mode = seletion_mode.cloned();
+							process_selection(&mut items, mode, id.clone());
+						},
+						SelectionPhase::Idle => (),
+					}
+
+					selection_context.selected_items.set(items);
+				},
+				bulk_change_class,
+				onmouseup: move |e: MouseEvent|{
+					if let Some(button) = e.data().trigger_button()
+					{
+						if button == MouseButton::Primary{
+							seletion_phase.set(SelectionPhase::Idle);
+							last_pos.set(None);
+						}
+					}
+
+				},
+				onmousedown: move |e: MouseEvent|{
+					if let Some(button) = e.data().trigger_button()
+					{
+						if button == MouseButton::Primary{
+							seletion_phase.set(SelectionPhase::Start);
+						}
+					}
+				},
+			}
+			SelectionBar{
+				selected_items: selection_context.selected_items.cloned(),
+				on_selection_cleared: move |_|{
 					selection_context.selected_items.set(Vec::new());
-				});
+				},
+				on_items_delete: move |_|{
+					spawn(async move {
+						let mut client = get_rpc_client();
+						let item_ids = selection_context.selected_items.cloned().iter().map(|id| Id { value: id.clone() }).collect();
+						let req = IdList{
+							value: item_ids
+						};
+						if let Err(err) = client.delete_media_bulk(req).await {
+							error!("Failed to delete items: {:?}", err);
+						}
+						query.set(query.cloned());
+						selection_context.selected_items.set(Vec::new());
+					});
+				}
 			}
 		}
 	}

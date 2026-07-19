@@ -134,7 +134,7 @@ message PasskeyCredentialCreateOptions{
 	string challenge = 1;
 	PublicKeyCredentialUser user = 2;
 	PublicKeyCredentialRpEntity rp = 3;
-	repeated PubKeyCredParam pubKeyParams = 4;
+	repeated PubKeyCredParam pubKey_params = 4;
 }
 
 message PubKeyCredParam{
@@ -151,20 +151,20 @@ message PublicKeyCredentialRpEntity{
 message PublicKeyCredentialUser{
 	string id = 1;
 	string name = 2;
-	string displayName = 3;
+	string display_name = 3;
 }
 
 message PasskeyRegistrationCredentials{
 	string id = 1;
-	string rawId = 2;
+	string raw_id = 2;
 	string type = 3;
 	CredentialsClientResponse response = 4;
 }
 
 message CredentialsClientResponse{
-	string clientDataJSON = 1;
-	string attestationObject = 2;
-	string authenticatorData = 3;
+	string client_data_json = 1;
+	string attestation_object = 2;
+	string authenticator_data = 3;
 }
 
 message PublicKeyCredentialDescriptor{
@@ -174,21 +174,30 @@ message PublicKeyCredentialDescriptor{
 }
 
 message UploadRequest{
+	repeated FileInfo files = 1;
+}
+
+message FileInfo{
 	string filename = 1;
 	uint64 size = 2;
 }
 
 message UploadTargetResponse {
 	oneof result {
-		UploadTarget target = 1;
+		UploadTargets targets = 1;
 		string error = 2;
 	}
 }
 
+message UploadTargets{
+	repeated UploadTarget targets = 1;
+}
+
 message UploadTarget{
 	string signed_url = 1;
-	string content_type = 2;
-	Id id = 3;
+	string filename = 2;
+	string content_type = 3;
+	Id id = 4;
 }
 
 message UploadResult {
