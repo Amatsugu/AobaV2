@@ -51,12 +51,12 @@ public static class ProtoExtensions
 			Ext = media.Ext,
 			Filename = media.Filename,
 			Id = media.MediaId.ToId(),
-			MediaType = (Aoba.RPC.MediaType)media.MediaType,
+			MediaType = (Aoba.RPC.MediaType)(media.MediaType + 1),
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
 			ThumbUrl = media.GetThumbnailUrl(ThumbnailSize.Medium, host),
 			MediaUrl = media.GetMediaUrl(host),
-			Class = (Aoba.RPC.MediaClass)media.Class,
+			Class = (Aoba.RPC.MediaClass)(media.Class + 1),
 		};
 	}
 

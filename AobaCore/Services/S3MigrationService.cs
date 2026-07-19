@@ -15,7 +15,9 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 	private readonly GridFSBucket _gridFs = new(db);
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var toMigrate = await _media.Find(Builders<Media>.Filter.Exists(m => m.Cdn, false)).ToListAsync();
+		var toMigrate = await _media.Find(Builders<Media>.Filter.Exists(m => m.Cdn, false)).ToListAsync(stoppingToken);
+		if (toMigrate.Count == 0)
+			return;
 		var prog = 0;
 		foreach (var item in toMigrate)
 		{

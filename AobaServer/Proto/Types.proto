@@ -94,18 +94,20 @@ message MediaModel {
 }
 
 enum MediaType {
-	Image = 0;
-	Audio = 1;
-	Video = 2;
-	Text = 3;
-	Code = 4;
-	Raw = 5;
+	MEDIA_TYPE_UNSPECIFIED = 0;
+	MEDIA_TYPE_IMAGE = 1;
+	MEDIA_TYPE_AUDIO = 2;
+	MEDIA_TYPE_VIDEO = 3;
+	MEDIA_TYPE_TEXT = 4;
+	MEDIA_TYPE_CODE = 5;
+	MEDIA_TYPE_RAW = 6;
 }
 
 enum MediaClass {
-	Standard = 0;
-	NSFW = 1;
-	Secret = 2;
+	MEDIA_CLASS_UNSPECIFIED = 0;
+	MEDIA_CLASS_STANDARD = 1;
+	MEDIA_CLASS_NSFW = 2;
+	MEDIA_CLASS_SECRET = 3;
 }
 
 message ShareXResponse {

@@ -12,7 +12,7 @@ use web_sys::window;
 use crate::{
 	contexts::SelectionContext,
 	rpc::{
-		aoba::{Id, MediaModel, SetMediaClassRequest},
+		aoba::{Id, MediaClass, MediaModel, SetMediaClassRequest},
 		get_rpc_client,
 	},
 };
@@ -38,17 +38,25 @@ pub struct MediaItemProps
 pub fn MediaItem(props: MediaItemProps) -> Element
 {
 	let item = props.item.clone();
-	let mtype = item.media_type().as_str_name();
+	let mtype = match item.media_type()
+	{
+		crate::rpc::aoba::MediaType::Image => "Image",
+		crate::rpc::aoba::MediaType::Audio => "Audio",
+		crate::rpc::aoba::MediaType::Video => "Video",
+		crate::rpc::aoba::MediaType::Text => "Text",
+		crate::rpc::aoba::MediaType::Code => "Code",
+		crate::rpc::aoba::MediaType::Raw => "Raw",
+		_ => "Unknown",
+	};
+	let class_string = match item.class()
+	{
+		MediaClass::Nsfw => "blur",
+		MediaClass::Secret => "secret",
+		_ => "",
+	};
 	let filename = item.filename;
 	let id = item.id.unwrap().value;
 	let thumb = item.thumb_url;
-	let class = item.class;
-	let class_string = match class
-	{
-		1 => "blur",
-		2 => "secret",
-		_ => "",
-	};
 	let selected_class = match props.is_selected
 	{
 		true => "selected",
@@ -106,9 +114,9 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 {
 	let item = props.item;
+	let class = item.class();
 	let id = item.id.unwrap().value;
 	let download = item.media_url.clone();
-	let class = item.class;
 	let selection_context: SelectionContext = use_context();
 	let selection_count = selection_context.selected_items.len();
 	rsx! {
@@ -165,7 +173,7 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 				}
 			}
 		},
-		if class != 0 {
+		if class != MediaClass::Standard {
 			ContextMenuItem {
 				index: 2 as usize,
 				value: "{id}",
@@ -187,7 +195,7 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 				}
 			}
 		}
-		if class != 1 {
+		if class != MediaClass::Nsfw {
 			ContextMenuItem {
 				index: 3 as usize,
 				value: "{id}",
@@ -209,7 +217,7 @@ fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
 				}
 			}
 		}
-		if class != 2 {
+		if class != MediaClass::Secret {
 			ContextMenuItem {
 				index: 4 as usize,
 				value: "{id}",

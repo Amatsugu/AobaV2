@@ -25,6 +25,7 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 	let mut is_dragging = use_signal(|| false);
 	let mut upload_state = use_signal(|| UploadState::Idle);
 	let mut file_count = use_signal(|| None::<usize>);
+	let mut upload_progress = use_signal(|| 0.0_f32);
 	let on_drag_enter = move |_e: Event<DragData>| {
 		is_dragging.set(true);
 		println!("Hover");
@@ -35,6 +36,7 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 	};
 	let on_files_dropped = move |e: Event<DragData>| {
 		file_count.set(Some(e.files().len()));
+		let total_file_size: u64 = e.files().iter().map(|f| f.size()).sum();
 		let upload_request = UploadRequest {
 			files: e
 				.files()
