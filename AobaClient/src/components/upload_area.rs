@@ -27,14 +27,22 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 	let mut file_count = use_signal(|| None::<usize>);
 	let mut upload_progress = use_signal(|| 0.0_f32);
 	let on_drag_enter = move |_e: Event<DragData>| {
-		is_dragging.set(true);
-		println!("Hover");
+		if !is_dragging.cloned()
+		{
+			is_dragging.set(true);
+		}
+		info!("Hover");
 	};
 	let on_drag_exit = move |_e: Event<DragData>| {
-		is_dragging.set(false);
-		println!("Hover Exit");
+		if is_dragging.cloned()
+		{
+			is_dragging.set(false);
+		}
+		info!("Hover Exit");
 	};
 	let on_files_dropped = move |e: Event<DragData>| {
+		is_dragging.set(false);
+		e.prevent_default();
 		file_count.set(Some(e.files().len()));
 		let total_file_size: u64 = e.files().iter().map(|f| f.size()).sum();
 		let upload_request = UploadRequest {
@@ -81,17 +89,30 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 			}
 		});
 	};
+
+	let visibility = use_memo(move || match is_dragging()
+	{
+		true => "opacity: 1;",
+		false => "opacity:0;",
+	});
 	rsx! {
 		div{
-			id: "",
+			id: "uploadArea",
 			ondragenter: on_drag_enter,
+			ondragover: on_drag_enter,
+			ondragstart: on_drag_enter,
 			ondragexit: on_drag_exit,
 			ondragend: on_drag_exit,
 			ondragleave: on_drag_exit,
 			ondrop: on_files_dropped,
-			{props.children}
-			if is_dragging.cloned() {
-				DragOverlay {}
+			div{
+				{props.children}
+			}
+			div{
+				class: "dragOverlay",
+				style: visibility(),
+				DragOverlay {
+				}
 			}
 		}
 	}
@@ -101,6 +122,8 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 pub fn DragOverlay() -> Element
 {
 	rsx! {
-		"Hover"
+		div{
+			"Hover"
+		}
 	}
 }

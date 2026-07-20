@@ -45,27 +45,27 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	let mut seletion_mode: Signal<SelectionMode> = use_signal(|| SelectionMode::Add);
 	let mut seletion_phase: Signal<SelectionPhase> = use_signal(|| SelectionPhase::Start);
 	rsx! {
-		div	{
-			class: "stickyTop",
-			Search {
-				query: query(),
-				oninput: move |q| {
-					query.set(q);
-					page.set(1);
-				},
-				onchange: move |_|{
-					router().push(format!("/?page={}&q={}", page(), query()));
-				}
-			},
-			Pagination {
-				page, max_page, item_count,
-				on_page_change: move |p|{
-					page.set(p);
-					router().push(format!("/?page={}&q={}", page(), query()));
-				}
-			},
-		}
 		UploadArea{
+			div	{
+				class: "stickyTop",
+				Search {
+					query: query(),
+					oninput: move |q| {
+						query.set(q);
+						page.set(1);
+					},
+					onchange: move |_|{
+						router().push(format!("/?page={}&q={}", page(), query()));
+					}
+				},
+				Pagination {
+					page, max_page, item_count,
+					on_page_change: move |p|{
+						page.set(p);
+						router().push(format!("/?page={}&q={}", page(), query()));
+					}
+				},
+			}
 			MediaGrid {
 				query: query,
 				page: page,
