@@ -32,16 +32,16 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 
 	public async Task<PagedResult<Media>> FindMediaAsync(string? query, ObjectId userId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
 	{
-		var filters = new List<FilterDefinition<Media>>()
+		List<FilterDefinition<Media>> filters = query?.ToLower().Split(' ').FirstOrDefault() switch
 		{
-			string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query),
-			Builders<Media>.Filter.Eq(m => m.Owner, userId)
+			":standard" => [Builders<Media>.Filter.Eq(m => m.Class, MediaClass.Standard)],
+			":nsfw" => [Builders<Media>.Filter.Eq(m => m.Class, MediaClass.NSFW)],
+			":secret" => [Builders<Media>.Filter.Eq(m => m.Class, MediaClass.Secret)],
+			_ => [string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query)]
 		};
-		if (string.IsNullOrWhiteSpace(query))
-			filters.Add(Builders<Media>.Filter.Ne(m => m.Class, MediaClass.Secret));
+		filters.Add(Builders<Media>.Filter.Eq(m => m.Owner, userId));
 		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);
 		var find = _media.Find(Builders<Media>.Filter.And(filters));
-
 		var total = await find.CountDocumentsAsync(cancellationToken);
 		page -= 1;
 		var items = await find.Sort(sort).Skip(page * pageSize).Limit(pageSize).ToListAsync(cancellationToken);
@@ -145,7 +145,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 
 			//var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
 			//var media = new Media(fileId, filename, owner);
-			
+
 			await AddMediaAsync(media, cancellationToken);
 			return media;
 		}
@@ -207,7 +207,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 		}
 	}
 
-	
+
 
 	public async Task DeriveTagsAsync(CancellationToken cancellationToken = default)
 	{

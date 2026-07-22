@@ -74,4 +74,6 @@ public static class ProtoExtensions
 	{
 		return id.Value.Select(v => v.ToObjectId());
 	}
+
+	public static AobaCore.Models.MediaClass FromRPC(this Aoba.RPC.MediaClass mediaClass) => (AobaCore.Models.MediaClass)(mediaClass - 1);
 }
