@@ -101,7 +101,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 						_ => ".webp"
 					};
 
-					var thumbUrl = await UploadThumbnailAsync(media, size, thumb, $"{media.Filename}{media.Ext}", cancellationToken);
+					var thumbUrl = await UploadThumbnailAsync(media, size, thumb, $"{media.Filename}{thumbExt}", cancellationToken);
 
 					return thumbUrl;
 				}
