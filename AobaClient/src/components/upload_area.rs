@@ -31,16 +31,15 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 		{
 			is_dragging.set(true);
 		}
-		info!("Hover");
 	};
 	let on_drag_exit = move |_e: Event<DragData>| {
 		if is_dragging.cloned()
 		{
 			is_dragging.set(false);
 		}
-		info!("Hover Exit");
 	};
 	let on_files_dropped = move |e: Event<DragData>| {
+		info!("Drop");
 		is_dragging.set(false);
 		e.prevent_default();
 		file_count.set(Some(e.files().len()));
@@ -79,7 +78,7 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 									.body(bytes)
 									.send()
 									.await;
-								if let Ok(upload) = upload_result
+								if let Ok(_upload) = upload_result
 								{}
 							}
 						}

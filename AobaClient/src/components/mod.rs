@@ -4,6 +4,7 @@ mod icons;
 mod layout_groups;
 mod media_grid;
 mod media_item;
+mod media_item_context_menu_items;
 mod metrics_token;
 mod modal;
 mod navbar;

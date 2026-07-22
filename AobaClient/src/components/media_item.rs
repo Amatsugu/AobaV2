@@ -1,3 +1,4 @@
+use super::media_item_context_menu_items::MediaItemContextMenuItems;
 use dioxus::{
 	html::{
 		geometry::{ClientSpace, euclid::Point2D},
@@ -5,22 +6,14 @@ use dioxus::{
 	},
 	prelude::*,
 };
-use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger};
-use tonic::{Response, Status};
-use web_sys::window;
+use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
-use crate::{
-	contexts::SelectionContext,
-	rpc::{
-		aoba::{Id, MediaClass, MediaModel, SetMediaClassRequest},
-		get_rpc_client,
-	},
-};
+use crate::rpc::aoba::{MediaClass, MediaModel, MediaType};
 
 pub struct MediaClassChangeEvent
 {
 	pub id: String,
-	pub class: i32,
+	pub class: MediaClass,
 }
 
 #[derive(PartialEq, Clone, Props)]
@@ -28,8 +21,8 @@ pub struct MediaItemProps
 {
 	pub item: MediaModel,
 	pub is_selected: bool,
-	pub on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
-	pub on_deleted: Option<EventHandler<String>>,
+	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
+	pub on_deleted: EventHandler<String>,
 	pub on_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	pub bulk_change_class: EventHandler<i32>,
 }
@@ -40,12 +33,12 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let item = props.item.clone();
 	let mtype = match item.media_type()
 	{
-		crate::rpc::aoba::MediaType::Image => "Image",
-		crate::rpc::aoba::MediaType::Audio => "Audio",
-		crate::rpc::aoba::MediaType::Video => "Video",
-		crate::rpc::aoba::MediaType::Text => "Text",
-		crate::rpc::aoba::MediaType::Code => "Code",
-		crate::rpc::aoba::MediaType::Raw => "Raw",
+		MediaType::Image => "Image",
+		MediaType::Audio => "Audio",
+		MediaType::Video => "Video",
+		MediaType::Text => "Text",
+		MediaType::Code => "Code",
+		MediaType::Raw => "Raw",
 		_ => "Unknown",
 	};
 	let class_string = match item.class()
@@ -99,214 +92,13 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 			ContextMenuContent{
 				MediaItemContextMenuItems{
 					item: props.item.clone(),
-					is_selected: props.is_selected,
 					on_class_changed: props.on_class_changed,
 					on_deleted: props.on_deleted,
-					on_selected: props.on_selected,
 					bulk_change_class: props.bulk_change_class
 				}
 			}
 		}
 	};
-}
-
-#[component]
-fn MediaItemContextMenuItems(props: MediaItemProps) -> Element
-{
-	let item = props.item;
-	let class = item.class();
-	let id = item.id.unwrap().value;
-	let download = item.media_url.clone();
-	let selection_context: SelectionContext = use_context();
-	let selection_count = selection_context.selected_items.len();
-	rsx! {
-		div{
-			"This item"
-		}
-		ContextMenuItem {
-			index: 0 as usize,
-			value: id.clone(),
-			on_select: move |id: String|{
-				window().expect("Failed to get window")
-					.location().set_href(&format!("/media/{}", id))
-					.expect("Failed to open Url");
-			},
-			div{
-				class: "contextItem",
-				div{
-					class: "label",
-					"Details"
-				}
-			}
-		},
-		ContextMenuItem {
-			index: 1 as usize,
-			value: "{download}",
-			on_select: move |url: String|{
-				spawn(async move {
-					window().expect("Failed to get window")
-						.navigator()
-						.clipboard()
-						.write_text(&url).await
-						.expect("Failed to copy url");
-				});
-			},
-			div{
-				class: "contextItem",
-				div{
-					class: "label",
-					"Copy Url"
-				}
-			}
-		},
-		ContextMenuItem {
-			index: 1 as usize,
-			value: "{download}",
-			on_select: move |url: String|{
-				window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
-			},
-			div{
-				class: "contextItem",
-				div{
-					class: "label",
-					"Download"
-				}
-			}
-		},
-		if class != MediaClass::Standard {
-			ContextMenuItem {
-				index: 2 as usize,
-				value: "{id}",
-				on_select: move |id: String|{
-					spawn(async move {
-						if set_class(&id, 0).await.is_ok(){
-							if let Some(handler) = props.on_class_changed{
-								handler.call(MediaClassChangeEvent { id, class: 0 });
-							}
-						}
-					});
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark Standard"
-					}
-				}
-			}
-		}
-		if class != MediaClass::Nsfw {
-			ContextMenuItem {
-				index: 3 as usize,
-				value: "{id}",
-				on_select: move |id: String|{
-					spawn(async move {
-						if set_class(&id, 1).await.is_ok(){
-							if let Some(handler) = props.on_class_changed{
-								handler.call(MediaClassChangeEvent { id, class: 1 });
-							}
-						}
-					});
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark NSFW"
-					}
-				}
-			}
-		}
-		if class != MediaClass::Secret {
-			ContextMenuItem {
-				index: 4 as usize,
-				value: "{id}",
-				on_select: move |id: String|{
-					spawn(async move {
-						if set_class(&id, 2).await.is_ok(){
-							if let Some(handler) = props.on_class_changed{
-								handler.call(MediaClassChangeEvent { id, class: 2 });
-							}
-						}
-					});
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark Secret"
-					}
-				}
-			}
-		}
-		ContextMenuItem {
-			index: 5 as usize,
-			value: "{id}",
-			on_select: move |id: String|{
-				spawn(async move {
-					if delete_media(id.clone()).await.is_ok(){
-						if let Some(handler) = props.on_deleted {
-							handler.call(id);
-						}
-					}
-				});
-			},
-			div{
-				class: "contextItem",
-				div{
-					class: "label",
-					"Delete"
-				}
-			}
-		},
-		if selection_count > 0{
-			div{
-				"{selection_count} Selected Items"
-			}
-			ContextMenuItem {
-				index: 6 as usize,
-				value: "{id}",
-				on_select: move |_id|{
-					props.bulk_change_class.call(1);
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark as NSFW"
-					}
-				}
-			}
-			ContextMenuItem {
-				index: 7 as usize,
-				value: "{id}",
-				on_select: move |_id|{
-					props.bulk_change_class.call(2);
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark as Secret"
-					}
-				}
-			}
-			ContextMenuItem {
-				index: 8 as usize,
-				value: "{id}",
-				on_select: move |_id|{
-					props.bulk_change_class.call(0);
-				},
-				div{
-					class: "contextItem",
-					div{
-						class: "label",
-						"Mark as Standard"
-					}
-				}
-			}
-		}
-	}
 }
 
 #[component]
@@ -324,21 +116,4 @@ pub fn MediaItemPlaceHolder() -> Element
 			}
 		}
 	};
-}
-
-async fn delete_media(id: String) -> Result<Response<()>, Status>
-{
-	let mut client = get_rpc_client();
-	return client.delete_media(Id { value: id }).await;
-}
-
-async fn set_class(id: &String, class: i32) -> Result<Response<()>, Status>
-{
-	let mut client = get_rpc_client();
-	return client
-		.set_media_class(SetMediaClassRequest {
-			class: class,
-			id: Some(Id { value: id.clone() }),
-		})
-		.await;
 }

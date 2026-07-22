@@ -2,11 +2,12 @@ use dioxus::{
 	html::geometry::{ClientSpace, euclid::Point2D},
 	prelude::*,
 };
+use tonic::{Response, Status};
 
 use crate::{
 	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder},
 	rpc::{
-		aoba::{MediaModel, PageFilter},
+		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
 		get_rpc_client,
 	},
 };
@@ -106,31 +107,38 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 						selected: props.selected_items,
 						bulk_change_class: props.bulk_change_class,
 						on_item_selected: props.on_item_selected,
-
-						on_item_deleted: move |id|{
-							if let Some(cur) = items.cloned(){
-								let filtered = cur.iter()
-									.filter(|i| i.id.clone().expect("No id").value != id)
-									.map(|i|i.clone())
-									.collect();
-								items.set(Some(filtered));
-							}
+						on_item_deleted: move |id: String|{
+							spawn(async move {
+								if delete_media(id.clone()).await.is_ok(){
+									if let Some(cur) = items.cloned(){
+										let filtered = cur.iter()
+											.filter(|i| i.id.clone().expect("No id").value != id)
+											.map(|i|i.clone())
+											.collect();
+										items.set(Some(filtered));
+									}
+								}
+							});
 						},
 						on_class_changed: move |e: MediaClassChangeEvent|{
-							if let Some(cur) = items.cloned(){
-								let updated = cur.iter()
-									.map(|i|{
-										let mut itm = i.clone();
-										let id = itm.id.clone().expect("No id").value;
-										if id == e.id{
-											itm.class = e.class;
-										}
-										return itm;
-									})
-									.collect();
-								info!("Class changed");
-								items.set(Some(updated));
-							}
+							spawn(async move {
+								if set_class(&e.id, e.class).await.is_ok(){
+									if let Some(cur) = items.cloned(){
+										let updated = cur.iter()
+											.map(|i|{
+												let mut itm = i.clone();
+												let id = itm.id.clone().expect("No id").value;
+												if id == e.id{
+													itm.class = e.class as i32;
+												}
+												return itm;
+											})
+											.collect();
+										info!("Class changed");
+										items.set(Some(updated));
+									}
+								}
+							});
 						}
 					}
 				},
@@ -157,9 +165,9 @@ fn PlaceholderGrid(count: usize) -> Element
 fn MediaList(
 	items: Vec<MediaModel>,
 	selected: Vec<String>,
-	on_item_deleted: Option<EventHandler<String>>,
+	on_item_deleted: EventHandler<String>,
 	on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
-	on_class_changed: Option<EventHandler<MediaClassChangeEvent>>,
+	on_class_changed: EventHandler<MediaClassChangeEvent>,
 	bulk_change_class: EventHandler<i32>,
 ) -> Element
 {
@@ -179,4 +187,21 @@ fn MediaList(
 			}
 		})}
 	}
+}
+
+async fn delete_media(id: String) -> Result<Response<()>, Status>
+{
+	let mut client = get_rpc_client();
+	return client.delete_media(Id { value: id }).await;
+}
+
+async fn set_class(id: &String, class: MediaClass) -> Result<Response<()>, Status>
+{
+	let mut client = get_rpc_client();
+	return client
+		.set_media_class(SetMediaClassRequest {
+			class: class.into(),
+			id: Some(Id { value: id.clone() }),
+		})
+		.await;
 }
