@@ -25,7 +25,7 @@ pub struct MediaGridProps
 	pub on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	pub onmouseup: EventHandler<MouseEvent>,
 	pub onmousedown: EventHandler<MouseEvent>,
-	pub bulk_change_class: EventHandler<i32>,
+	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
 pub struct PaginationInfo
@@ -168,7 +168,7 @@ fn MediaList(
 	on_item_deleted: EventHandler<String>,
 	on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
 	on_class_changed: EventHandler<MediaClassChangeEvent>,
-	bulk_change_class: EventHandler<i32>,
+	bulk_change_class: EventHandler<MediaClass>,
 ) -> Element
 {
 	rsx! {

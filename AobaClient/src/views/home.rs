@@ -2,7 +2,7 @@ use crate::{
 	components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar, UploadArea},
 	contexts::SelectionContext,
 	rpc::{
-		aoba::{Id, IdList, SetMediaClassBulkRequest},
+		aoba::{Id, IdList, MediaClass, SetMediaClassBulkRequest},
 		get_rpc_client,
 	},
 };
@@ -170,12 +170,12 @@ fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String)
 	}
 }
 
-fn bulk_change_class(class: i32)
+fn bulk_change_class(class: MediaClass)
 {
 	spawn(async move {
 		let mut client = get_rpc_client();
 		let mut selection_context: SelectionContext = use_context();
-		info!("Changing class to {}", class);
+		info!("Changing class to {:?}", class);
 		let ids = selection_context
 			.selected_items
 			.cloned()
@@ -184,7 +184,7 @@ fn bulk_change_class(class: i32)
 			.collect();
 		if client
 			.set_media_class_bulk(SetMediaClassBulkRequest {
-				class,
+				class: class.into(),
 				ids: Some(IdList { value: ids }),
 			})
 			.await

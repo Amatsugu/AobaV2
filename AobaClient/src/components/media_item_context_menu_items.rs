@@ -14,7 +14,7 @@ pub struct MediaItemContextMenuProps
 	pub item: MediaModel,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
-	pub bulk_change_class: EventHandler<i32>,
+	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
 #[component]
@@ -169,7 +169,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				index: 6 as usize,
 				value: "{id}",
 				on_select: move |_id|{
-					props.bulk_change_class.call(1);
+					props.bulk_change_class.call(MediaClass::Nsfw);
 				},
 				div{
 					class: "contextItem",
@@ -183,7 +183,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				index: 7 as usize,
 				value: "{id}",
 				on_select: move |_id|{
-					props.bulk_change_class.call(2);
+					props.bulk_change_class.call(MediaClass::Secret);
 				},
 				div{
 					class: "contextItem",
@@ -197,7 +197,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				index: 8 as usize,
 				value: "{id}",
 				on_select: move |_id|{
-					props.bulk_change_class.call(0);
+					props.bulk_change_class.call(MediaClass::Standard);
 				},
 				div{
 					class: "contextItem",

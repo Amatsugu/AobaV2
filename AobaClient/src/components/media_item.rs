@@ -24,7 +24,7 @@ pub struct MediaItemProps
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
 	pub on_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
-	pub bulk_change_class: EventHandler<i32>,
+	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
 #[component]
