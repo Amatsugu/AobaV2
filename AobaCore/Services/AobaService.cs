@@ -10,7 +10,7 @@ using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
-public class AobaService(IMongoDatabase db, S3MediaService s3)
+public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	private readonly GridFSBucket _gridFs = new(db);
@@ -54,9 +54,12 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 		return await _media.Find(filter).ToListAsync(cancellationToken);
 	}
 
-	public Task AddMediaAsync(Media media, CancellationToken cancellationToken = default)
+	public async Task AddMediaAsync(Media media, CancellationToken cancellationToken = default)
 	{
-		return _media.InsertOneAsync(media, null, cancellationToken);
+		var extraTags = await tagger.GetTagsAsync(media.Filename);
+		media.Tags = [.. media.Tags.Concat(extraTags).Distinct()];
+
+		await _media.InsertOneAsync(media, null, cancellationToken);
 	}
 
 	public async Task SetMediaClassAsync(ObjectId mediaId, MediaClass mediaClass, CancellationToken cancellationToken = default)
@@ -138,6 +141,9 @@ public class AobaService(IMongoDatabase db, S3MediaService s3)
 		try
 		{
 			var media = new Media(ObjectId.GenerateNewId(), filename, owner);
+			var extraTags = await tagger.GetTagsAsync(filename);
+			media.Tags = [.. media.Tags.Concat(extraTags).Distinct()];
+
 			var s3File = await s3.UploadFileAsync(media.GetS3Filename(), media.GetMimeType(), data, cancellationToken);
 			if (s3File.HasError)
 				return s3File.Error;

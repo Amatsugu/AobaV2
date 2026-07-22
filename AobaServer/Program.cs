@@ -139,6 +139,7 @@ builder.Services.AddFido2(opts =>
 #if DEBUG
 builder.Services.AddHostedService<DebugService>();
 #endif
+builder.Services.AddHostedService<RetroTaggerService>();
 builder.Services.Configure<FormOptions>(opt =>
 {
 	opt.ValueLengthLimit = int.MaxValue;

@@ -18,8 +18,9 @@ public static class Extensions
 {
 	public static IServiceCollection AddAoba(this IServiceCollection services, bool s3 = false)
 	{
-		
+
 		services.AddSingleton<AobaService>();
+		services.AddSingleton<AutoTagger>();
 		services.AddSingleton<ThumbnailService>();
 		services.AddSingleton<AccountsService>();
 		services.AddSingleton<HostInfo>();
