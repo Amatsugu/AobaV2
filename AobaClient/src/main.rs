@@ -16,7 +16,7 @@ pub const HOST: &'static str = "http://localhost:8081";
 #[cfg(debug_assertions)]
 pub const RPC_HOST: &'static str = "http://localhost:8081";
 #[cfg(not(debug_assertions))]
-pub const RPC_HOST: &'static str = "https://grpc.aoba.app";
+pub const RPC_HOST: &'static str = "https://aoba.app";
 #[cfg(not(debug_assertions))]
 pub const HOST: &'static str = "https://aoba.app";
 
