@@ -105,6 +105,7 @@ $mediaItemSize: 300px;
 		&:hover {
 			transform: scale(110%) translateZ(2px);
 			box-shadow: 0 0 8px #000;
+			z-index: 500;
 
 			.info {
 				transform: translateY(0%);

@@ -66,19 +66,13 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		if (media.Cdn != null)
 		{
 			await s3.DeleteFileAsync(media.Cdn.Url, CancellationToken.None);
-			foreach (var (_, key) in media.Cdn.ThumbnailUrls)
-			{
-				await s3.DeleteFileAsync(key, CancellationToken.None);
-			}
+			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
 			await aobaService.DeleteMediaAsync(media.MediaId, context.CancellationToken);
 		}
 		else
 		{
 			await aobaService.DeleteFileAsync(media.MediaId, context.CancellationToken);
-			foreach (var (_, id) in media.Thumbnails)
-			{
-				await thumbnailService.DeleteThumbnailDirectAsync(id);
-			}
+			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
 		}
 		return new Empty();
 	}
@@ -94,18 +88,12 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			if (item.Cdn != null)
 			{
 				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);
-				foreach (var (_, key) in item.Cdn.ThumbnailUrls)
-				{
-					await s3.DeleteFileAsync(key, CancellationToken.None);
-				}
+				await thumbnailService.DeleteAllThumbnailsAsync(item.MediaId);
 				await aobaService.DeleteMediaAsync(item.MediaId, context.CancellationToken);
 			}
 			else
 			{
-				foreach (var (_, id) in item.Thumbnails)
-				{
-					await thumbnailService.DeleteThumbnailDirectAsync(id);
-				}
+				await thumbnailService.DeleteAllThumbnailsAsync(item.MediaId);
 			}
 		}
 		return new Empty();
@@ -120,7 +108,8 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 	public override Task<UploadTargetResponse> StartUpload(UploadRequest request, ServerCallContext context)
 	{
 		var response = new UploadTargetResponse();
-		foreach(var file in request.Files){
+		foreach (var file in request.Files)
+		{
 			var info = s3.CreateUploadUrl(file.Filename);
 			if (info.HasError)
 			{

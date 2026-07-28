@@ -27,47 +27,66 @@ namespace AobaCore.Services;
 
 public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media, HostInfo hostInfo)
 {
-	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
+	private readonly GridFSBucket _gridfs = new(db);
 
-	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<Error?> DeleteAllThumbnailsAsync(ObjectId mediaId)
 	{
-		var thumbId = await aobaService.GetThumbnailIdAsync(mediaId, size, cancellationToken);
-		if (thumbId == default)
+		var media = await aobaService.GetMediaAsync(mediaId);
+		if (media == null)
 			return null;
-		if (cancellationToken.IsCancellationRequested)
-			return new Error("Task Canceled");
 		try
 		{
-			await _gridfs.DeleteAsync(thumbId, CancellationToken.None);
-			await aobaService.RemoveThumbnailAsync(mediaId, size, CancellationToken.None);
+			foreach (var (_, thumb) in media.Thumbnails)
+				await DeleteGridfsFileAsync(thumb);
+
+			if (media.Cdn != null)
+			{
+				foreach (var (_, thumb) in media.Cdn.ThumbnailUrls)
+					await s3Media.DeleteFileAsync(thumb);
+			}
+			return null;
 		}
-		catch (GridFSFileNotFoundException)
+		catch (Exception ex)
 		{
-			//Ignore if the file was not found (somehow already deleted)
-			await aobaService.RemoveThumbnailAsync(mediaId, size, CancellationToken.None);
+			return new ExceptionError(ex);
 		}
-		catch (Exception e)
-		{
-			return new ExceptionError(e);
-		}
-		return null;
 	}
 
-	public async Task<Error?> DeleteThumbnailDirectAsync(ObjectId thumbnailId)
+	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size)
+	{
+		var media = await aobaService.GetMediaAsync(mediaId);
+		if (media == null)
+			return null;
+		try
+		{
+			if (media.Thumbnails.TryGetValue(size, out var thumb))
+			{
+				await DeleteGridfsFileAsync(thumb);
+				await aobaService.RemoveThumbnailAsync(mediaId, size);
+			}
+			if (media.Cdn != null && media.Cdn.ThumbnailUrls.TryGetValue(size, out var url))
+			{
+				await s3Media.DeleteFileAsync(url);
+				await aobaService.RemoveS3ThumbnailAsync(mediaId, size);
+			}
+			return null;
+		}
+		catch (Exception ex)
+		{
+			return new ExceptionError(ex);
+		}
+	}
+
+	private async Task DeleteGridfsFileAsync(ObjectId fileId)
 	{
 		try
 		{
-			await _gridfs.DeleteAsync(thumbnailId);
+			await _gridfs.DeleteAsync(fileId);
 		}
 		catch (GridFSFileNotFoundException)
 		{
-			//Ignore if the file was not found (somehow already deleted)
+			//Ignore not found
 		}
-		catch (Exception e)
-		{
-			return new ExceptionError(e);
-		}
-		return null;
 	}
 
 	/// <summary>

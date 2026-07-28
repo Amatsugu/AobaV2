@@ -136,4 +136,13 @@ public class S3MediaService
 			return new ExceptionError(ex);
 		}
 	}
+
+	public async Task<ListObjectsResponse> ListFilesAsync(string? marker = null, CancellationToken cancellationToken = default)
+	{
+		return await _client.ListObjectsAsync(new ListObjectsRequest
+		{
+			BucketName = _bucket,
+			Marker = marker,
+		}, cancellationToken);
+	}
 }
