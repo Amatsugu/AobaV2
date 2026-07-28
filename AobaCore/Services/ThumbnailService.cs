@@ -14,7 +14,11 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
+using SixLabors.Fonts;
+
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using System.Diagnostics;
@@ -25,20 +29,22 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 {
 	private readonly GridFSBucket _gridfs = new GridFSBucket(db);
 
-	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size)
+	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var thumbId = await aobaService.GetThumbnailIdAsync(mediaId, size);
+		var thumbId = await aobaService.GetThumbnailIdAsync(mediaId, size, cancellationToken);
 		if (thumbId == default)
 			return null;
+		if (cancellationToken.IsCancellationRequested)
+			return new Error("Task Canceled");
 		try
 		{
-			await _gridfs.DeleteAsync(thumbId);
-			await aobaService.RemoveThumbnailAsync(mediaId, size);
+			await _gridfs.DeleteAsync(thumbId, CancellationToken.None);
+			await aobaService.RemoveThumbnailAsync(mediaId, size, CancellationToken.None);
 		}
 		catch (GridFSFileNotFoundException)
 		{
 			//Ignore if the file was not found (somehow already deleted)
-			await aobaService.RemoveThumbnailAsync(mediaId, size);
+			await aobaService.RemoveThumbnailAsync(mediaId, size, CancellationToken.None);
 		}
 		catch (Exception e)
 		{
@@ -397,20 +403,24 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 
 	public async Task<Maybe<Stream>> GenerateTextThumbnailAsync(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		//var w = (int)size;
-		//using var image = new Image<Rgba32>(w, w);
-		//var reader = new StreamReader(data);
-		//var text = new char[500];
-		//reader.ReadBlock(text, 0, text.Length);
-		//image.Mutate(op =>
-		//{
-		//	op.BackgroundColor(Color.Black);
-		//	var font = new Font(), 11);
-		//	var textOpts = new RichTextOptions(font);
-		//	op.DrawText(, new string(text), new Brush
-		//	{
-		//	});
-		//});
-		return new NotImplementedException();
+		var w = (int)size;
+		using var image = new Image<Rgba32>(w, w);
+		var reader = new StreamReader(data);
+		var text = new char[500];
+		reader.ReadBlock(text, 0, text.Length);
+		var textOpts = new RichTextOptions(SystemFonts.CreateFont("Noto Sans Mono", 10));
+		image.Mutate(op =>
+		{
+			op.BackgroundColor(Color.Black);
+			op.Paint(canvas =>
+			{
+				canvas.DrawText(textOpts, new string(text), Brushes.Solid(Color.White), pen: null);
+			});
+		});
+		var result = new MemoryStream();
+		await image.SaveAsWebpAsync(result, cancellationToken);
+		data.Dispose();
+		result.Position = 0;
+		return result;
 	}
 }

@@ -12,9 +12,9 @@ use dioxus::{prelude::*, router::RouterConfig};
 use route::Route;
 
 #[cfg(debug_assertions)]
-pub const HOST: &'static str = "http://localhost:8081";
+pub const HOST: &'static str = "http://localhost:80800";
 #[cfg(debug_assertions)]
-pub const RPC_HOST: &'static str = "http://localhost:8081";
+pub const RPC_HOST: &'static str = "http://localhost:8080";
 #[cfg(not(debug_assertions))]
 pub const RPC_HOST: &'static str = "https://aoba.app";
 #[cfg(not(debug_assertions))]

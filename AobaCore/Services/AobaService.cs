@@ -101,7 +101,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 
 	public async Task RemoveThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.Unset(m => m.Thumbnails[size]);
+		var update = Builders<Media>.Update.Unset(m => m.Thumbnails[size]).Unset(m => m.Cdn!.ThumbnailUrls[size]);
 
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
