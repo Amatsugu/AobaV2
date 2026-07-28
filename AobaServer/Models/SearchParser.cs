@@ -32,11 +32,17 @@ public class SearchQuery
 		{
 			switch (field.Key.ToLower())
 			{
+				case "type":
+					var mediaTypes = field.Values.Select<string, MediaType?>(v => Enum.TryParse<MediaType>(v, true, out var mClass) ? mClass : null)
+						.Where(m => m != null)
+						.Cast<MediaType>();
+					filters.Add(Builders<Media>.Filter.In(m => m.MediaType, mediaTypes));
+					break;
 				case "class":
-					var items = field.Values.Select<string, MediaClass?>(v => Enum.TryParse<MediaClass>(v, out var mClass) ? mClass : null)
+					var mediaClasses = field.Values.Select<string, MediaClass?>(v => Enum.TryParse<MediaClass>(v, true, out var mClass) ? mClass : null)
 						.Where(m => m != null)
 						.Cast<MediaClass>();
-					filters.Add(Builders<Media>.Filter.In(m => m.Class, items));
+					filters.Add(Builders<Media>.Filter.In(m => m.Class, mediaClasses));
 					break;
 				case "tags":
 					filters.Add(Builders<Media>.Filter.AnyIn(m => m.Tags, field.Values));
@@ -45,7 +51,7 @@ public class SearchQuery
 		}
 		if (!string.IsNullOrWhiteSpace(TextQuery))
 			filters.Add(Builders<Media>.Filter.Text(TextQuery));
-		else if(filters.Count == 0)
+		else if (filters.Count == 0)
 			filters.Add("{}");
 		return Builders<Media>.Filter.And(filters);
 	}

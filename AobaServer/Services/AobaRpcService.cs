@@ -10,6 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using HeyRed.Mime;
 using System.Text.Json;
+using SearchQuery = AobaServer.Models.SearchQuery;
 
 namespace AobaServer.Services;
 
@@ -25,7 +26,8 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 	public override async Task<ListResponse> ListMedia(PageFilter request, ServerCallContext context)
 	{
 		var user = context.GetUserId();
-		var result = await aobaService.FindMediaAsync(request.Query, user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
+		SearchQuery query = request.Query;
+		var result = await aobaService.FindMediaAsync(query.ToFilter(), user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
 		return result.ToResponse(host);
 	}
 
