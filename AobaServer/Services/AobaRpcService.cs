@@ -1,15 +1,20 @@
 ﻿using Aoba.RPC;
 
+using AobaCore.Models;
 using AobaCore.Services;
 
 using AobaServer.Models;
 using AobaServer.Utils;
 
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
+
 using HeyRed.Mime;
+
 using System.Text.Json;
+
 using SearchQuery = AobaServer.Models.SearchQuery;
 
 namespace AobaServer.Services;
@@ -109,7 +114,10 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 	public override Task<UploadTargetResponse> StartUpload(UploadRequest request, ServerCallContext context)
 	{
-		var response = new UploadTargetResponse();
+		var response = new UploadTargetResponse
+		{
+			Targets = new UploadTargets()
+		};
 		foreach (var file in request.Files)
 		{
 			var info = s3.CreateUploadUrl(file.Filename);
@@ -122,6 +130,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			}
 			var tgt = new UploadTarget
 			{
+				Filename = file.Filename,
 				ContentType = MimeTypesMap.GetMimeType(file.Filename),
 				Id = info.Value.Id.ToId(),
 				SignedUrl = info.Value.Url
@@ -131,29 +140,35 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		return Task.FromResult(response);
 	}
 
-	public override async Task<UploadResult> CompleteUpload(Id id, ServerCallContext context)
+	public override async Task<UploadResult> CompleteUpload(IdList ids, ServerCallContext context)
 	{
-		var file = await s3.CompleteUploadAsync(id.ToObjectId());
-		if (file.HasError)
+		var result = new UploadResult();
+		var errors = new List<string>();
+		foreach (var id in ids.ToObjectId())
 		{
-			return new UploadResult
+			var file = await s3.CompleteUploadAsync(id);
+			if (file.HasError)
 			{
-				ErrorMessage = file.Error.ToString()
-			};
-		}
-		var media = new AobaCore.Models.Media(id.ToObjectId(), file.Value.filename, context.GetHttpContext().User.GetId())
-		{
-			Cdn = new()
-			{
-				Url = file.Value.cdnUrl,
+				errors.Add($"Upload for {id} failed: {file.Error}");
+				continue;
 			}
-		};
+			var media = new AobaCore.Models.Media(id, file.Value.filename, context.GetHttpContext().User.GetId())
+			{
+				Cdn = new()
+				{
+					Url = file.Value.cdnUrl,
+				}
+			};
 
-		await aobaService.AddMediaAsync(media, context.CancellationToken);
-
-		return new UploadResult
+			await aobaService.AddMediaAsync(media, context.CancellationToken);
+			result.UploadCount++;
+		}
+		if(errors.Count != 0)
 		{
-			Media = media.ToMediaModel(host)
-		};
+			result.Errors = new ErrorList();
+			result.Errors.ErrorMessages.AddRange(errors);
+		}
+
+		return result;
 	}
 }

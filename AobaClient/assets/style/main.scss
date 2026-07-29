@@ -204,6 +204,7 @@ form {
 		max-width: 300px;
 	}
 }
+
 .contextItem {
 	border-left: 4px solid $featureColor;
 	$size: 30px;
@@ -239,6 +240,7 @@ form {
 		border-left: 10px solid $focusColor;
 	}
 }
+
 .pagination {
 	display: flex;
 	justify-content: center;
@@ -259,6 +261,7 @@ form {
 		}
 	}
 }
+
 #selectionBarContainer {
 	position: fixed;
 	bottom: 30px;
@@ -269,6 +272,7 @@ form {
 	left: $navBarSize;
 	z-index: 100;
 }
+
 #selectionBar {
 	align-self: center;
 	height: 80px;
@@ -335,7 +339,6 @@ form {
 	}
 }
 
-
 #uploadArea{
 	display: grid;
 	grid-template-areas: "A";
@@ -344,18 +347,33 @@ form {
 		grid-area: A;
 	}
 
-	> .dragOverlay{
+	#uploadOverlay{
 		backdrop-filter: brightness(0.1);
+		display: none;
 		position: fixed;
-		z-index: 100;
-		pointer-events: none;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100vh;
-		width: 100vh;
-		top:0;
-		left:0;
-		transition: opacity .25s ease-out;
+		z-index: 1000;
+		height: 100dvh;
+		width: 100dvw;
+		left: 0;
+		top: 0;
+		grid-template-areas: "A";
+
+		> *{
+			grid-area: A;
+		}
+		.display{
+			justify-self: center;
+			align-self: center;
+		}
+		> input{
+			appearance: none;
+			opacity: 0;
+		}
+	}
+
+	&.dragging{
+		#uploadOverlay{
+			display: grid;
+		}
 	}
 }

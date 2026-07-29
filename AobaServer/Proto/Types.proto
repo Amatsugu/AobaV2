@@ -203,8 +203,10 @@ message UploadTarget{
 }
 
 message UploadResult {
-	oneof result {
-		MediaModel media = 1;
-		string error_message = 2;
-	}
+	uint32 upload_count = 1;
+	optional ErrorList errors = 2;
+}
+
+message ErrorList{
+	repeated string error_messages = 1;
 }

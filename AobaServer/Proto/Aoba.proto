@@ -17,5 +17,5 @@ service AobaRpc {
   rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns(google.protobuf.Empty);
 
   rpc StartUpload(UploadRequest) returns(UploadTargetResponse);
-  rpc CompleteUpload(Id) returns(UploadResult);
+  rpc CompleteUpload(IdList) returns(UploadResult);
 }

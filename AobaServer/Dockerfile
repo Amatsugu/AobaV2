@@ -39,7 +39,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} AS base
 RUN apt-get update && apt-get install -y ffmpeg libvips libvips-tools libavif-dev
 USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
 EXPOSE 8081
 
 # This stage is used to build the service project

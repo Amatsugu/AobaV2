@@ -1,11 +1,17 @@
 use dioxus::prelude::*;
 
-use crate::{Route, components::Navbar, contexts::AuthContext, views::Login};
+use crate::{
+	Route,
+	components::Navbar,
+	contexts::{AuthContext, DragContext},
+	views::Login,
+};
 
 #[component]
 pub fn MainLayout() -> Element
 {
 	let auth_context = use_context::<AuthContext>();
+	let mut drag_context = use_context::<DragContext>();
 
 	if auth_context.jwt.cloned().is_none()
 	{
@@ -15,18 +21,23 @@ pub fn MainLayout() -> Element
 	}
 
 	// let mut ct_renderer = use_context::<ContextMenuRenderer>();
-
+	let on_drag_enter = move |_e: Event<DragData>| {
+		drag_context.is_dragging.set(true);
+	};
+	let on_drag_exit = move |_e: Event<DragData>| {
+		drag_context.is_dragging.set(false);
+	};
 	return rsx! {
 		// ContextMenuRoot {  }
 		Navbar { }
 		div {
 			id: "content",
-			// onclick: move |_| {
-			// 	ct_renderer.close();
-			// },
-			// oncontextmenu: move |_| {
-			// 	ct_renderer.close();
-			// },
+			ondragenter: on_drag_enter,
+			ondragover: on_drag_enter,
+			ondragstart: on_drag_enter,
+			// ondragexit: on_drag_exit,
+			// ondragend: on_drag_exit,
+			// ondragleave: on_drag_exit,
 			Outlet::<Route> { }
 		}
 	};
