@@ -20,12 +20,8 @@ pub fn MainLayout() -> Element
 		};
 	}
 
-	// let mut ct_renderer = use_context::<ContextMenuRenderer>();
 	let on_drag_enter = move |_e: Event<DragData>| {
 		drag_context.is_dragging.set(true);
-	};
-	let on_drag_exit = move |_e: Event<DragData>| {
-		drag_context.is_dragging.set(false);
 	};
 	return rsx! {
 		// ContextMenuRoot {  }

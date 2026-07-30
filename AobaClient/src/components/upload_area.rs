@@ -170,18 +170,12 @@ async fn upload_file(client: &reqwest::Client, file: &FileData, file_tgt: Upload
 pub fn UploaderOverlay(children: Element) -> Element
 {
 	let mut ctx = use_context::<DragContext>();
-	let on_drag_enter = move |_e: Event<DragData>| {
-		ctx.is_dragging.set(true);
-	};
 	let on_drag_exit = move |_e: Event<DragData>| {
 		ctx.is_dragging.set(false);
 	};
 	rsx! {
 		div{
 			id: "uploadOverlay",
-			// ondragenter: on_drag_enter,
-			// ondragover: on_drag_enter,
-			// ondragstart: on_drag_enter,
 			ondragexit: on_drag_exit,
 			ondragend: on_drag_exit,
 			ondragleave: on_drag_exit,

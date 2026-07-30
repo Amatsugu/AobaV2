@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(o =>
 {
 	o.Limits.MaxRequestBodySize = null;
-	o.ListenLocalhost(8081, lo =>
+	o.ListenAnyIP(8081, lo =>
 	{
 		lo.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2;
 	});
