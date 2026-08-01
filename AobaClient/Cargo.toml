@@ -40,3 +40,8 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
+
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"

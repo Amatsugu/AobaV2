@@ -14,36 +14,42 @@ impl AuthContext
 	pub fn login(&mut self, token: String)
 	{
 		self.jwt.set(Some(token.clone()));
-		let local_storage = window().unwrap().local_storage().unwrap().unwrap();
-		_ = local_storage.set_item("token", token.as_str());
-		login(token.clone());
+		if window()
+			.and_then(|w| w.local_storage().ok())
+			.flatten()
+			.and_then(|l| l.set_item("token", token.as_str()).ok())
+			.is_some()
+		{
+			login(token.clone());
+		}
 	}
 
 	pub fn logout(&mut self)
 	{
 		self.jwt.set(None);
-		let local_storage = window().unwrap().local_storage().unwrap().unwrap();
-		_ = local_storage.remove_item("token");
+		_ = window()
+			.and_then(|w| w.local_storage().ok())
+			.flatten()
+			.and_then(|l| l.remove_item("token").ok());
 		logout();
 	}
 
 	pub fn new_from_session() -> Self
 	{
-		let local_storage = window().unwrap().local_storage().unwrap().unwrap();
-		match local_storage.get_item("token")
+		match window()
+			.and_then(|w| w.local_storage().ok())
+			.flatten()
+			.and_then(|l| l.get_item("token").ok())
+			.flatten()
 		{
-			Ok(value) =>
+			Some(jwt) =>
 			{
-				if let Some(jwt) = value
-				{
-					login(jwt.clone());
-					return AuthContext {
-						jwt: Signal::new(Some(jwt)),
-					};
+				login(jwt.clone());
+				AuthContext {
+					jwt: Signal::new(Some(jwt)),
 				}
-				return AuthContext::default();
 			}
-			Err(_) => AuthContext::default(),
+			_ => AuthContext::default(),
 		}
 	}
 }

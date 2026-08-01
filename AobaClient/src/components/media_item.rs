@@ -9,6 +9,7 @@ use dioxus::{
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
 use crate::rpc::aoba::{MediaClass, MediaModel, MediaType};
+pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);
 
 pub struct MediaClassChangeEvent
 {
@@ -23,7 +24,7 @@ pub struct MediaItemProps
 	pub is_selected: bool,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
-	pub on_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
+	pub on_selected: Option<EventHandler<OnItemSelectedEvent>>,
 	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
@@ -48,7 +49,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		_ => "",
 	};
 	let filename = item.filename;
-	let id = item.id.unwrap().value;
+	let id = item.id.unwrap_or_default().value;
 	let thumb = item.thumb_url;
 	let selected_class = match props.is_selected
 	{
@@ -60,12 +61,10 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let del_id = id.clone();
 	let onmove = move |e: MouseEvent| {
 		if e.data().held_buttons().contains(MouseButton::Primary)
+			&& let Some(handler) = props.on_selected
 		{
-			if let Some(handler) = props.on_selected
-			{
-				let p = e.data().coordinates().client();
-				handler.call((del_id.clone(), props.is_selected, p));
-			}
+			let p = e.data().coordinates().client();
+			handler.call((del_id.clone(), props.is_selected, p));
 		}
 	};
 

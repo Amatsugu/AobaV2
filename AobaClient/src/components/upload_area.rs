@@ -126,7 +126,7 @@ async fn upload_files(files: Vec<FileData>) -> Result<UploadResult, Vec<String>>
 	}
 	else
 	{
-		return Err(vec!["No upload".to_string()]);
+		Err(vec!["No upload".to_string()])
 	}
 }
 
@@ -149,7 +149,7 @@ async fn upload_file(client: &reqwest::Client, file: &FileData, file_tgt: Upload
 				Ok(_upload) =>
 				{
 					info!("File upload complete: {}", file_tgt.filename);
-					Some(file_tgt.id.unwrap())
+					file_tgt.id
 				}
 				Err(err) =>
 				{

@@ -20,7 +20,7 @@ pub fn SelectionBar(
 ) -> Element
 {
 	let mut delete_modal_open = use_signal(|| false);
-	if selected_items.len() == 0
+	if selected_items.is_empty()
 	{
 		return rsx! {};
 	}
@@ -46,10 +46,12 @@ pub fn SelectionBar(
 										.map(|id| format!("{HOST}/m/{id}"))
 										.collect();
 									let joined = links.join("\n");
-									match window().expect("Failed to get window").navigator().clipboard().write_text(joined.as_str()).await {
-										Ok(_) => (),
-										Err(_) => error!("Failed to write to clipboard"),
-									};
+									match window().map(|w| w.navigator().clipboard()){
+										Some(clipboard) => if clipboard.write_text(joined.as_str()).await.is_err(){
+											error!("Failed to write to clipboard")
+										},
+										None => error!("Failed to get clipboard"),
+									}
 								});
 							},
 							img{

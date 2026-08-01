@@ -65,41 +65,52 @@ impl Interceptor for AuthInterceptor
 {
 	fn call(&mut self, mut request: tonic::Request<()>) -> Result<tonic::Request<()>, tonic::Status>
 	{
-		if let Some(jwt) = JWT.read().unwrap().clone()
+		match JWT.read().map(|t| t.clone()).ok().flatten()
 		{
-			request
-				.metadata_mut()
-				.insert("authorization", format!("Bearer {jwt}").parse().unwrap());
+			Some(jwt) =>
+			{
+				if let Ok(bearer) = format!("Bearer {jwt}").parse()
+				{
+					request.metadata_mut().insert("authorization", bearer);
+				}
+				Ok(request)
+			}
+			None => Err(tonic::Status::new(tonic::Code::Unauthenticated, "Not logged in")),
 		}
-		return Ok(request);
 	}
 }
 
 pub fn get_rpc_client() -> AobaRpcClient<InterceptedService<Client, AuthInterceptor>>
 {
-	return RPC_CLIENTS.get_client();
+	RPC_CLIENTS.get_client()
 }
 
 pub fn get_auth_rpc_client() -> AuthRpcClient<Client>
 {
-	return RPC_CLIENTS.get_auth_client();
+	RPC_CLIENTS.get_auth_client()
 }
 
 pub fn get_account_rpc_client() -> AccountRpcClient<InterceptedService<Client, AuthInterceptor>>
 {
-	return RPC_CLIENTS.get_account_client();
+	RPC_CLIENTS.get_account_client()
 }
 
 pub fn get_metrics_rpc_client() -> MetricsRpcClient<InterceptedService<Client, AuthInterceptor>>
 {
-	return RPC_CLIENTS.get_metrics_client();
+	RPC_CLIENTS.get_metrics_client()
 }
-pub fn login(jwt: String)
+pub fn login(token: String)
 {
-	*JWT.write().unwrap() = Some(jwt);
+	if let Ok(mut jwt) = JWT.write()
+	{
+		*jwt = Some(token);
+	}
 }
 
 pub fn logout()
 {
-	*JWT.write().unwrap() = None;
+	if let Ok(mut jwt) = JWT.write()
+	{
+		*jwt = None;
+	}
 }

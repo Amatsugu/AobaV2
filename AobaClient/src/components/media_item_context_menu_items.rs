@@ -22,7 +22,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 {
 	let item = props.item;
 	let class = item.class();
-	let id = item.id.unwrap().value;
+	let id = item.id.unwrap_or_default().value;
 	let download = item.media_url.clone();
 	let selection_context: SelectionContext = use_context();
 	let selection_count = selection_context.selected_items.len();
@@ -31,12 +31,12 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			"This item"
 		}
 		ContextMenuItem {
-			index: 0 as usize,
+			index: 0_usize,
 			value: id.clone(),
 			on_select: move |id: String|{
-				window().expect("Failed to get window")
-					.location().set_href(&format!("/media/{}", id))
-					.expect("Failed to open Url");
+				if window().and_then(|w| w.location().set_href(&format!("/media/{}", id)).ok()).is_none(){
+					error!("Failed to open url");
+				}
 			},
 			div{
 				class: "contextItem",
@@ -47,15 +47,13 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 		},
 		ContextMenuItem {
-			index: 1 as usize,
+			index: 1_usize,
 			value: "{download}",
 			on_select: move |url: String|{
 				spawn(async move {
-					window().expect("Failed to get window")
-						.navigator()
-						.clipboard()
-						.write_text(&url).await
-						.expect("Failed to copy url");
+					if let Some(clipboard) = window().map(|w| w.navigator().clipboard()) && clipboard.write_text(&url).await.is_err() {
+						error!("Failed to copy url");
+					}
 				});
 			},
 			div{
@@ -67,10 +65,12 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 		},
 		ContextMenuItem {
-			index: 1 as usize,
+			index: 1_usize,
 			value: "{download}",
 			on_select: move |url: String|{
-				window().expect("Failed to get window").open_with_url_and_target(&url, "_blank").expect("Failed to open url");
+				if window().and_then(|w| w.open_with_url_and_target(&url, "_blank").ok()).is_none(){
+					error!("Failed to open download page");
+				}
 			},
 			div{
 				class: "contextItem",
@@ -82,17 +82,10 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		},
 		if class != MediaClass::Standard {
 			ContextMenuItem {
-				index: 2 as usize,
+				index: 2_usize,
 				value: "{id}",
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Standard });
-					// spawn(async move {
-					// 	if set_class(&id, 0).await.is_ok(){
-					// 		if let Some(handler) = props.on_class_changed{
-					// 			handler.call(MediaClassChangeEvent { id, class: 0 });
-					// 		}
-					// 	}
-					// });
 				},
 				div{
 					class: "contextItem",
@@ -105,17 +98,10 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		}
 		if class != MediaClass::Nsfw {
 			ContextMenuItem {
-				index: 3 as usize,
+				index: 3_usize,
 				value: "{id}",
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Nsfw });
-					// spawn(async move {
-					// 	if set_class(&id, 1).await.is_ok(){
-					// 		if let Some(handler) = props.on_class_changed{
-					// 			handler.call(MediaClassChangeEvent { id, class: 1 });
-					// 		}
-					// 	}
-					// });
 				},
 				div{
 					class: "contextItem",
@@ -128,17 +114,10 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		}
 		if class != MediaClass::Secret {
 			ContextMenuItem {
-				index: 4 as usize,
+				index: 4_usize,
 				value: "{id}",
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Secret });
-					// spawn(async move {
-					// 	if set_class(&id, 2).await.is_ok(){
-					// 		if let Some(handler) = props.on_class_changed{
-					// 			handler.call(MediaClassChangeEvent { id, class: 2 });
-					// 		}
-					// 	}
-					// });
 				},
 				div{
 					class: "contextItem",
@@ -150,7 +129,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 		}
 		ContextMenuItem {
-			index: 5 as usize,
+			index: 5_usize,
 			value: "{id}",
 			on_select: props.on_deleted,
 			div{
@@ -166,7 +145,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				"{selection_count} Selected Items"
 			}
 			ContextMenuItem {
-				index: 6 as usize,
+				index: 6_usize,
 				value: "{id}",
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Nsfw);
@@ -180,7 +159,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				}
 			}
 			ContextMenuItem {
-				index: 7 as usize,
+				index: 7_usize,
 				value: "{id}",
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Secret);
@@ -194,7 +173,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				}
 			}
 			ContextMenuItem {
-				index: 8 as usize,
+				index: 8_usize,
 				value: "{id}",
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Standard);

@@ -13,22 +13,18 @@ pub fn Media(id: String) -> Element
 		if let Ok(item) = result
 		{
 			let res = item.into_inner();
-			return res.value;
+			res.value
 		}
 		else
 		{
-			return None;
+			None
 		}
 	}));
 
-	return match media_result.cloned().unwrap_or(None)
-	{
-		Some(media) =>
-		{
-			return rsx! {MediaPage{media: media}};
-		}
-		None => rsx! {"Not Found"},
-	};
+	media_result
+		.cloned()
+		.flatten()
+		.map_or_else(|| rsx! {"Not Found"}, |media| rsx! {MediaPage { media: media }})
 }
 
 #[component]

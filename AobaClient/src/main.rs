@@ -14,13 +14,13 @@ use route::Route;
 use crate::contexts::DragContext;
 
 #[cfg(debug_assertions)]
-pub const HOST: &'static str = "http://localhost:8080";
+pub const HOST: &str = "http://localhost:8080";
 #[cfg(debug_assertions)]
-pub const RPC_HOST: &'static str = "http://localhost:8081";
+pub const RPC_HOST: &str = "http://localhost:8081";
 #[cfg(not(debug_assertions))]
-pub const RPC_HOST: &'static str = "https://aoba.app";
+pub const RPC_HOST: &str = "https://aoba.app";
 #[cfg(not(debug_assertions))]
-pub const HOST: &'static str = "https://aoba.app";
+pub const HOST: &str = "https://aoba.app";
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/style/main.scss");
@@ -36,8 +36,8 @@ fn main()
 #[component]
 fn App() -> Element
 {
-	use_context_provider(|| AuthContext::new_from_session());
-	use_context_provider(|| DragContext::default());
+	use_context_provider(AuthContext::new_from_session);
+	use_context_provider(DragContext::default);
 	rsx! {
 		document::Link { rel: "icon", href: FAVICON }
 		document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }
@@ -55,7 +55,7 @@ fn App() -> Element
 				match state.current() {
 					Route::Home {page, q: _} => {
 						info!("Page {}", page.unwrap_or(1));
-						return None;
+						None
 					},
 					_ => None
 				}

@@ -28,39 +28,43 @@ fn start_passkey_registration()
 #[allow(dead_code)]
 fn create_credential(req_opts: PasskeyCredentialCreateOptions)
 {
-	let window = window().expect("Window does not exist");
-	let credentaials = window.navigator().credentials();
-
-	let opts = opts_from_rpc(req_opts);
-
-	let _result = credentaials.create_with_options(&opts);
-	todo!()
+	if let Some(credentials) = window().map(|w| w.navigator().credentials())
+		&& let Some(opts) = opts_from_rpc(req_opts)
+	{
+		let _result = credentials.create_with_options(&opts);
+		todo!()
+	}
 }
 
 #[allow(dead_code)]
-fn opts_from_rpc(rpc_opts: PasskeyCredentialCreateOptions) -> CredentialCreationOptions
+fn opts_from_rpc(rpc_opts: PasskeyCredentialCreateOptions) -> Option<CredentialCreationOptions>
 {
-	let opt_user = &rpc_opts.user.expect("user is missing");
-	let opt_rp = &rpc_opts.rp.expect("rp is missing");
-	let opts = CredentialCreationOptions::new();
-	let rp = PublicKeyCredentialRpEntity::new(&opt_rp.name);
-	rp.set_id(&opt_rp.id);
+	if let Some(opt_user) = &rpc_opts.user
+		&& let Some(opt_rp) = &rpc_opts.rp
+	{
+		let opts = CredentialCreationOptions::new();
+		let rp = PublicKeyCredentialRpEntity::new(&opt_rp.name);
+		rp.set_id(&opt_rp.id);
 
-	let user = PublicKeyCredentialUserEntity::new_with_u8_array(
-		&opt_user.name,
-		&opt_user.display_name,
-		&to_u8_array(&opt_user.id),
-	);
-	let pub_key_opts = PublicKeyCredentialCreationOptions::new_with_u8_array(
-		&to_u8_array(&rpc_opts.challenge),
-		&JsValue::undefined(),
-		&rp,
-		&user,
-	);
-	//pub_key_opts.set_exclude_credentials(val);
-	opts.set_public_key(&pub_key_opts);
+		let user = PublicKeyCredentialUserEntity::new_with_u8_array(
+			&opt_user.name,
+			&opt_user.display_name,
+			&to_u8_array(&opt_user.id),
+		);
+		let pub_key_opts = PublicKeyCredentialCreationOptions::new_with_u8_array(
+			&to_u8_array(&rpc_opts.challenge),
+			&JsValue::undefined(),
+			&rp,
+			&user,
+		);
+		opts.set_public_key(&pub_key_opts);
 
-	return opts;
+		Some(opts)
+	}
+	else
+	{
+		None
+	}
 }
 
 #[allow(dead_code)]

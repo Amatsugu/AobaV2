@@ -1,11 +1,8 @@
-use dioxus::{
-	html::geometry::{ClientSpace, euclid::Point2D},
-	prelude::*,
-};
+use dioxus::prelude::*;
 use tonic::{Response, Status};
 
 use crate::{
-	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder},
+	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, OnItemSelectedEvent},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
 		get_rpc_client,
@@ -22,7 +19,7 @@ pub struct MediaGridProps
 	pub page_size: Signal<i32>,
 	pub selected_items: Vec<String>,
 	pub on_page_loaded: Option<EventHandler<PaginationInfo>>,
-	pub on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
+	pub on_item_selected: Option<EventHandler<OnItemSelectedEvent>>,
 	pub onmouseup: EventHandler<MouseEvent>,
 	pub onmousedown: EventHandler<MouseEvent>,
 	pub bulk_change_class: EventHandler<MediaClass>,
@@ -48,50 +45,42 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 			page: Some(props.page.cloned()),
 			query: Some(props.query.cloned()),
 		};
-		let result = client.list_media(request).await;
-		if let Ok(items) = result
+		match client.list_media(request).await
 		{
-			let res = items.into_inner();
-
-			return Ok(res);
-		}
-		else
-		{
-			let err = result.err().unwrap();
-			let message = err.message();
-			return Err(format!("Failed to load results: {message}"));
+			Ok(items) => Ok(items.into_inner()),
+			Err(err) => Err(format!("Failed to load results: {}", err.message())),
 		}
 	}));
 
-	use_effect(move || match media_result()
-	{
-		Some(value) => match value
+	use_effect(move || {
+		if let Some(value) = media_result()
 		{
-			Ok(result) =>
+			match value
 			{
-				if let Some(pagination) = result.pagination
+				Ok(result) =>
 				{
-					let total_pages = pagination.total_pages;
-					let total_items = pagination.total_items;
-					if let Some(handler) = props.on_page_loaded
+					if let Some(pagination) = result.pagination
 					{
-						handler.call(PaginationInfo {
-							total_pages,
-							total_items,
-						});
+						let total_pages = pagination.total_pages;
+						let total_items = pagination.total_items;
+						if let Some(handler) = props.on_page_loaded
+						{
+							handler.call(PaginationInfo {
+								total_pages,
+								total_items,
+							});
+						}
 					}
+					items.set(Some(result.items));
+					error_display.set(rsx! {});
 				}
-				items.set(Some(result.items));
-				error_display.set(rsx! {});
+				Err(msg) => error_display.set(rsx! {
+					div{
+						"Failed to load results: {msg}"
+					}
+				}),
 			}
-			Err(msg) => error_display.set(rsx! {
-				div{
-					"Failed to load results: {msg}"
-				}
-			}),
-		},
-		_ =>
-		{}
+		}
 	});
 
 	rsx! {
@@ -109,34 +98,31 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 						on_item_selected: props.on_item_selected,
 						on_item_deleted: move |id: String|{
 							spawn(async move {
-								if delete_media(id.clone()).await.is_ok(){
-									if let Some(cur) = items.cloned(){
+								if delete_media(id.clone()).await.is_ok() &&
+									 let Some(cur) = items.cloned(){
 										let filtered = cur.iter()
-											.filter(|i| i.id.clone().expect("No id").value != id)
-											.map(|i|i.clone())
+											.filter(|i| i.id.as_ref().map(|i| i.value == id).unwrap_or_default())
+											.cloned()
 											.collect();
 										items.set(Some(filtered));
-									}
 								}
 							});
 						},
 						on_class_changed: move |e: MediaClassChangeEvent|{
 							spawn(async move {
-								if set_class(&e.id, e.class).await.is_ok(){
-									if let Some(cur) = items.cloned(){
+								if set_class(&e.id, e.class).await.is_ok()
+									&& let Some(cur) = items.cloned() {
 										let updated = cur.iter()
 											.map(|i|{
 												let mut itm = i.clone();
-												let id = itm.id.clone().expect("No id").value;
-												if id == e.id{
+												if itm.id.as_ref().map(|id| id.value == e.id).unwrap_or_default() {
 													itm.class = e.class as i32;
 												}
-												return itm;
+												itm
 											})
 											.collect();
 										info!("Class changed");
 										items.set(Some(updated));
-									}
 								}
 							});
 						}
@@ -166,15 +152,14 @@ fn MediaList(
 	items: Vec<MediaModel>,
 	selected: Vec<String>,
 	on_item_deleted: EventHandler<String>,
-	on_item_selected: Option<EventHandler<(String, bool, Point2D<f64, ClientSpace>)>>,
+	on_item_selected: Option<EventHandler<OnItemSelectedEvent>>,
 	on_class_changed: EventHandler<MediaClassChangeEvent>,
 	bulk_change_class: EventHandler<MediaClass>,
 ) -> Element
 {
 	rsx! {
 		{items.iter().map(|itm| {
-			let id = itm.id.clone().expect("Failed to get item id").value;
-			let is_selected = selected.contains(&id);
+			let is_selected = itm.id.as_ref().map(|id| selected.contains(&id.value)).unwrap_or_default();
 			rsx!{
 				MediaItem {
 					item: itm.clone(),
@@ -195,13 +180,13 @@ async fn delete_media(id: String) -> Result<Response<()>, Status>
 	return client.delete_media(Id { value: id }).await;
 }
 
-async fn set_class(id: &String, class: MediaClass) -> Result<Response<()>, Status>
+async fn set_class(id: &str, class: MediaClass) -> Result<Response<()>, Status>
 {
 	let mut client = get_rpc_client();
 	return client
 		.set_media_class(SetMediaClassRequest {
 			class: class.into(),
-			id: Some(Id { value: id.clone() }),
+			id: Some(Id { value: id.to_owned() }),
 		})
 		.await;
 }

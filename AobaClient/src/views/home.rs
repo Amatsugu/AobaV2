@@ -37,9 +37,9 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	let mut query = use_signal(|| q.unwrap_or("".to_string()));
 	let mut page = use_signal(|| page.unwrap_or(1));
 	let page_size = use_signal::<i32>(|| 100);
-	let mut max_page = use_signal(|| 1 as i32);
-	let mut item_count = use_signal(|| 0 as i32);
-	let mut selection_context = use_context_provider(|| SelectionContext::default());
+	let mut max_page = use_signal(|| 1_i32);
+	let mut item_count = use_signal(|| 0_i32);
+	let mut selection_context = use_context_provider(SelectionContext::default);
 	let mut last_pos = use_signal(|| None::<Point2D<f64, ClientSpace>>);
 	// let mut selected_items: Signal<Vec<String>> = use_signal(|| Vec::new());
 	let mut seletion_mode: Signal<SelectionMode> = use_signal(|| SelectionMode::Add);
@@ -118,21 +118,15 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 			},
 			bulk_change_class,
 			onmouseup: move |e: MouseEvent|{
-				if let Some(button) = e.data().trigger_button()
-				{
-					if button == MouseButton::Primary{
-						seletion_phase.set(SelectionPhase::Idle);
-						last_pos.set(None);
-					}
+				if let Some(button) = e.data().trigger_button() && button == MouseButton::Primary{
+					seletion_phase.set(SelectionPhase::Idle);
+					last_pos.set(None);
 				}
 
 			},
 			onmousedown: move |e: MouseEvent|{
-				if let Some(button) = e.data().trigger_button()
-				{
-					if button == MouseButton::Primary{
-						seletion_phase.set(SelectionPhase::Start);
-					}
+				if let Some(button) = e.data().trigger_button() && button == MouseButton::Primary{
+					seletion_phase.set(SelectionPhase::Start);
 				}
 			},
 		}
@@ -172,7 +166,7 @@ fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String)
 		}
 		SelectionMode::Remove =>
 		{
-			*items = items.iter().filter(|i| *i != &id).map(|i| i.clone()).collect();
+			*items = items.iter().filter(|i| *i != &id).cloned().collect();
 		}
 	}
 }

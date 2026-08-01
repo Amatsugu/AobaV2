@@ -7,7 +7,8 @@ pub fn Pagination(
 	max_page: Signal<i32>,
 	item_count: Signal<i32>,
 	on_page_change: EventHandler<i32>,
-) -> Element {
+) -> Element
+{
 	let cur_page_val = page.cloned();
 	let max_page_val = max_page.cloned();
 	let item_count_val = item_count.cloned();
@@ -49,12 +50,11 @@ pub fn Pagination(
 	}
 }
 
-fn scroll_document() {
-	let window = window().expect("Failed to get window");
-	let document = window.document().expect("Failed to get document");
-	document
-		.query_selector("#content")
-		.expect("Failed to find content")
-		.expect("Failed to find content")
-		.scroll_to_with_x_and_y(0.0, 0.0);
+fn scroll_document()
+{
+	if let Some(document) = window().and_then(|w| w.document())
+		&& let Some(elem) = document.query_selector("#content").ok().flatten()
+	{
+		elem.scroll_to_with_x_and_y(0.0, 0.0);
+	}
 }
