@@ -21,7 +21,7 @@ COPY /AobaServer/Proto /app/AobaServer/Proto
 
 # Install Protobuf
 RUN apt update
-RUN apt install -y protobuf-compiler libprotobuf-dev ffmpeg
+RUN apt install -y protobuf-compiler libprotobuf-dev
 
 # Install `dx`
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
@@ -36,7 +36,7 @@ RUN dx bundle --release --platform web
 # Server Build
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} AS base
-RUN apt-get update && apt-get install -y ffmpeg libvips libvips-tools libavif-dev
+RUN apt-get update && apt-get install -y ffmpeg libvips
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8081
