@@ -18,10 +18,10 @@ pub struct UploadAreaProps
 	on_upload_complete: Callback,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum UploadState
 {
 	Idle,
-	PreparingUpload,
 	Uploading(usize),
 	Done,
 }
@@ -41,12 +41,14 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 		file_count.set(Some(e.files().len()));
 		let total_file_size: u64 = e.files().iter().map(|f| f.size()).sum();
 
+		upload_state.set(UploadState::Uploading(0));
 		spawn(async move {
-			match upload_files(e.files()).await
+			match upload_files(e.files(), upload_state).await
 			{
 				Ok(_) =>
 				{
 					props.on_upload_complete.call(());
+					upload_state.set(UploadState::Done);
 				}
 				Err(err_msg) => warn!("Upload failed: {:?}", err_msg.join(", ")),
 			};
@@ -63,6 +65,7 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 			id: "uploadArea",
 			class: is_dragging(),
 			ondrop: on_files_dropped,
+			UploadStatus { status: upload_state.cloned() }
 			UploaderOverlay {
 				{props.children}
 			 }
@@ -70,7 +73,13 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 	}
 }
 
-async fn upload_files(files: Vec<FileData>) -> Result<UploadResult, Vec<String>>
+#[component]
+fn UploadStatus(status: UploadState) -> Element
+{
+	rsx! {}
+}
+
+async fn upload_files(files: Vec<FileData>, upload_state: Signal<UploadState>) -> Result<UploadResult, Vec<String>>
 {
 	let upload_request = UploadRequest {
 		files: files
