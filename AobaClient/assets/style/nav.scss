@@ -40,4 +40,36 @@ nav {
 	.utils {
 		grid-area: Utils;
 	}
+
+	.navItem {
+		color: $mainTextColor;
+		display: grid;
+		grid-template-areas: "A";
+		transition: 0.25s ease-out background-color;
+
+		svg {
+			width: $navBarSize;
+			object-fit: contain;
+			padding: 10px;
+			grid-area: A;
+		}
+
+		&::before{
+			content: "";
+			grid-area: A;
+			background-color: $inputBGColorFocus;
+			width: 0;
+			transition: .25s ease-out width;
+		}
+
+
+		&:first-child:not(:has(~[aria-current="page"]))::before,
+		&[aria-current="page"]::before {
+			width: 4px;
+		}
+
+		&:hover::before {
+			width: 100% !important;
+		}
+	}
 }

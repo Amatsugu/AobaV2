@@ -13,12 +13,12 @@ use route::Route;
 
 use crate::contexts::DragContext;
 
+#[cfg(all(not(feature = "live"), debug_assertions))]
+pub const RPC_HOST: &str = "http://localhost:8081";
+#[cfg(any(feature = "live", not(debug_assertions)))]
+pub const RPC_HOST: &str = "https://aoba.app";
 #[cfg(debug_assertions)]
 pub const HOST: &str = "http://localhost:8080";
-#[cfg(debug_assertions)]
-pub const RPC_HOST: &str = "http://localhost:8081";
-#[cfg(not(debug_assertions))]
-pub const RPC_HOST: &str = "https://aoba.app";
 #[cfg(not(debug_assertions))]
 pub const HOST: &str = "https://aoba.app";
 

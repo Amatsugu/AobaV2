@@ -1,6 +1,11 @@
 use dioxus::prelude::*;
 
-use crate::{Route, contexts::AuthContext, env::APP_VERSION};
+use crate::{
+	Route,
+	components::icons::{Cog, Image},
+	contexts::AuthContext,
+	env::APP_VERSION,
+};
 
 const NAV_CSS: Asset = asset!("/assets/style/nav.scss");
 const NAV_ICON: Asset = asset!("/assets/favicon.ico");
@@ -24,8 +29,12 @@ pub fn MainNaviagation() -> Element
 {
 	rsx! {
 		div { class: "mainNav",
-			Link { class: "navItem", to: Route::Home { page: None, q: None }, "Home" }
-			Link { class: "navItem", to: Route::Settings {}, "Settings" }
+			Link {
+				class: "navItem",
+				to: Route::Home { page: None, q: None },
+				Image {}
+			}
+			Link { class: "navItem", to: Route::Settings {}, Cog{} }
 		}
 	}
 }

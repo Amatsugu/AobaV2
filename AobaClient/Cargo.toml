@@ -28,6 +28,7 @@ dotenv = "0.15.0"
 [features]
 default = ["web"]
 web = ["dioxus/web"]
+live = ["web"]
 
 [profile]
 

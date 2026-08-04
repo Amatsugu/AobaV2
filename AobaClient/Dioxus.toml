@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "aoba-client"
+title = "Aoba"
 
 # include `assets` in web platform
 [web.resource]
