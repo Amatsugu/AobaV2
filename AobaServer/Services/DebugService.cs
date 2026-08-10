@@ -5,10 +5,11 @@ using MongoDB.Driver;
 
 namespace AobaServer.Services;
 
-public class DebugService(IMongoDatabase db, AobaService aobaService) : BackgroundService
+public class DebugService(IMongoDatabase db, ThumbnailService thumbnails, ILogger<DebugService> logger) : BackgroundService
 {
-	private IMongoCollection<Media> _media = db.GetCollection<Media>("media");
+	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		
 	}
 }

@@ -8,7 +8,10 @@ use dioxus::{
 };
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
-use crate::rpc::aoba::{MediaClass, MediaModel, MediaType};
+use crate::{
+	components::icons::Stack,
+	rpc::aoba::{MediaClass, MediaModel, MediaType},
+};
 pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);
 
 pub struct MediaClassChangeEvent
@@ -32,6 +35,7 @@ pub struct MediaItemProps
 pub fn MediaItem(props: MediaItemProps) -> Element
 {
 	let item = props.item.clone();
+	let thumb_type = item.media_type();
 	let mtype = match item.media_type()
 	{
 		MediaType::Image => "Image",
@@ -56,7 +60,6 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		true => "selected",
 		false => "",
 	};
-	let url = item.media_url;
 
 	let del_id = id.clone();
 	let onmove = move |e: MouseEvent| {
@@ -74,11 +77,12 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				a {
 					onmousemove: onmove,
 					class: "mediaItem {class_string} {selected_class}",
-					href: "{url}",
+					href: "{item.media_url}",
 					target: "_blank",
 					draggable: false,
 					"data-id" : id.clone(),
-					img { src: "{thumb}", draggable: false }
+					MediaThumb { media_type: thumb_type, url: thumb }
+					// img { src: "{thumb}", draggable: false }
 					span { class: "info",
 						span { class: "name", "{filename}" }
 						span { class: "details",
@@ -98,6 +102,20 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 			}
 		}
 	};
+}
+
+#[component]
+fn MediaThumb(media_type: MediaType, url: String) -> Element
+{
+	match media_type
+	{
+		MediaType::Video =>
+		{
+			rsx! { video { src: url, autoplay: true, muted: true, playsinline: true, draggable: false, loop: true } }
+		}
+		MediaType::Raw => rsx! { Stack{} },
+		_ => rsx! { img { src: url, draggable: false, loading: "lazy" } },
+	}
 }
 
 #[component]

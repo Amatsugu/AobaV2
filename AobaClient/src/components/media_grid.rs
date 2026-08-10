@@ -101,7 +101,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 								if delete_media(id.clone()).await.is_ok() &&
 									 let Some(cur) = items.cloned(){
 										let filtered = cur.iter()
-											.filter(|i| i.id.as_ref().map(|i| i.value == id).unwrap_or_default())
+											.filter(|i| i.id.as_ref().map(|i| i.value != id).unwrap_or_default())
 											.cloned()
 											.collect();
 										items.set(Some(filtered));

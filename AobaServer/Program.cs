@@ -78,6 +78,7 @@ builder.Services.AddCors(o =>
 builder.Services.AddRequestTimeouts(cfg =>
 {
 	cfg.AddPolicy("upload", TimeSpan.FromMinutes(10));
+	cfg.AddPolicy("thumbnails", TimeSpan.FromMinutes(10));
 });
 
 var metricsAuthInfo = authCfg.GetAuthInfoAsync("aoba", "metrics").GetAwaiter().GetResult();

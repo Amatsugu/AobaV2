@@ -10,6 +10,9 @@ using HeyRed.Mime;
 
 using MaybeError.Errors;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
@@ -25,9 +28,10 @@ using System.Diagnostics;
 
 namespace AobaCore.Services;
 
-public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media, HostInfo hostInfo)
+public partial class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media, HostInfo hostInfo, ILogger<ThumbnailService> logger)
 {
 	private readonly GridFSBucket _gridfs = new(db);
+	private static readonly SemaphoreSlim _encodeLimiter = new(Environment.ProcessorCount / 2);
 
 	public async Task<Error?> DeleteAllThumbnailsAsync(ObjectId mediaId)
 	{
@@ -112,21 +116,26 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 				return mediaData.Error;
 			using (mediaData.Value)
 			{
-				var thumb = await GenerateThumbnailAsync(mediaData.Value, size, media.MediaType, media.Ext, cancellationToken);
+				var sw = new Stopwatch();
+				sw.Start();
+				var thumb = await GenerateThumbnailAsync(mediaData.Value, size, media.MediaType, media.Ext, CancellationToken.None);
 
 				if (thumb.HasError)
 					return thumb.Error;
+
+				sw.Stop();
+				LogThumbnailGeneration(mediaId, sw.Elapsed.TotalMilliseconds);
 				using (thumb.Value)
 				{
-					cancellationToken.ThrowIfCancellationRequested();
 
-					var thumbExt = media.Ext switch
+					var thumbExt = media switch
 					{
-						".avif" => ".avif",
+						{ Ext: ".avif" } => ".avif",
+						{ MediaType: MediaType.Video} => ".webm",
 						_ => ".webp"
 					};
 
-					var thumbUrl = await UploadThumbnailAsync(media, size, thumb, $"{Path.GetFileNameWithoutExtension(media.Filename)}{thumbExt}", cancellationToken);
+					var thumbUrl = await UploadThumbnailAsync(media, size, thumb, $"{Path.GetFileNameWithoutExtension(media.Filename)}{thumbExt}", CancellationToken.None);
 
 					return thumbUrl;
 				}
@@ -137,6 +146,9 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 			return ex;
 		}
 	}
+
+	[LoggerMessage(Level = LogLevel.Information, Message = "Thumbnail generated for {id} in {elapsed}ms")]
+	private partial void LogThumbnailGeneration(ObjectId id, double elapsed);
 
 	public string? GetExistingThumbUrl(Media media, ThumbnailSize size)
 	{
@@ -225,7 +237,7 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 				".avif" => await GenerateAvifThumbnailV2Async(stream, size, cancellationToken),
 				_ => await GenerateImageThumbnailAsync(stream, size, ext, cancellationToken),
 			},
-			MediaType.Video => GenerateVideoThumbnail(stream, size, cancellationToken),
+			MediaType.Video => await GenerateVideoThumbnailAv1Async(stream, size, cancellationToken),
 			MediaType.Audio => GenerateAudioThumbnail(stream, size, ext, cancellationToken),
 			MediaType.Text or MediaType.Code => await GenerateTextThumbnailAsync(stream, size, cancellationToken),
 			_ => new Error($"No Thumbnail for {type}"),
@@ -333,6 +345,42 @@ public class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3Medi
 		finally
 		{
 			File.Delete(filePath);
+		}
+	}
+
+	private static async Task<Maybe<Stream>> GenerateVideoThumbnailAv1Async(Stream data, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		var w = (int)size;
+		var fn = ObjectId.GenerateNewId().ToString();
+		var filePath = $"/tmp/{fn}.in";
+		using var source = new FileStream(filePath, FileMode.CreateNew);
+		data.CopyTo(source);
+		source.Flush();
+		source.Dispose();
+		data.Dispose();
+		await _encodeLimiter.WaitAsync(cancellationToken);
+		try
+		{
+			var output = new MemoryStream();
+			await FFMpegArguments.FromFileInput(filePath, false, opt =>
+			{
+				opt.WithCustomArgument("-t 10");
+			}).OutputToPipe(new StreamPipeSink(output), opt =>
+			{
+				opt.WithCustomArgument($"-vf \"crop='min(in_w,in_h)':'min(in_w,in_h)',scale={w}:{w}:flags=lanczos\" -c:v libsvtav1 -crf 34 -preset 2 -an -pix_fmt yuv420p -r 15")
+				.ForceFormat("webm");
+			}).ProcessAsynchronously();
+			output.Position = 0;
+			return output;
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
+		finally
+		{
+			File.Delete(filePath);
+			_encodeLimiter.Release();
 		}
 	}
 

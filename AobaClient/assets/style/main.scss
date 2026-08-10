@@ -73,7 +73,12 @@ $mediaItemSize: 300px;
 			grid-area: A;
 		}
 
-		img {
+		svg{
+			padding: 20px;
+			background-color: $buttonMutedBG;
+		}
+
+		img, video {
 			aspect-ratio: 1;
 			object-fit: cover;
 			width: 100%;
@@ -111,12 +116,16 @@ $mediaItemSize: 300px;
 				transform: translateY(0%);
 			}
 		}
-		&.blur img {
-			filter: blur(20px);
-			transition: filter 0.25s ease-out;
+		&.blur {
+			img, video {
+				filter: blur(20px);
+				transition: filter 0.25s ease-out;
+			}
 		}
-		&.blur:hover img {
-			filter: blur(0px);
+		&.blur:hover{
+			img, video {
+				filter: blur(0px);
+			}
 		}
 
 		&::before {

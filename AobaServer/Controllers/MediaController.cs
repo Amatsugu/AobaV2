@@ -6,6 +6,7 @@ using Flurl;
 using HeyRed.Mime;
 
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
 
 using MongoDB.Bson;
@@ -83,6 +84,7 @@ public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger
 
 	[HttpGet("{id}/thumb")]
 	[ResponseCache(Duration = int.MaxValue)]
+	[RequestTimeout("thumbnails")]
 	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, [FromQuery] ThumbnailSize size = ThumbnailSize.Medium, CancellationToken cancellationToken = default)
 	{
 		var thumb = await thumbnailService.GetOrCreateThumbnailAsync(id, size, cancellationToken);
