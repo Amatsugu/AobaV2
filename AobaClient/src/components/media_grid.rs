@@ -83,6 +83,51 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 		}
 	});
 
+	use_effect(move || {
+		if items().is_some()
+		{
+			document::eval(
+				r#"
+				if (window.__thumbObserver) {
+					window.__thumbObserver.disconnect();
+				}
+
+				window.__thumbObserver = new IntersectionObserver((entries) => {
+					entries.forEach(entry => {
+						const video = entry.target;
+						if (entry.isIntersecting) {
+							video.play().catch(() => {});
+						} else {
+							video.pause();
+						}
+					});
+				}, { threshold: 0.25 });
+
+				document.querySelectorAll('video').forEach(video => {
+					window.__thumbObserver.observe(video);
+				});
+
+				var listener = () => {
+					document.querySelectorAll('video').forEach(video => {
+						const rect = video.getBoundingClientRect();
+						const isVisible = rect.top < window.innerHeight && rect.bottom > 0
+										&& rect.left < window.innerWidth && rect.right > 0;
+						if (isVisible) {
+							video.play().catch(() => {});
+						}
+					});
+					document.removeEventListener("click", listener);
+					document.removeEventListener("touchstart", listener);
+					document.removeEventListener("keydown", listener);
+				};
+				document.addEventListener("click", listener, { once: true });
+				document.addEventListener("touchstart", listener, { once: true });
+				document.addEventListener("keydown", listener, { once: true });
+			"#,
+			);
+		}
+	});
+
 	rsx! {
 		div {
 			class: "mediaGrid",

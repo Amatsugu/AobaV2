@@ -36,7 +36,12 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 
 	let on_files_dropped = move |e: Event<DragData>| {
 		e.prevent_default();
-		info!("Drop");
+
+		if e.files().is_empty()
+		{
+			drag_context.is_dragging.set(false);
+			return;
+		}
 		drag_context.is_dragging.set(false);
 		file_count.set(Some(e.files().len()));
 		let total_file_size: u64 = e.files().iter().map(|f| f.size()).sum();
@@ -65,6 +70,7 @@ pub fn UploadArea(props: UploadAreaProps) -> Element
 			id: "uploadArea",
 			class: is_dragging(),
 			ondrop: on_files_dropped,
+			onmouseup: move |_|{ drag_context.is_dragging.set(false); },
 			UploadStatus { status: upload_state.cloned() }
 			UploaderOverlay {
 				{props.children}
