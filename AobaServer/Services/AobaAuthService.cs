@@ -10,11 +10,14 @@ using Grpc.Core;
 
 using Microsoft.AspNetCore.Authorization;
 using Aoba.RPC;
+using Fido2NetLib;
+using MongoDB.Bson;
+using Google.Protobuf.WellKnownTypes;
 
 
 namespace AobaServer.Services;
 
-public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig) : AuthRpc.AuthRpcBase
+public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, Fido2 fido2, PasskeyAssertionOptsCache optsCache) : AuthRpc.AuthRpcBase
 {
 	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
@@ -37,6 +40,56 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 				Token = token
 			}
 		};
+	}
+
+	public override Task<PasskeyAssertionResponse> GetAssertionOptions(Empty request, ServerCallContext context)
+	{
+		var opts = fido2.GetAssertionOptions(new GetAssertionOptionsParams
+		{
+			AllowedCredentials = [],
+			UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Required
+		});
+		var ceremonyId = ObjectId.GenerateNewId();
+		if (!optsCache.TryAdd(ceremonyId, opts))
+			return Task.FromResult(new PasskeyAssertionResponse { ErrorMessage = "Failed to get assertion options" });
+
+		return Task.FromResult(opts.ToResponse(ceremonyId));
+	}
+
+	public override async Task<LoginResponse> LoginPasskey(PasskeyLoginRequest request, ServerCallContext context)
+	{
+		var existingCred = await accountsService.GetStoredCredentialAsync([..request.RawId]);
+
+		if (existingCred == null || !optsCache.TryGetValue(request.CeremonyId.ToObjectId(), out var opts))
+			return new LoginResponse
+			{
+				Error = new LoginError { Message = "Invalid credentials" }
+			};
+
+
+		var result = await fido2.MakeAssertionAsync(new MakeAssertionParams
+		{
+			AssertionResponse = new AuthenticatorAssertionRawResponse
+			{
+				Id 	= request.Id,
+				RawId = [..request.RawId],
+				Response = new AuthenticatorAssertionRawResponse.AssertionResponse
+				{
+					AuthenticatorData = [..request.AuthenticatorData],
+					ClientDataJson = [..request.ClientDataJson],
+					Signature = [..request.Signature],
+					UserHandle = [.. request.UserHandle]
+				},
+				Type = Fido2NetLib.Objects.PublicKeyCredentialType.PublicKey
+			},
+			StoredPublicKey = existingCred.PublicKey,
+			StoredSignatureCounter = existingCred.Counter,
+			OriginalOptions = opts,
+			IsUserHandleOwnerOfCredentialIdCallback = (usr, ct) => accountsService.UserOwnsCredentialAsync(new ObjectId(usr.UserHandle), usr.CredentialId, ct)
+		}, context.CancellationToken);
+		
+
+		return await base.LoginPasskey(request, context);
 	}
 
 

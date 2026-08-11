@@ -21,7 +21,7 @@ public class User
 	public bool IsArgon { get; set; }
 	public ObjectId[] ApiKeys { get; set; } = [];
 	public List<ObjectId> RegTokens { get; set; } = [];
-	public List<PublicKeyCredentialDescriptor> CredentialDescriptors { get; set; } = [];
+	public List<StoredCredential> Credentials { get; set; } = [];
 
 	public ClaimsIdentity GetIdentity()
 	{
@@ -36,4 +36,6 @@ public class User
 		return id;
 	}
 
+
+	public List<PublicKeyCredentialDescriptor> GetCredentialDescriptors() => Credentials.Select(c => c.Descriptor).ToList();
 }

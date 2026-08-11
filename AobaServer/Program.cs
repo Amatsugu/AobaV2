@@ -39,6 +39,8 @@ var db = dbClient.GetDatabase("Aoba");
 
 builder.Services.AddSingleton(dbClient);
 builder.Services.AddSingleton<IMongoDatabase>(db);
+builder.Services.AddSingleton<PasskeyCreationOptsCache>();
+builder.Services.AddSingleton<PasskeyAssertionOptsCache>();
 
 var authCfg = new AuthConfigService(db);
 builder.Services.AddSingleton(authCfg);
@@ -165,6 +167,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapObserability();
 app.MapGrpcService<AobaRpcService>()
+	.RequireAuthorization()
+	.RequireCors("RPC");
+app.MapGrpcService<AccountRpcService>()
 	.RequireAuthorization()
 	.RequireCors("RPC");
 app.MapGrpcService<MetricsRpcService>()

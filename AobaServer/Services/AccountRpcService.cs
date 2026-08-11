@@ -15,38 +15,68 @@ using Isopoh.Cryptography.Argon2;
 
 namespace AobaServer.Services;
 
-public class AccountRpcService(IFido2 fido2, AccountsService accounts) : AccountRpc.AccountRpcBase
+public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache) : AccountRpc.AccountRpcBase
 {
-	public override async Task<PasskeyCredentialCreateOptions> RegisterPasskey(Empty request, ServerCallContext context)
+	public override async Task<PasskeyCreationResponse> RegisterPasskey(Empty request, ServerCallContext context)
 	{
-		var curUser = await accounts.GetUserAsync(context.GetUserId(), context.CancellationToken);
-		if (curUser == null)
-			throw new Exception($"Logged in user does not exist somehow. Id: {context.GetUserId()}");
-		var user = new Fido2User
+		var user = await accounts.GetUserAsync(context.GetUserId());
+		if (user == null)
 		{
-			DisplayName = curUser.Username,
-			Id = curUser.Id.ToByteArray(),
-			Name = curUser.Username
-		};
-
-		var credOptions = fido2.RequestNewCredential(new RequestNewCredentialParams
+			return new PasskeyCreationResponse
+			{
+				Error = new LoginError
+				{
+					Message = "User is not logged in or does not exist"
+				}
+			};
+		}
+		var opts = fido2.RequestNewCredential(new RequestNewCredentialParams
 		{
-			User = user,
-			ExcludeCredentials = curUser.CredentialDescriptors,
+			User = new Fido2User
+			{
+				DisplayName = user.Username,
+				Id = user.Id.ToByteArray(),
+				Name = user.Username,
+			},
 			AuthenticatorSelection = new AuthenticatorSelection
 			{
 				ResidentKey = Fido2NetLib.Objects.ResidentKeyRequirement.Required,
-				UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Preferred
-			}
+				UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Required
+			},
+			ExcludeCredentials = user.GetCredentialDescriptors(),
+			PubKeyCredParams = [
+				Fido2NetLib.PubKeyCredParam.ES256,
+				Fido2NetLib.PubKeyCredParam.RS256
+			],
+			AttestationPreference = Fido2NetLib.Objects.AttestationConveyancePreference.None
 		});
-		
-
-		return credOptions.ToRPC();
+		optsCache.AddOrUpdate(user.Id, opts, (_, _) => opts);
+		return opts.ToResponse();
 	}
 
-	public override Task<Empty> CompletePasskeyRegistration(PasskeyRegistrationCredentials request, ServerCallContext context)
+	public async override Task<Empty> CompletePasskeyRegistration(PasskeyRegistrationCredentials request, ServerCallContext context)
 	{
-		return base.CompletePasskeyRegistration(request, context);
+		if (!optsCache.TryGetValue(context.GetUserId(), out var opts))
+			return new Empty();
+
+		var cred = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
+		{
+			AttestationResponse = new AuthenticatorAttestationRawResponse
+			{
+				Id = request.Id,
+				RawId = [.. request.RawId],
+				Response = new AuthenticatorAttestationRawResponse.AttestationResponse
+				{
+					ClientDataJson = [..request.ClientDataJson],
+					AttestationObject = [..request.AttestationObject],
+					Transports = []
+				},
+			},
+			OriginalOptions = opts,
+			IsCredentialIdUniqueToUserCallback = (usr, ct) => accounts.CredentialExistsAsync(usr.CredentialId, ct)
+		}, context.CancellationToken);
+
+		return new Empty();
 	}
 
 }

@@ -4,6 +4,7 @@ using Aoba.RPC;
 using MongoDB.Bson;
 using Google.Protobuf.WellKnownTypes;
 using AobaCore.Services;
+using Google.Protobuf.Collections;
 
 namespace AobaServer.Utils;
 
@@ -76,4 +77,59 @@ public static class ProtoExtensions
 	}
 
 	public static AobaCore.Models.MediaClass FromRPC(this Aoba.RPC.MediaClass mediaClass) => (AobaCore.Models.MediaClass)(mediaClass - 1);
+
+
+	public static PasskeyCreationResponse ToResponse(this Fido2NetLib.CredentialCreateOptions opts)
+	{
+		var result = new PasskeyCreationResponse
+		{
+			Options = new PasskeyCredentialCreateOptions
+			{
+				Challenge = Google.Protobuf.ByteString.CopyFrom(opts.Challenge),
+				User = new PublicKeyCredentialUser
+				{
+					DisplayName = opts.User.DisplayName,
+					Name = opts.User.Name,
+					Id = Google.Protobuf.ByteString.CopyFrom(opts.User.Id)
+				},
+				Rp = new PublicKeyCredentialRpEntity
+				{
+					Id = opts.Rp.Id,
+					Name = opts.Rp.Name
+				},
+			}
+		};
+		if (opts.Rp.Icon != null)
+			result.Options.Rp.Icon = opts.Rp.Icon;
+		result.Options.PubkeyParams.AddRange(opts.PubKeyCredParams.Select(cred => new PubKeyCredParam
+		{
+			Alg = (int)cred.Alg,
+			Type = cred.Type switch
+			{
+				Fido2NetLib.Objects.PublicKeyCredentialType.PublicKey => "public-key",
+				Fido2NetLib.Objects.PublicKeyCredentialType.Invalid => "invalid",
+				_ => throw new InvalidOperationException($"Unknown cred type: {cred.Type}")
+			}
+		}));
+
+		return result;
+	}
+
+	public static PasskeyAssertionResponse ToResponse(this Fido2NetLib.AssertionOptions options, ObjectId ceremonyId)
+	{
+		var res = new PasskeyAssertionResponse
+		{
+			Options = new PasskeyAssertionOptions
+			{
+				CeremonyId = ceremonyId.ToId(),
+				Challenge = Google.Protobuf.ByteString.CopyFrom(options.Challenge),
+			}
+		};
+
+		if (options.RpId != null)
+			res.Options.RpId = options.RpId;
+
+		return res;
+
+	}
 }

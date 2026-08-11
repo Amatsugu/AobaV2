@@ -128,52 +128,72 @@ message Filter {
 	repeated string values = 2;
 }
 
-message PasskeyPayload {
+message PasskeyAssertionResponse{
+	oneof result{
+		PasskeyAssertionOptions options = 1;
+		string error_message = 2;
+	}
+}
 
+message PasskeyLoginRequest {
+	string id = 1;
+	Id ceremony_id = 2;
+	bytes raw_id = 3;
+	bytes client_data_json = 4;
+	bytes attestation_object = 5;
+	bytes authenticator_data = 6;
+	bytes signature = 7;
+	optional bytes user_handle = 8;
+}
+
+message PasskeyCreationResponse{
+	oneof result {
+		PasskeyCredentialCreateOptions options = 1;
+		LoginError error = 2;
+	}
 }
 
 message PasskeyCredentialCreateOptions{
-	string challenge = 1;
+	bytes challenge = 1;
 	PublicKeyCredentialUser user = 2;
 	PublicKeyCredentialRpEntity rp = 3;
-	repeated PubKeyCredParam pubKey_params = 4;
+	repeated PubKeyCredParam pubkey_params = 4;
 }
 
 message PubKeyCredParam{
-	string alg = 1;
+	int32 alg = 1;
 	string type = 2;
 }
 
 message PublicKeyCredentialRpEntity{
 	string id = 1;
-	string icon = 2;
+	optional string icon = 2;
 	string name = 3;
 }
 
 message PublicKeyCredentialUser{
-	string id = 1;
+	bytes id = 1;
 	string name = 2;
 	string display_name = 3;
 }
 
 message PasskeyRegistrationCredentials{
 	string id = 1;
-	string raw_id = 2;
-	string type = 3;
-	CredentialsClientResponse response = 4;
+	bytes raw_id = 2;
+	bytes client_data_json = 3;
+	bytes attestation_object = 4;
+	bytes authenticator_data = 5;
+	bytes signature = 6;
+	optional bytes user_handle = 7;
 }
 
-message CredentialsClientResponse{
-	string client_data_json = 1;
-	string attestation_object = 2;
-	string authenticator_data = 3;
+
+message PasskeyAssertionOptions{
+	Id ceremony_id = 1;
+	bytes challenge = 2;
+	optional string rp_id = 3;
 }
 
-message PublicKeyCredentialDescriptor{
-	string type = 1;
-	string id = 2;
-	repeated string transports = 3;
-}
 
 message UploadRequest{
 	repeated FileInfo files = 1;

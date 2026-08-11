@@ -3,10 +3,11 @@ syntax = "proto3";
 option csharp_namespace = "Aoba.RPC.Auth";
 package aoba;
 
+import "google/protobuf/empty.proto";
 import "Proto/Types.proto";
 
 service AuthRpc {
 	rpc Login(Credentials) returns (LoginResponse);
-	rpc LoginPasskey(PasskeyPayload) returns (LoginResponse);
+	rpc GetAssertionOptions(google.protobuf.Empty) returns (PasskeyAssertionResponse);
+	rpc LoginPasskey(PasskeyLoginRequest) returns (LoginResponse);
 }
-

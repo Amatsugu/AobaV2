@@ -6,6 +6,7 @@ using Isopoh.Cryptography.Argon2;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AobaCore.Services;
+
 public class AccountsService(IMongoDatabase db)
 {
-	public readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
+	private readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
 
 	public async Task<User?> GetUserAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
@@ -27,13 +29,13 @@ public class AccountsService(IMongoDatabase db)
 	public async Task<User?> VerifyLoginAsync(string username, string password, CancellationToken cancellationToken = default)
 	{
 		var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
-		if(user == null)
+		if (user == null)
 			return null;
 
-		if(user.IsArgon && Argon2.Verify(user.PasswordHash, password))
+		if (user.IsArgon && Argon2.Verify(user.PasswordHash, password))
 			return user;
 
-		if(LegacyVerifyPassword( password, user.PasswordHash))
+		if (LegacyVerifyPassword(password, user.PasswordHash))
 		{
 #if !DEBUG
 			var argon2Hash = Argon2.Hash(password);
@@ -46,6 +48,10 @@ public class AccountsService(IMongoDatabase db)
 		return null;
 	}
 
+	public Task<User?> VerifyPasskeyLoginAsync()
+	{
+		throw new NotImplementedException();
+	}
 
 	public static bool LegacyVerifyPassword(string password, string passwordHash)
 	{
@@ -57,7 +63,7 @@ public class AccountsService(IMongoDatabase db)
 		byte[] salt = new byte[16];
 		Array.Copy(hashBytes, 0, salt, 0, 16);
 
-		var hash= Rfc2898DeriveBytes.Pbkdf2(password, salt, 10000, HashAlgorithmName.SHA1, 20);
+		var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, 10000, HashAlgorithmName.SHA1, 20);
 		/* Compare the results */
 		for (int i = 0; i < 20; i++)
 			if (hashBytes[i + 16] != hash[i])
@@ -67,7 +73,34 @@ public class AccountsService(IMongoDatabase db)
 
 	public async Task<List<PublicKeyCredentialDescriptor>> GetPublicKeyCredentialDescriptorsAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
-		var creds = await _users.Find(u => u.Id == id).Project(u => u.CredentialDescriptors).FirstOrDefaultAsync(cancellationToken);
-		return creds ?? [];
+		var creds = await _users.Find(u => u.Id == id).Project(u => u.Credentials).FirstOrDefaultAsync(cancellationToken);
+		return creds?.Select(c => c.Descriptor).ToList() ?? [];
 	}
+
+	public Task StoreCredentialsAsync(string credentialName, RegisteredPublicKeyCredential credential, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<User>.Update
+			.Push(u => u.Credentials, new StoredCredential(credentialName, credential));
+		var userId = new ObjectId(credential.User.Id);
+		return _users.UpdateOneAsync(u => u.Id == userId, update, null, cancellationToken);
+	}
+
+	public Task<bool> CredentialExistsAsync(byte[] credentialId, CancellationToken cancellationToken = default)
+	{
+		return _users.AsQueryable().AnyAsync(u => u.Credentials.Any(c => c.Descriptor.Id == credentialId), cancellationToken);
+	}
+
+	public async Task<StoredCredential?> GetStoredCredentialAsync(byte[] credentialId, CancellationToken cancellationToken = default)
+	{
+		var creds = await _users.Find(u => u.Credentials.Any(c => c.Descriptor.Id == credentialId))
+			.Project(u => u.Credentials)
+			.FirstOrDefaultAsync(cancellationToken);
+		return creds?.FirstOrDefault(c => c.Descriptor.Id == credentialId);
+	}
+
+	public Task<bool> UserOwnsCredentialAsync(ObjectId userId, byte[] credentialId, CancellationToken cancellationToken = default)
+	{
+		return _users.AsQueryable().AnyAsync(u => u.Id == userId && u.Credentials.Any(c => c.Descriptor.Id == credentialId), cancellationToken);
+	}
+	
 }
