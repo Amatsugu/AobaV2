@@ -11,6 +11,7 @@ using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,6 +102,25 @@ public class AccountsService(IMongoDatabase db)
 	public Task<bool> UserOwnsCredentialAsync(ObjectId userId, byte[] credentialId, CancellationToken cancellationToken = default)
 	{
 		return _users.AsQueryable().AnyAsync(u => u.Id == userId && u.Credentials.Any(c => c.Descriptor.Id == credentialId), cancellationToken);
+	}
+
+	public async Task<User?> VerifyPasskeyLoginAsync(ObjectId userId, VerifyAssertionResult result, CancellationToken cancellationToken = default)
+	{
+		var user = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+		if (user == null)
+			return null;
+
+		var cred = user.Credentials.FirstOrDefault(c => c.Descriptor.Id == result.CredentialId);
+		if(cred == null)
+			return null;
+
+		cred.Counter = result.SignCount;
+		cred.LastUsed = DateTimeOffset.Now;
+
+		var update = Builders<User>.Update.Set(u => u.Credentials, user.Credentials);
+		await _users.UpdateOneAsync(u => u.Id == userId, update, null, cancellationToken);
+
+		return user;
 	}
 	
 }

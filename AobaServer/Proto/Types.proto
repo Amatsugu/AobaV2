@@ -140,10 +140,9 @@ message PasskeyLoginRequest {
 	Id ceremony_id = 2;
 	bytes raw_id = 3;
 	bytes client_data_json = 4;
-	bytes attestation_object = 5;
-	bytes authenticator_data = 6;
-	bytes signature = 7;
-	optional bytes user_handle = 8;
+	bytes authenticator_data = 5;
+	bytes signature = 6;
+	optional bytes user_handle = 7;
 }
 
 message PasskeyCreationResponse{
@@ -192,8 +191,9 @@ message PasskeyAssertionOptions{
 	Id ceremony_id = 1;
 	bytes challenge = 2;
 	optional string rp_id = 3;
+	bytes authenticator_data = 5;
+	bytes signature = 6;
 }
-
 
 message UploadRequest{
 	repeated FileInfo files = 1;

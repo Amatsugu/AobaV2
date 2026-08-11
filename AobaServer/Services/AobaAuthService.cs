@@ -87,9 +87,26 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 			OriginalOptions = opts,
 			IsUserHandleOwnerOfCredentialIdCallback = (usr, ct) => accountsService.UserOwnsCredentialAsync(new ObjectId(usr.UserHandle), usr.CredentialId, ct)
 		}, context.CancellationToken);
-		
 
-		return await base.LoginPasskey(request, context);
+
+		var userId = new ObjectId([..request.UserHandle]);
+		var user = await accountsService.VerifyPasskeyLoginAsync(userId, result, context.CancellationToken);
+
+		if(user == null)
+			return new LoginResponse
+			{
+				Error = new LoginError { Message = "Invalid credentials" }
+			};
+
+		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
+		var token = user.GetToken(authInfo);
+		return new LoginResponse
+		{
+			Jwt = new()
+			{
+				Token = token
+			}
+		};
 	}
 
 

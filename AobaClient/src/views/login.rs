@@ -77,7 +77,7 @@ pub fn Login() -> Element
 					required: true,
 				}
 				button { onclick: login, "Login!" }
-				PasskeyLoginButton {}
+				PasskeyLoginButton { error }
 			}
 		}
 	}
