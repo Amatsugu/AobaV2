@@ -31,7 +31,7 @@ pub fn Button(props: ButtonProps) -> Element
 	};
 	rsx! {
 		button {
-			class: "{variantClass}",
+			class: variantClass,
 			disabled: props.disabled,
 			onclick: move |event| {
 				event.prevent_default();

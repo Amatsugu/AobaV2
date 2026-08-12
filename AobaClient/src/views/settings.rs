@@ -37,7 +37,7 @@ pub fn Settings() -> Element
 	rsx! {
 		"this is settings"
 		div {
-			pre { class: "codeSelect", "{d}" }
+			pre { class: "codeSelect", {d} }
 		}
 		MetricsToken {  }
 		PasskeyRegistrationButton { }

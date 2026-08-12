@@ -1,5 +1,3 @@
-use std::any;
-
 use crate::{
 	components::basic::Button,
 	contexts::AuthContext,
@@ -8,11 +6,11 @@ use crate::{
 			PasskeyAssertionOptions, PasskeyCredentialCreateOptions, PasskeyLoginRequest,
 			PasskeyRegistrationCredentials,
 		},
-		get_account_rpc_client, get_auth_rpc_client, login,
+		get_account_rpc_client, get_auth_rpc_client,
 	},
 };
 use anyhow::{Result, anyhow};
-use dioxus::{html::KeyCode::N, prelude::*};
+use dioxus::prelude::*;
 use js_sys::{
 	Array, JSON, Object, Reflect, Uint8Array,
 	futures::JsFuture,
@@ -103,7 +101,6 @@ async fn create_credential(
 			),
 			signature: jsvalue_to_vec(&Reflect::get(&response, &"signature".into()).map_err(js_error)?),
 			user_handle,
-			..Default::default()
 		});
 	}
 	Err(anyhow!("Failed to start credential creation"))
@@ -304,9 +301,7 @@ async fn authenticate_passkey(opts: PasskeyAssertionOptions) -> Result<PasskeyLo
 	})
 }
 
-fn get_credential_request_options(
-	mut assert: PasskeyAssertionOptions,
-) -> Result<CredentialRequestOptions, anyhow::Error>
+fn get_credential_request_options(assert: PasskeyAssertionOptions) -> Result<CredentialRequestOptions, anyhow::Error>
 {
 	let opts = CredentialRequestOptions::new();
 

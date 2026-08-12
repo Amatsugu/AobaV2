@@ -1,4 +1,4 @@
-use dioxus::{html::HasFileData, prelude::*};
+use dioxus::prelude::*;
 
 use crate::{
 	Route,
@@ -20,7 +20,7 @@ pub fn MainLayout() -> Element
 		};
 	}
 
-	let on_drag_enter = move |e: Event<DragData>| {
+	let on_drag_enter = move |_| {
 		drag_context.is_dragging.set(true);
 	};
 	return rsx! {

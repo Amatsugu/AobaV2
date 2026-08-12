@@ -64,7 +64,7 @@ pub fn Utils() -> Element
 	let version = APP_VERSION;
 	rsx! {
 		div { class: "utils",
-			div { "{version}" }
+			div { {version} }
 			div { onclick: move |_| auth_context.logout(), "Logout" }
 		}
 	}

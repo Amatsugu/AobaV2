@@ -40,7 +40,7 @@ fn MediaPage(media: MediaModel) -> Element
 		_ => "Unkown",
 	});
 	rsx! {
-		img { src: "{url}",  }
+		img { src: url,  }
 		label { "Media Class: {cur_class()}" }
 
 	}

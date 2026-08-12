@@ -77,17 +77,17 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 				a {
 					onmousemove: onmove,
 					class: "mediaItem {class_string} {selected_class}",
-					href: "{item.media_url}",
+					href: item.media_url.to_string(),
 					target: "_blank",
 					draggable: false,
 					"data-id" : id.clone(),
 					MediaThumb { media_type: thumb_type, url: thumb }
 					// img { src: "{thumb}", draggable: false }
 					span { class: "info",
-						span { class: "name", "{filename}" }
+						span { class: "name", {filename.to_string()} }
 						span { class: "details",
-							span { "{mtype}" }
-							span { "{item.view_count}" }
+							span { {mtype.to_string()} }
+							span { {item.view_count.to_string()} }
 						}
 					}
 				},

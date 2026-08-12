@@ -21,7 +21,7 @@ pub fn MetricsToken() -> Element
 	return rsx! {
 		pre {
 			class: "codeSelect",
-			"{token_value}"
+			{token_value}
 		}
 	};
 }

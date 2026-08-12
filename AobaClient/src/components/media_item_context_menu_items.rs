@@ -48,7 +48,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		},
 		ContextMenuItem {
 			index: 1_usize,
-			value: "{download}",
+			value: download.clone(),
 			on_select: move |url: String|{
 				spawn(async move {
 					if let Some(clipboard) = window().map(|w| w.navigator().clipboard()) && clipboard.write_text(&url).await.is_err() {
@@ -66,7 +66,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		},
 		ContextMenuItem {
 			index: 1_usize,
-			value: "{download}",
+			value: download.clone(),
 			on_select: move |url: String|{
 				if window().and_then(|w| w.open_with_url_and_target(&url, "_blank").ok()).is_none(){
 					error!("Failed to open download page");
@@ -83,7 +83,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		if class != MediaClass::Standard {
 			ContextMenuItem {
 				index: 2_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Standard });
 				},
@@ -99,7 +99,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		if class != MediaClass::Nsfw {
 			ContextMenuItem {
 				index: 3_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Nsfw });
 				},
@@ -115,7 +115,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		if class != MediaClass::Secret {
 			ContextMenuItem {
 				index: 4_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |id: String|{
 					props.on_class_changed.call(MediaClassChangeEvent { id, class: MediaClass::Secret });
 				},
@@ -130,7 +130,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 		}
 		ContextMenuItem {
 			index: 5_usize,
-			value: "{id}",
+			value: id.clone(),
 			on_select: props.on_deleted,
 			div{
 				class: "contextItem",
@@ -146,7 +146,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 			ContextMenuItem {
 				index: 6_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Nsfw);
 				},
@@ -160,7 +160,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 			ContextMenuItem {
 				index: 7_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Secret);
 				},
@@ -174,7 +174,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			}
 			ContextMenuItem {
 				index: 8_usize,
-				value: "{id}",
+				value: id.clone(),
 				on_select: move |_id|{
 					props.bulk_change_class.call(MediaClass::Standard);
 				},
