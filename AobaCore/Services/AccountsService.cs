@@ -22,6 +22,22 @@ public class AccountsService(IMongoDatabase db)
 {
 	private readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
 
+#if DEBUG
+	public async Task CreateDevAccountAsync()
+	{
+		if (await _users.AsQueryable().AnyAsync())
+			return;
+		var user = new User
+		{
+			Username = "dev",
+			IsArgon = true,
+			Role = "admin",
+			PasswordHash = Argon2.Hash("dev")
+		};
+		await _users.InsertOneAsync(user);
+	}
+#endif
+
 	public async Task<User?> GetUserAsync(ObjectId id, CancellationToken cancellationToken = default)
 	{
 		return await _users.Find(u => u.Id == id).FirstOrDefaultAsync(cancellationToken);
@@ -96,7 +112,7 @@ public class AccountsService(IMongoDatabase db)
 		var creds = await _users.Find(u => u.Credentials.Any(c => c.Descriptor.Id == credentialId))
 			.Project(u => u.Credentials)
 			.FirstOrDefaultAsync(cancellationToken);
-		return creds?.FirstOrDefault(c => c.Descriptor.Id == credentialId);
+		return creds?.FirstOrDefault(c => c.Descriptor.Id.Zip(credentialId).All((e) => e.First == e.Second));
 	}
 
 	public Task<bool> UserOwnsCredentialAsync(ObjectId userId, byte[] credentialId, CancellationToken cancellationToken = default)
@@ -110,7 +126,7 @@ public class AccountsService(IMongoDatabase db)
 		if (user == null)
 			return null;
 
-		var cred = user.Credentials.FirstOrDefault(c => c.Descriptor.Id == result.CredentialId);
+		var cred = user.Credentials.FirstOrDefault(c => c.Descriptor.Id.Zip(result.CredentialId).All(e => e.First == e.Second));
 		if(cred == null)
 			return null;
 

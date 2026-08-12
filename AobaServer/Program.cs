@@ -32,10 +32,11 @@ builder.Services.AddGrpc();
 
 //DB
 var dbString = config["DB_STRING"];
+var dbName = config["DB_NAME"];
 var settings = MongoClientSettings.FromConnectionString(dbString);
 settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
 var dbClient = new MongoClient(settings);
-var db = dbClient.GetDatabase("Aoba");
+var db = dbClient.GetDatabase(dbName);
 
 builder.Services.AddSingleton(dbClient);
 builder.Services.AddSingleton<IMongoDatabase>(db);
@@ -128,7 +129,7 @@ builder.Services.AddFido2(opts =>
 	opts.ServerName = "Aoba";
 	opts.ServerDomain = new Uri(host).Host;
 #if DEBUG
-	opts.Origins = new HashSet<string> { "http://localhost:8081", "http://127.0.0.1:8080" };
+	opts.Origins = new HashSet<string> { "http://localhost:8080", "http://127.0.0.1:8080" };
 #else
 	opts.Origins = new HashSet<string> { host };
 #endif

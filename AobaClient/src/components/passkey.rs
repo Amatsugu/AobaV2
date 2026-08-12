@@ -18,7 +18,6 @@ use js_sys::{
 	futures::JsFuture,
 	wasm_bindgen::{JsCast, JsValue},
 };
-use tonic_web_wasm_client::options;
 use web_sys::{
 	CredentialCreationOptions, CredentialRequestOptions, DomException, PublicKeyCredentialCreationOptions,
 	PublicKeyCredentialRequestOptions, PublicKeyCredentialRpEntity, PublicKeyCredentialUserEntity, window,
@@ -27,15 +26,19 @@ use web_sys::{
 #[component]
 pub fn PasskeyRegistrationButton() -> Element
 {
+	let mut disabled = use_signal(|| false);
 	rsx! {
 		Button{
 			text: "Register Passkey",
+			disabled: disabled(),
 			onclick: move |_| {
-				spawn(async {
+				disabled.set(true);
+				spawn(async move {
 					match start_passkey_registration().await {
 						Ok(_) => info!("success"),
 						Err(msg) => error!("{}", msg.to_string()),
 					};
+					disabled.set(false);
 				});
 			}
 		}
@@ -69,21 +72,8 @@ async fn create_credential(
 	if let Some(credentials) = window().map(|w| w.navigator().credentials())
 		&& let Some(opts) = get_credential_creation_opts(req_opts)
 	{
-		let opts_string = JSON::stringify(&opts)
-			.ok()
-			.and_then(|s| s.as_string())
-			.unwrap_or_default();
-		info!("Opts: {:?}", opts_string);
-		info!("Opts converted");
 		let promise = credentials.create_with_options(&opts).map_err(js_error)?;
-		info!("Creds created");
 		let cred = JsFuture::from(promise).await.map_err(js_error)?;
-		info!("Promise resolved");
-		let cred_id = Reflect::get(&cred, &"id".into())
-			.map_err(js_error)?
-			.as_string()
-			.unwrap_or_default();
-		info!("credential created - {:?}", cred_id);
 
 		let response = Reflect::get(&cred, &"response".into()).map_err(js_error)?;
 		let user_handle = Reflect::get(&response, &"userHandle".into())
@@ -105,13 +95,14 @@ async fn create_credential(
 				.unwrap_or_default(),
 			raw_id: jsvalue_to_vec(&Reflect::get(&cred, &"rawId".into()).map_err(js_error)?),
 			client_data_json: jsvalue_to_vec(&Reflect::get(&response, &"clientDataJSON".into()).map_err(js_error)?),
-			//Todo
+			attestation_object: jsvalue_to_vec(
+				&Reflect::get(&response, &"attestationObject".into()).map_err(js_error)?,
+			),
 			authenticator_data: jsvalue_to_vec(
 				&Reflect::get(&response, &"authenticatorData".into()).map_err(js_error)?,
 			),
 			signature: jsvalue_to_vec(&Reflect::get(&response, &"signature".into()).map_err(js_error)?),
 			user_handle,
-			// user_handle
 			..Default::default()
 		});
 	}
@@ -213,15 +204,19 @@ fn jsvalue_to_vec(val: &JsValue) -> Vec<u8>
 pub fn PasskeyLoginButton(error: Signal<Option<String>>) -> Element
 {
 	let mut auth_context = use_context::<AuthContext>();
+	let mut disabled = use_signal(|| false);
 	rsx! {
 		Button{
 			text: "Login with Passkey",
+			disabled: disabled(),
 			onclick: move |_|{
+				disabled.set(true);
 				spawn(async move {
 					match start_passkey_auth().await{
 						Ok(jwt) => auth_context.login(jwt),
 						Err(err) => error.set(Some(err.to_string())),
 					}
+					disabled.set(false);
 				});
 			}
 		}
@@ -230,6 +225,7 @@ pub fn PasskeyLoginButton(error: Signal<Option<String>>) -> Element
 
 async fn start_passkey_auth() -> Result<String, anyhow::Error>
 {
+	info!("Passkey Auth Start");
 	let mut rpc = get_auth_rpc_client();
 	let Some(opts) = rpc.get_assertion_options(()).await.map(|r| {
 		r.into_inner().result.map(|r| {
@@ -247,6 +243,10 @@ async fn start_passkey_auth() -> Result<String, anyhow::Error>
 	};
 
 	let login_request = authenticate_passkey(opts?).await?;
+	info!(
+		"Sending Login: {}",
+		login_request.ceremony_id.clone().unwrap_or_default().value
+	);
 	let result = rpc.login_passkey(login_request).await?.into_inner().result;
 
 	let Some(result) = result
@@ -310,7 +310,8 @@ fn get_credential_request_options(
 {
 	let opts = CredentialRequestOptions::new();
 
-	let pub_key = PublicKeyCredentialRequestOptions::new_with_u8_slice(&mut assert.challenge);
+	info!("Challenge: {:?}", assert.challenge);
+	let pub_key = PublicKeyCredentialRequestOptions::new_with_u8_array(&bytes_to_uint8array(&assert.challenge));
 	pub_key.set_rp_id(assert.rp_id());
 	pub_key.set_timeout(60000);
 	pub_key.set_user_verification(web_sys::UserVerificationRequirement::Required);

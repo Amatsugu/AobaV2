@@ -6,6 +6,7 @@ pub struct ButtonProps
 	pub variant: Option<ButtonVariant>,
 	pub text: String,
 	pub onclick: Option<EventHandler<Event<MouseData>>>,
+	pub disabled: Option<bool>,
 }
 
 #[derive(PartialEq, Clone, Default)]
@@ -31,6 +32,7 @@ pub fn Button(props: ButtonProps) -> Element
 	rsx! {
 		button {
 			class: "{variantClass}",
+			disabled: props.disabled,
 			onclick: move |event| {
 				event.prevent_default();
 				if let Some(h) = props.onclick {

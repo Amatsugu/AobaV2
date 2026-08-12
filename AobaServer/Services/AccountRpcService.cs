@@ -56,7 +56,7 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 
 	public async override Task<Empty> CompletePasskeyRegistration(PasskeyRegistrationCredentials request, ServerCallContext context)
 	{
-		if (!optsCache.TryGetValue(context.GetUserId(), out var opts))
+		if (!optsCache.TryRemove(context.GetUserId(), out var opts))
 			return new Empty();
 
 		var cred = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
@@ -73,9 +73,11 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 				},
 			},
 			OriginalOptions = opts,
-			IsCredentialIdUniqueToUserCallback = (usr, ct) => accounts.CredentialExistsAsync(usr.CredentialId, ct)
+			IsCredentialIdUniqueToUserCallback = async (usr, ct) => ! await accounts.CredentialExistsAsync(usr.CredentialId, ct)
 		}, context.CancellationToken);
 
+
+		await accounts.StoreCredentialsAsync("Passkey", cred, context.CancellationToken);
 		return new Empty();
 	}
 

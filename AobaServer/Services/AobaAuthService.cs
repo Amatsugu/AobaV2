@@ -17,7 +17,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AobaServer.Services;
 
-public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, Fido2 fido2, PasskeyAssertionOptsCache optsCache) : AuthRpc.AuthRpcBase
+public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, IFido2 fido2, PasskeyAssertionOptsCache optsCache, ILogger<AobaAuthService> logger) : AuthRpc.AuthRpcBase
 {
 	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
@@ -44,12 +44,13 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 
 	public override Task<PasskeyAssertionResponse> GetAssertionOptions(Empty request, ServerCallContext context)
 	{
+		var ceremonyId = ObjectId.GenerateNewId();
+		logger.LogInformation("Starting Passkey assertion: {id}", ceremonyId);
 		var opts = fido2.GetAssertionOptions(new GetAssertionOptionsParams
 		{
 			AllowedCredentials = [],
 			UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Required
 		});
-		var ceremonyId = ObjectId.GenerateNewId();
 		if (!optsCache.TryAdd(ceremonyId, opts))
 			return Task.FromResult(new PasskeyAssertionResponse { ErrorMessage = "Failed to get assertion options" });
 
@@ -60,12 +61,14 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 	{
 		var existingCred = await accountsService.GetStoredCredentialAsync([..request.RawId]);
 
-		if (existingCred == null || !optsCache.TryGetValue(request.CeremonyId.ToObjectId(), out var opts))
+		if (existingCred == null || !optsCache.TryRemove(request.CeremonyId.ToObjectId(), out var opts))
 			return new LoginResponse
 			{
 				Error = new LoginError { Message = "Invalid credentials" }
 			};
+		logger.LogInformation("Assertion Response for {id}", request.CeremonyId.ToObjectId());
 
+		Console.WriteLine($"Original Challenge: {string.Join(',', opts.Challenge)}");
 
 		var result = await fido2.MakeAssertionAsync(new MakeAssertionParams
 		{
