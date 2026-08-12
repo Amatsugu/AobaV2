@@ -68,8 +68,6 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 			};
 		logger.LogInformation("Assertion Response for {id}", request.CeremonyId.ToObjectId());
 
-		Console.WriteLine($"Original Challenge: {string.Join(',', opts.Challenge)}");
-
 		var result = await fido2.MakeAssertionAsync(new MakeAssertionParams
 		{
 			AssertionResponse = new AuthenticatorAssertionRawResponse

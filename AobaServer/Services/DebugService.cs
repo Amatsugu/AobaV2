@@ -1,4 +1,5 @@
-﻿using AobaCore.Models;
+﻿#if DEBUG
+using AobaCore.Models;
 using AobaCore.Services;
 
 using MongoDB.Driver;
@@ -13,3 +14,5 @@ public class DebugService(IMongoDatabase db, AccountsService accountsService, Th
 		await accountsService.CreateDevAccountAsync();
 	}
 }
+
+#endif
