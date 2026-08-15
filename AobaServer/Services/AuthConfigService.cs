@@ -10,8 +10,8 @@ public class AuthConfigService(IMongoDatabase db)
 
 	public async Task<AuthInfo> GetAuthInfoAsync(string issuer, string audience)
 	{
-		var info = await _authInfo.Find("{}").FirstOrDefaultAsync();
-		if(info != null)
+		var info = await _authInfo.Find(a => a.Issuer == issuer && a.Audience == audience).FirstOrDefaultAsync();
+		if (info != null)
 			return info;
 
 		info = AuthInfo.Create(issuer, audience);
