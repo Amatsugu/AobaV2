@@ -14,40 +14,64 @@ use js_sys::{Array, Object, Reflect, futures::JsFuture, wasm_bindgen::JsValue};
 use web_sys::{CredentialCreationOptions, PublicKeyCredentialUserEntity, window};
 use web_sys::{PublicKeyCredentialCreationOptions, PublicKeyCredentialRpEntity};
 
+#[derive(Debug, Default, Clone, Copy)]
+enum RegistrationState {
+	#[default]
+	Idle,
+	Registering,
+	Failed,
+	Registered,
+}
+
 #[component]
-pub fn PasskeyRegistrationButton() -> Element
-{
-	let mut disabled = use_signal(|| false);
+pub fn PasskeyRegistrationButton() -> Element {
+	let mut buttion_state = use_signal(|| RegistrationState::Idle);
+
+	let button_text = use_memo(move || match buttion_state.cloned() {
+		RegistrationState::Idle => "Register Passkey",
+		RegistrationState::Registering => "Registering...",
+		RegistrationState::Failed => "Registration Failed",
+		RegistrationState::Registered => "Registration Completed",
+	});
+
+	let button_disabled = use_memo(move || match buttion_state.cloned() {
+		RegistrationState::Idle => false,
+		RegistrationState::Registering => true,
+		RegistrationState::Failed => false,
+		RegistrationState::Registered => true,
+	});
+
 	rsx! {
 		Button{
-			text: "Register Passkey",
-			disabled: disabled(),
+			text: button_text(),
+			disabled: button_disabled(),
 			onclick: move |_| {
-				disabled.set(true);
+				buttion_state.set(RegistrationState::Registering);
 				spawn(async move {
 					match start_passkey_registration().await {
-						Ok(_) => info!("success"),
-						Err(msg) => error!("{}", msg.to_string()),
+						Ok(_) => {
+							info!("success");
+							buttion_state.set(RegistrationState::Registered);
+						},
+						Err(msg) => {
+							error!("{}", msg.to_string());
+							buttion_state.set(RegistrationState::Failed);
+						},
 					};
-					disabled.set(false);
 				});
 			}
 		}
 	}
 }
 
-async fn start_passkey_registration() -> Result<(), anyhow::Error>
-{
+async fn start_passkey_registration() -> Result<(), anyhow::Error> {
 	use crate::rpc::aoba::passkey_creation_response::Result;
 	let mut rpc = get_account_rpc_client();
 	let response = rpc.register_passkey(()).await?.into_inner();
-	let Some(opts) = response.result.map(|r| match r
-	{
+	let Some(opts) = response.result.map(|r| match r {
 		Result::Options(opts) => Ok(opts),
 		Result::Error(err) => Err(anyhow!("{}", err.message)),
-	})
-	else
-	{
+	}) else {
 		return Err(anyhow!("Failed to load credential ops"));
 	};
 
@@ -58,8 +82,7 @@ async fn start_passkey_registration() -> Result<(), anyhow::Error>
 
 async fn create_credential(
 	req_opts: PasskeyCredentialCreateOptions,
-) -> Result<PasskeyRegistrationCredentials, anyhow::Error>
-{
+) -> Result<PasskeyRegistrationCredentials, anyhow::Error> {
 	if let Some(credentials) = window().map(|w| w.navigator().credentials())
 		&& let Some(opts) = get_credential_creation_opts(req_opts)
 	{
@@ -70,12 +93,9 @@ async fn create_credential(
 		let user_handle = Reflect::get(&response, &"userHandle".into())
 			.map_err(js_error)
 			.map(|h| {
-				if h.is_null() || h.is_undefined()
-				{
+				if h.is_null() || h.is_undefined() {
 					None
-				}
-				else
-				{
+				} else {
 					Some(jsvalue_to_vec(&h))
 				}
 			})?;
@@ -85,30 +105,31 @@ async fn create_credential(
 				.as_string()
 				.unwrap_or_default(),
 			raw_id: jsvalue_to_vec(&Reflect::get(&cred, &"rawId".into()).map_err(js_error)?),
-			client_data_json: jsvalue_to_vec(&Reflect::get(&response, &"clientDataJSON".into()).map_err(js_error)?),
+			client_data_json: jsvalue_to_vec(
+				&Reflect::get(&response, &"clientDataJSON".into()).map_err(js_error)?,
+			),
 			attestation_object: jsvalue_to_vec(
 				&Reflect::get(&response, &"attestationObject".into()).map_err(js_error)?,
 			),
 			authenticator_data: jsvalue_to_vec(
 				&Reflect::get(&response, &"authenticatorData".into()).map_err(js_error)?,
 			),
-			signature: jsvalue_to_vec(&Reflect::get(&response, &"signature".into()).map_err(js_error)?),
+			signature: jsvalue_to_vec(
+				&Reflect::get(&response, &"signature".into()).map_err(js_error)?,
+			),
 			user_handle,
 		});
 	}
 	Err(anyhow!("Failed to start credential creation"))
 }
 
-fn get_credential_creation_opts(rpc_opts: PasskeyCredentialCreateOptions) -> Option<CredentialCreationOptions>
-{
-	let Some(opt_user) = &rpc_opts.user
-	else
-	{
+fn get_credential_creation_opts(
+	rpc_opts: PasskeyCredentialCreateOptions,
+) -> Option<CredentialCreationOptions> {
+	let Some(opt_user) = &rpc_opts.user else {
 		return None;
 	};
-	let Some(opt_rp) = &rpc_opts.rp
-	else
-	{
+	let Some(opt_rp) = &rpc_opts.rp else {
 		return None;
 	};
 
@@ -135,16 +156,25 @@ fn get_credential_creation_opts(rpc_opts: PasskeyCredentialCreateOptions) -> Opt
 	);
 
 	let auth_selection = Object::new();
-	if Reflect::set(&auth_selection, &"residentKey".into(), &"required".into()).is_err()
-	{
+	if Reflect::set(&auth_selection, &"residentKey".into(), &"required".into()).is_err() {
 		return None;
 	}
-	if Reflect::set(&auth_selection, &"userVerification".into(), &"required".into()).is_err()
+	if Reflect::set(
+		&auth_selection,
+		&"userVerification".into(),
+		&"required".into(),
+	)
+	.is_err()
 	{
 		return None;
 	}
 
-	if Reflect::set(&pub_key_opts, &"authenticatorSelection".into(), &auth_selection).is_err()
+	if Reflect::set(
+		&pub_key_opts,
+		&"authenticatorSelection".into(),
+		&auth_selection,
+	)
+	.is_err()
 	{
 		return None;
 	}
