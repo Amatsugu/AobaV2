@@ -32,7 +32,7 @@ pub fn Settings() -> Element
 		}
 	});
 
-	let d = dst.cloned().unwrap_or_default();
+	let d = dst.cloned().unwrap_or("Loading...".to_string());
 
 	rsx! {
 		"this is settings"

@@ -16,7 +16,7 @@ pub fn MetricsToken() -> Element
 		"".to_string()
 	});
 
-	let token_value = token.cloned().unwrap_or("".to_string());
+	let token_value = token.cloned().unwrap_or("Loading...".to_string());
 
 	return rsx! {
 		pre {
