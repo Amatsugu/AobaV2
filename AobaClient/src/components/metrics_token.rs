@@ -3,13 +3,11 @@ use dioxus::prelude::*;
 use crate::rpc::get_metrics_rpc_client;
 
 #[component]
-pub fn MetricsToken() -> Element
-{
+pub fn MetricsToken() -> Element {
 	let token = use_resource(async move || {
 		let response = get_metrics_rpc_client().get_token(()).await;
 
-		if let Ok(d) = response
-		{
+		if let Ok(d) = response {
 			let jwt = d.into_inner();
 			return jwt.token;
 		}
@@ -19,6 +17,9 @@ pub fn MetricsToken() -> Element
 	let token_value = token.cloned().unwrap_or("Loading...".to_string());
 
 	return rsx! {
+		h1{
+			"Metrics Token"
+		}
 		pre {
 			class: "codeSelect",
 			{token_value}

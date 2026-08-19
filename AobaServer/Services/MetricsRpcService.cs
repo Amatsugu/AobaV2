@@ -9,10 +9,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace AobaServer.Services;
 
-public class MetricsRpcService(AuthConfigService authConfig): Aoba.RPC.Metrics.MetricsRpc.MetricsRpcBase
+public class MetricsRpcService(AuthConfigService authConfig) : Aoba.RPC.Metrics.MetricsRpc.MetricsRpcBase
 {
 	public override async Task<Jwt> GetToken(Empty request, ServerCallContext context)
 	{
@@ -24,6 +25,9 @@ public class MetricsRpcService(AuthConfigService authConfig): Aoba.RPC.Metrics.M
 			Audience = authInfo.Audience,
 			Issuer = authInfo.Issuer,
 			IssuedAt = DateTime.UtcNow,
+			Claims = new Dictionary<string, object> {
+				{ ClaimTypes.Role,  "metrics"}
+			},
 			SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(authInfo.SecureKey), SecurityAlgorithms.HmacSha256)
 		});
 

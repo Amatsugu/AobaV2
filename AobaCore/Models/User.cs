@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AobaCore.Models;
+
 public class User
 {
 	[BsonId]
@@ -27,9 +28,10 @@ public class User
 	{
 		var id = new ClaimsIdentity(new[]
 		{
-				new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
-				new Claim(ClaimTypes.Name, Username),
-			});
+			new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
+			new Claim(ClaimTypes.Name, Username),
+			new Claim(ClaimTypes.Role, "user")
+		});
 
 		if (Role != null)
 			id.AddClaim(new Claim(ClaimTypes.Role, Role));
