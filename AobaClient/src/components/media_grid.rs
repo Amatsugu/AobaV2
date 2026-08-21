@@ -1,8 +1,11 @@
+use std::time::Duration;
+
 use dioxus::prelude::*;
 use tonic::{Response, Status};
 
 use crate::{
 	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, OnItemSelectedEvent},
+	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
 		get_rpc_client,
@@ -34,6 +37,7 @@ pub struct PaginationInfo
 #[component]
 pub fn MediaGrid(props: MediaGridProps) -> Element
 {
+	let toasts_ctx = use_context::<ToastsContext>();
 	let mut error_display = use_signal(|| {
 		rsx! {}
 	});
@@ -144,12 +148,10 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 						on_item_deleted: move |id: String|{
 							spawn(async move {
 								if delete_media(id.clone()).await.is_ok() &&
-									 let Some(cur) = items.cloned(){
-										let filtered = cur.iter()
-											.filter(|i| i.id.as_ref().map(|i| i.value != id).unwrap_or_default())
-											.cloned()
-											.collect();
-										items.set(Some(filtered));
+									 let Some(mut cur) = items.cloned() {
+										cur.retain(|i| i.id.as_ref().map(|i| i.value != id).unwrap_or_default());
+										items.set(Some(cur));
+										toasts_ctx.handle.send(ToastCommand::Push { title: "Items Deleted".into(), message: None, level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
 								}
 							});
 						},
@@ -167,6 +169,13 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 											})
 											.collect();
 										info!("Class changed");
+										let class_name = match e.class{
+											MediaClass::Unspecified => "Unknown",
+											MediaClass::Standard => "Standard",
+											MediaClass::Nsfw => "NSFW",
+											MediaClass::Secret => "Secret",
+										};
+										toasts_ctx.handle.send(ToastCommand::Push { title: "Item classes changed".into(), message: Some(format!("Class set to {}", class_name)), level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
 										items.set(Some(updated));
 								}
 							});

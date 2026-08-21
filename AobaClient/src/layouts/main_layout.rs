@@ -2,7 +2,10 @@ use dioxus::prelude::*;
 
 use crate::{
 	Route,
-	components::Navbar,
+	components::{
+		Navbar,
+		toasts::{ToastsDisplay, init_toasts},
+	},
 	contexts::{AuthContext, DragContext},
 	views::Login,
 };
@@ -12,6 +15,9 @@ pub fn MainLayout() -> Element
 {
 	let auth_context = use_context::<AuthContext>();
 	let mut drag_context = use_context::<DragContext>();
+
+	let ctx = init_toasts();
+	use_context_provider(|| ctx);
 
 	if auth_context.jwt.cloned().is_none()
 	{
@@ -25,6 +31,7 @@ pub fn MainLayout() -> Element
 	};
 	return rsx! {
 		// ContextMenuRoot {  }
+		ToastsDisplay {}
 		Navbar { }
 		div {
 			id: "content",

@@ -1,0 +1,126 @@
+@import "colors";
+
+#toastDisplay{
+	pointer-events: none;
+	position: fixed;
+	display: flex;
+	flex-direction: column;
+	right: 0;
+	top: 0;
+	height: 100%;
+	width: 300px;
+	gap: 10px;
+	padding-right: 20px;
+	padding-top: 10px;
+	z-index: 100000;
+
+	.toast{
+		background-color: $featureColor;
+		box-shadow: 2px 3px 4px rgba(0, 0, 0, 0.5);
+		border-radius: 10px;
+		border-left: 10px solid $infoToastColor;
+		display: grid;
+		overflow: hidden;
+		grid-template-areas: "Title Dismiss" "Message Dismiss" "Prog Prog";
+		grid-template-columns: 1fr 50px;
+		animation-timing-function: cubic-bezier(.63,1.22,.84,.75);
+		animation-fill-mode: forwards;
+		animation-duration: 0.25s;
+		pointer-events: all;
+		max-height: 200px;
+
+		.title{
+			grid-area: Title;
+			font-size: 1.3rem;
+			margin-left: 20px;
+			margin-top: 10px;
+
+			&:not(:has(+ .message)){
+				margin-bottom: 10px;
+			}
+		}
+
+		.message{
+			grid-area: Message;
+			padding: 2px;
+			margin-left: 22px;
+			margin-bottom: 10px;
+		}
+
+		.dismiss{
+			grid-area: Dismiss;
+			margin-left: 20px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+			cursor: pointer;
+			transition: background-color .25s ease-out;
+
+			svg {
+				height: 20px;
+				width: 20px;
+			}
+
+			&:hover{
+				background-color: $focusColor;
+			}
+		}
+		.progress{
+			grid-area: Prog;
+			background-color: $mainBGColor;
+			height: 2px;
+
+			.fill{
+				background-color: $focusColor;
+				animation-name: toastProgress;
+				animation-timing-function: linear;
+				animation-fill-mode: forwards;
+				width: 100%;
+				height: 100%;
+			}
+		}
+
+		&.warn{
+			border-color: $warnToastColor;
+		}
+
+		&.error{
+			border-color: $errorToastColor;
+		}
+	}
+}
+
+@keyframes toastProgress {
+	from { width: 100%; }
+	to   { width: 0%; }
+}
+
+@keyframes toastSlideIn {
+	from {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+	to{
+		opacity: 1;
+		transform: translateX(0%);
+	}
+}
+
+@keyframes toastSlideOut {
+	0% {
+		opacity: 1;
+		transform: translateX(0%);
+		max-height: 200px;
+	}
+	40% {
+		opacity: 0;
+		transform: translateX(100%);
+		max-height: 200px;
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(100%);
+		max-height: 0;
+	}
+}

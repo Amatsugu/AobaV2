@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use dioxus::prelude::*;
 use dioxus_primitives::context_menu::ContextMenuItem;
 use web_sys::window;
@@ -5,6 +7,7 @@ use web_sys::window;
 use crate::{
 	components::MediaClassChangeEvent,
 	contexts::SelectionContext,
+	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
 	rpc::aoba::{MediaClass, MediaModel},
 };
 
@@ -20,6 +23,7 @@ pub struct MediaItemContextMenuProps
 #[component]
 pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 {
+	let toasts_ctx = use_context::<ToastsContext>();
 	let item = props.item;
 	let class = item.class();
 	let id = item.id.unwrap_or_default().value;
@@ -53,6 +57,9 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				spawn(async move {
 					if let Some(clipboard) = window().map(|w| w.navigator().clipboard()) && clipboard.write_text(&url).await.is_err() {
 						error!("Failed to copy url");
+						toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to copy url".into(), message: None, level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) });
+					}else{
+						toasts_ctx.handle.send(ToastCommand::Push { title: "Url copied".into(), message: None, level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
 					}
 				});
 			},

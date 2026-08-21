@@ -13,6 +13,7 @@ mod pagination;
 mod passkey;
 mod search;
 mod selection_bar;
+pub mod toasts;
 mod upload_area;
 pub use context_menu::*;
 pub use layout_groups::*;

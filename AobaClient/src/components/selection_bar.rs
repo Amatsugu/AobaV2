@@ -1,4 +1,9 @@
-use crate::HOST;
+use std::time::Duration;
+
+use crate::{
+	HOST,
+	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
+};
 use dioxus::prelude::*;
 use web_sys::window;
 
@@ -20,6 +25,7 @@ pub fn SelectionBar(
 ) -> Element
 {
 	let mut delete_modal_open = use_signal(|| false);
+	let toasts_ctx = use_context::<ToastsContext>();
 	if selected_items.is_empty()
 	{
 		return rsx! {};
@@ -48,9 +54,12 @@ pub fn SelectionBar(
 									let joined = links.join("\n");
 									match window().map(|w| w.navigator().clipboard()){
 										Some(clipboard) => if clipboard.write_text(joined.as_str()).await.is_err(){
-											error!("Failed to write to clipboard")
+											error!("Failed to write to clipboard");
+											toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to write to clipboard".into(), message: None, level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) });
+										}else{
+											toasts_ctx.handle.send(ToastCommand::Push { title: "Urls copied".into(), message: Some(format!("{} urls copied", item_ids.len())), level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
 										},
-										None => error!("Failed to get clipboard"),
+										None => toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to write to clipboard".into(), message: Some("Unable to retreive clipboard".into()), level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) }),
 									}
 								});
 							},
