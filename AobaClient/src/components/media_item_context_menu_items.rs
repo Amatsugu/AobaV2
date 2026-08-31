@@ -57,9 +57,9 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 				spawn(async move {
 					if let Some(clipboard) = window().map(|w| w.navigator().clipboard()) && clipboard.write_text(&url).await.is_err() {
 						error!("Failed to copy url");
-						toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to copy url".into(), message: None, level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) });
+						toasts_ctx.push(ToastCommand::push_error("Failed to copy url").with_duration(Duration::from_secs(10)));
 					}else{
-						toasts_ctx.handle.send(ToastCommand::Push { title: "Url copied".into(), message: None, level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
+						toasts_ctx.push(ToastCommand::push_info("Url copied").with_duration(Duration::from_secs(5)));
 					}
 				});
 			},
@@ -76,7 +76,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
 			value: download.clone(),
 			on_select: move |url: String|{
 				if window().and_then(|w| w.open_with_url_and_target(&url, "_blank").ok()).is_none(){
-					error!("Failed to open download page");
+					toasts_ctx.push(ToastCommand::push_error("Failed to open download page"));
 				}
 			},
 			div{

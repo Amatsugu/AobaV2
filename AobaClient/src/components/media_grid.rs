@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use tonic::{Response, Status};
 
 use crate::{
-	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, OnItemSelectedEvent},
+	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType, OnItemSelectedEvent},
 	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
@@ -79,58 +79,15 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 					error_display.set(rsx! {});
 				}
 				Err(msg) => error_display.set(rsx! {
-					div{
-						"Failed to load results: {msg}"
+					Notif{
+						message: "Failed to load results: {msg}",
+						type: NotifType::Error
 					}
 				}),
 			}
 		}
 	});
-
-	use_effect(move || {
-		if items().is_some()
-		{
-			document::eval(
-				r#"
-				if (window.__thumbObserver) {
-					window.__thumbObserver.disconnect();
-				}
-
-				window.__thumbObserver = new IntersectionObserver((entries) => {
-					entries.forEach(entry => {
-						const video = entry.target;
-						if (entry.isIntersecting) {
-							video.play().catch(() => {});
-						} else {
-							video.pause();
-						}
-					});
-				}, { threshold: 0.25 });
-
-				document.querySelectorAll('video').forEach(video => {
-					window.__thumbObserver.observe(video);
-				});
-
-				var listener = () => {
-					document.querySelectorAll('video').forEach(video => {
-						const rect = video.getBoundingClientRect();
-						const isVisible = rect.top < window.innerHeight && rect.bottom > 0
-										&& rect.left < window.innerWidth && rect.right > 0;
-						if (isVisible) {
-							video.play().catch(() => {});
-						}
-					});
-					document.removeEventListener("click", listener);
-					document.removeEventListener("touchstart", listener);
-					document.removeEventListener("keydown", listener);
-				};
-				document.addEventListener("click", listener, { once: true });
-				document.addEventListener("touchstart", listener, { once: true });
-				document.addEventListener("keydown", listener, { once: true });
-			"#,
-			);
-		}
-	});
+	init_auto_play(items);
 
 	rsx! {
 		div {
@@ -151,7 +108,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 									 let Some(mut cur) = items.cloned() {
 										cur.retain(|i| i.id.as_ref().map(|i| i.value != id).unwrap_or_default());
 										items.set(Some(cur));
-										toasts_ctx.handle.send(ToastCommand::Push { title: "Items Deleted".into(), message: None, level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
+										toasts_ctx.push(ToastCommand::push_info("Items Deleted").with_duration(Duration::from_secs(5)));
 								}
 							});
 						},
@@ -175,7 +132,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 											MediaClass::Nsfw => "NSFW",
 											MediaClass::Secret => "Secret",
 										};
-										toasts_ctx.handle.send(ToastCommand::Push { title: "Item classes changed".into(), message: Some(format!("Class set to {}", class_name)), level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
+										toasts_ctx.push(ToastCommand::push_info_with_message("Item classes changed", format!("Class set to {}", class_name)).with_duration(Duration::from_secs(5)));
 										items.set(Some(updated));
 								}
 							});
@@ -243,4 +200,52 @@ async fn set_class(id: &str, class: MediaClass) -> Result<Response<()>, Status>
 			id: Some(Id { value: id.to_owned() }),
 		})
 		.await;
+}
+
+fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>)
+{
+	use_effect(move || {
+		if items().is_some()
+		{
+			document::eval(
+				r#"
+				if (window.__thumbObserver) {
+					window.__thumbObserver.disconnect();
+				}
+
+				window.__thumbObserver = new IntersectionObserver((entries) => {
+					entries.forEach(entry => {
+						const video = entry.target;
+						if (entry.isIntersecting) {
+							video.play().catch(() => {});
+						} else {
+							video.pause();
+						}
+					});
+				}, { threshold: 0.25 });
+
+				document.querySelectorAll('video').forEach(video => {
+					window.__thumbObserver.observe(video);
+				});
+
+				var listener = () => {
+					document.querySelectorAll('video').forEach(video => {
+						const rect = video.getBoundingClientRect();
+						const isVisible = rect.top < window.innerHeight && rect.bottom > 0
+										&& rect.left < window.innerWidth && rect.right > 0;
+						if (isVisible) {
+							video.play().catch(() => {});
+						}
+					});
+					document.removeEventListener("click", listener);
+					document.removeEventListener("touchstart", listener);
+					document.removeEventListener("keydown", listener);
+				};
+				document.addEventListener("click", listener, { once: true });
+				document.addEventListener("touchstart", listener, { once: true });
+				document.addEventListener("keydown", listener, { once: true });
+			"#,
+			);
+		}
+	});
 }
