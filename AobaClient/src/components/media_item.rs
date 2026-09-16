@@ -14,15 +14,13 @@ use crate::{
 };
 pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);
 
-pub struct MediaClassChangeEvent
-{
+pub struct MediaClassChangeEvent {
 	pub id: String,
 	pub class: MediaClass,
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaItemProps
-{
+pub struct MediaItemProps {
 	pub item: MediaModel,
 	pub is_selected: bool,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
@@ -32,12 +30,10 @@ pub struct MediaItemProps
 }
 
 #[component]
-pub fn MediaItem(props: MediaItemProps) -> Element
-{
+pub fn MediaItem(props: MediaItemProps) -> Element {
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
-	let mtype = match item.media_type()
-	{
+	let mtype = match item.media_type() {
 		MediaType::Image => "Image",
 		MediaType::Audio => "Audio",
 		MediaType::Video => "Video",
@@ -46,8 +42,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		MediaType::Raw => "Raw",
 		_ => "Unknown",
 	};
-	let class_string = match item.class()
-	{
+	let class_string = match item.class() {
 		MediaClass::Nsfw => "blur",
 		MediaClass::Secret => "secret",
 		_ => "",
@@ -55,8 +50,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let filename = item.filename;
 	let id = item.id.unwrap_or_default().value;
 	let thumb = item.thumb_url;
-	let selected_class = match props.is_selected
-	{
+	let selected_class = match props.is_selected {
 		true => "selected",
 		false => "",
 	};
@@ -105,12 +99,9 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 }
 
 #[component]
-fn MediaThumb(media_type: MediaType, url: String) -> Element
-{
-	match media_type
-	{
-		MediaType::Video =>
-		{
+pub fn MediaThumb(media_type: MediaType, url: String) -> Element {
+	match media_type {
+		MediaType::Video => {
 			rsx! { video { src: url, autoplay: true, muted: true, playsinline: true, draggable: false, loop: true } }
 		}
 		MediaType::Raw => rsx! { Stack{} },
@@ -119,8 +110,7 @@ fn MediaThumb(media_type: MediaType, url: String) -> Element
 }
 
 #[component]
-pub fn MediaItemPlaceHolder() -> Element
-{
+pub fn MediaItemPlaceHolder() -> Element {
 	return rsx! {
 		div { class: "mediaItem placeholder",
 			img { },
