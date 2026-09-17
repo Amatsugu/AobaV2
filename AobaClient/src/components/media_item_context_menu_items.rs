@@ -7,13 +7,12 @@ use web_sys::window;
 use crate::{
 	components::MediaClassChangeEvent,
 	contexts::SelectionContext,
-	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
+	models::toasts::{ToastCommand, ToastsContext},
 	rpc::aoba::{MediaClass, MediaModel},
 };
 
 #[derive(Props, PartialEq, Clone)]
-pub struct MediaItemContextMenuProps
-{
+pub struct MediaItemContextMenuProps {
 	pub item: MediaModel,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
@@ -21,8 +20,7 @@ pub struct MediaItemContextMenuProps
 }
 
 #[component]
-pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
-{
+pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element {
 	let toasts_ctx = use_context::<ToastsContext>();
 	let item = props.item;
 	let class = item.class();

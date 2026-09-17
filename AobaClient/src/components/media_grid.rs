@@ -8,7 +8,7 @@ use crate::{
 		MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType,
 		OnItemSelectedEvent,
 	},
-	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
+	models::toasts::{ToastCommand, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
 		get_rpc_client,

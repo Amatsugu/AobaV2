@@ -11,16 +11,14 @@ use crate::{
 };
 
 #[component]
-pub fn MainLayout() -> Element
-{
+pub fn MainLayout() -> Element {
 	let auth_context = use_context::<AuthContext>();
 	let mut drag_context = use_context::<DragContext>();
 
 	let ctx = init_toasts();
 	use_context_provider(|| ctx);
 
-	if auth_context.jwt.cloned().is_none()
-	{
+	if auth_context.jwt.cloned().is_none() {
 		return rsx! {
 			Login { }
 		};

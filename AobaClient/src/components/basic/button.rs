@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
 
 #[derive(PartialEq, Clone, Props)]
-pub struct ButtonProps
-{
+pub struct ButtonProps {
 	pub variant: Option<ButtonVariant>,
 	pub text: String,
 	pub onclick: Option<EventHandler<Event<MouseData>>>,
@@ -10,8 +9,7 @@ pub struct ButtonProps
 }
 
 #[derive(PartialEq, Clone, Default)]
-pub enum ButtonVariant
-{
+pub enum ButtonVariant {
 	#[default]
 	Base,
 	Muted,
@@ -20,10 +18,8 @@ pub enum ButtonVariant
 }
 
 #[component]
-pub fn Button(props: ButtonProps) -> Element
-{
-	let variantClass = match props.variant.unwrap_or_default()
-	{
+pub fn Button(props: ButtonProps) -> Element {
+	let variantClass = match props.variant.unwrap_or_default() {
 		ButtonVariant::Base => "",
 		ButtonVariant::Muted => "muted",
 		ButtonVariant::Accented => "accented",

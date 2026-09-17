@@ -11,8 +11,7 @@ use crate::{
 };
 
 #[component]
-pub fn Login() -> Element
-{
+pub fn Login() -> Element {
 	let username = use_signal(|| "".to_string());
 	let password = use_signal(|| "".to_string());
 	let mut error: Signal<Option<String>> = use_signal(|| None);
@@ -20,8 +19,7 @@ pub fn Login() -> Element
 
 	let login = move |e: Event<MouseData>| {
 		e.prevent_default();
-		if username.cloned().is_empty() || password.cloned().is_empty()
-		{
+		if username.cloned().is_empty() || password.cloned().is_empty() {
 			error.set(Some("Username and Password are required".into()));
 			return;
 		}
@@ -43,12 +41,10 @@ pub fn Login() -> Element
 				.flatten()
 				.unwrap_or_else(default_login_error)
 			{
-				crate::rpc::aoba::login_response::Result::Jwt(jwt) =>
-				{
+				crate::rpc::aoba::login_response::Result::Jwt(jwt) => {
 					auth_context.login(jwt.token);
 				}
-				crate::rpc::aoba::login_response::Result::Error(login_error) =>
-				{
+				crate::rpc::aoba::login_response::Result::Error(login_error) => {
 					auth_context.logout();
 					error.set(Some(login_error.message));
 				}
@@ -83,8 +79,7 @@ pub fn Login() -> Element
 	}
 }
 
-fn default_login_error() -> crate::rpc::aoba::login_response::Result
-{
+fn default_login_error() -> crate::rpc::aoba::login_response::Result {
 	crate::rpc::aoba::login_response::Result::Error(LoginError {
 		message: "Failed to login".to_string(),
 	})

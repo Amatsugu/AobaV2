@@ -4,8 +4,7 @@ use dioxus::prelude::*;
 const CONTEXT_MENU_CSS: Asset = asset!("./style.scss");
 
 #[component]
-pub fn ContextMenu(props: ContextMenuProps) -> Element
-{
+pub fn ContextMenu(props: ContextMenuProps) -> Element {
 	rsx! {
 		document::Link { rel: "stylesheet", href: CONTEXT_MENU_CSS }
 		{props.children}
@@ -13,8 +12,7 @@ pub fn ContextMenu(props: ContextMenuProps) -> Element
 }
 
 #[component]
-pub fn ContextMenuTrigger(props: ContextMenuTriggerProps) -> Element
-{
+pub fn ContextMenuTrigger(props: ContextMenuTriggerProps) -> Element {
 	rsx! {
 		div{
 			class: "contextMenuTrigger",
@@ -27,8 +25,7 @@ pub fn ContextMenuTrigger(props: ContextMenuTriggerProps) -> Element
 }
 
 #[component]
-pub fn ContextMenuContent(props: ContextMenuContentProps) -> Element
-{
+pub fn ContextMenuContent(props: ContextMenuContentProps) -> Element {
 	rsx! {
 		div{
 			class: "contextMenuContent",
@@ -38,8 +35,7 @@ pub fn ContextMenuContent(props: ContextMenuContentProps) -> Element
 }
 
 #[component]
-pub fn ContextMenuItem(props: ContextMenuItemProps) -> Element
-{
+pub fn ContextMenuItem(props: ContextMenuItemProps) -> Element {
 	rsx! {
 		div {
 			class: "contextMenuItem",
@@ -55,8 +51,7 @@ pub fn ContextMenuItem(props: ContextMenuItemProps) -> Element
 }
 
 #[component]
-pub fn ContextMenuNestedContent(props: ContextMenuNestedProps) -> Element
-{
+pub fn ContextMenuNestedContent(props: ContextMenuNestedProps) -> Element {
 	rsx! {
 		{props.children}
 	}

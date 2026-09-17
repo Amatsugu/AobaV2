@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Info() -> Element
-{
+pub fn Info() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -19,8 +18,7 @@ pub fn Info() -> Element
 }
 
 #[component]
-pub fn Warn() -> Element
-{
+pub fn Warn() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -37,8 +35,7 @@ pub fn Warn() -> Element
 }
 
 #[component]
-pub fn Error() -> Element
-{
+pub fn Error() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -55,8 +52,7 @@ pub fn Error() -> Element
 }
 
 #[component]
-pub fn Image() -> Element
-{
+pub fn Image() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -73,8 +69,7 @@ pub fn Image() -> Element
 }
 
 #[component]
-pub fn Cog() -> Element
-{
+pub fn Cog() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -91,8 +86,7 @@ pub fn Cog() -> Element
 }
 
 #[component]
-pub fn Archive() -> Element
-{
+pub fn Archive() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -111,8 +105,7 @@ pub fn Archive() -> Element
 }
 
 #[component]
-pub fn Squares() -> Element
-{
+pub fn Squares() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -131,8 +124,7 @@ pub fn Squares() -> Element
 }
 
 #[component]
-pub fn Stack() -> Element
-{
+pub fn Stack() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -147,8 +139,7 @@ pub fn Stack() -> Element
 }
 
 #[component]
-pub fn Cross() -> Element
-{
+pub fn Cross() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",

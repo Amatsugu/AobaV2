@@ -3,26 +3,22 @@ use dioxus::prelude::*;
 use crate::components::icons;
 
 #[derive(PartialEq, Clone, Props)]
-pub struct NotifProps
-{
+pub struct NotifProps {
 	r#type: Option<NotifType>,
 	message: String,
 }
 
 #[derive(PartialEq, Clone)]
-pub enum NotifType
-{
+pub enum NotifType {
 	Notice,
 	Error,
 	Warning,
 }
 
 #[component]
-pub fn Notif(props: NotifProps) -> Element
-{
+pub fn Notif(props: NotifProps) -> Element {
 	let t = props.r#type.unwrap_or(NotifType::Notice);
-	let type_class = match t
-	{
+	let type_class = match t {
 		NotifType::Notice => "notice",
 		NotifType::Error => "error",
 		NotifType::Warning => "warning",

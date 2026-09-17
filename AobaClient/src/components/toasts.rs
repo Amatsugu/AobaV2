@@ -9,8 +9,7 @@ use crate::{
 
 const TOASTS_CSS: Asset = asset!("/assets/style/toasts.scss");
 #[component]
-pub fn ToastsDisplay() -> Element
-{
+pub fn ToastsDisplay() -> Element {
 	let ctx = use_context::<ToastsContext>();
 	rsx! {
 		document::Link { rel: "stylesheet", href: TOASTS_CSS }
@@ -27,15 +26,11 @@ pub fn ToastsDisplay() -> Element
 }
 
 #[component]
-pub fn Toast(toast: ToastEntry) -> Element
-{
+pub fn Toast(toast: ToastEntry) -> Element {
 	let ctx = use_context::<ToastsContext>();
-	let slide_out: String = if toast.is_dismissing
-	{
+	let slide_out: String = if toast.is_dismissing {
 		"animation-name: toastSlideOut;".into()
-	}
-	else
-	{
+	} else {
 		"animation-name: toastSlideIn;".into()
 	};
 
@@ -73,16 +68,14 @@ pub fn Toast(toast: ToastEntry) -> Element
 	}
 }
 
-pub fn init_toasts() -> ToastsContext
-{
+pub fn init_toasts() -> ToastsContext {
 	let toasts = use_signal(Vec::<ToastEntry>::new);
 	let handle = use_coroutine(move |mut rx: UnboundedReceiver<ToastCommand>| {
 		let mut toasts = toasts;
 		async move {
 			let mut next_id = 0_usize;
 			let mut timers = FuturesUnordered::new();
-			loop
-			{
+			loop {
 				futures_util::select! {
 					cmd = rx.next() =>{
 						let Some(cmd) = cmd else {break};

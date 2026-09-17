@@ -20,7 +20,6 @@ impl From<MediaClass> for &str {
 			MediaClass::Nsfw => "NSFW",
 			MediaClass::Secret => "Secret",
 		}
-		.into()
 	}
 }
 

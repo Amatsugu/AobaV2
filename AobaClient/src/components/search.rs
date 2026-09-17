@@ -1,8 +1,11 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Search(query: String, oninput: Option<EventHandler<String>>, onchange: Option<EventHandler<String>>) -> Element
-{
+pub fn Search(
+	query: String,
+	oninput: Option<EventHandler<String>>,
+	onchange: Option<EventHandler<String>>,
+) -> Element {
 	rsx! {
 		div { class: "searchBar",
 			input {

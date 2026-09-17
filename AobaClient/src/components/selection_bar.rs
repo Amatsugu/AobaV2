@@ -22,16 +22,12 @@ pub fn SelectionBar(
 	selected_items: Vec<String>,
 	on_selection_cleared: EventHandler,
 	on_items_delete: EventHandler,
-) -> Element
-{
+) -> Element {
 	let mut delete_modal_open = use_signal(|| false);
 	let toasts_ctx = use_context::<ToastsContext>();
-	if selected_items.is_empty()
-	{
+	if selected_items.is_empty() {
 		return rsx! {};
-	}
-	else
-	{
+	} else {
 		let selection_count = selected_items.len();
 		return rsx! {
 			div{
@@ -123,8 +119,7 @@ pub fn SelectionBar(
 }
 
 #[component]
-pub fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element
-{
+pub fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element {
 	rsx! {
 		div{
 			class: "button",

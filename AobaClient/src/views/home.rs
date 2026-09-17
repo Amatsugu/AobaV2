@@ -15,16 +15,14 @@ use dioxus::{
 };
 
 #[derive(Debug, Clone)]
-enum SelectionPhase
-{
+enum SelectionPhase {
 	Start,
 	Selecting,
 	Idle,
 }
 
 #[derive(Debug, Clone)]
-enum SelectionMode
-{
+enum SelectionMode {
 	Add,
 	Remove,
 }
@@ -32,8 +30,7 @@ enum SelectionMode
 const MIN_DRAG_DISTANCE: f64 = 8.0;
 
 #[component]
-pub fn Home(page: Option<i32>, q: Option<String>) -> Element
-{
+pub fn Home(page: Option<i32>, q: Option<String>) -> Element {
 	let mut query = use_signal(|| q.unwrap_or("".to_string()));
 	let mut page = use_signal(|| page.unwrap_or(1));
 	let page_size = use_signal::<i32>(|| 100);
@@ -153,26 +150,20 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	}
 }
 
-fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String)
-{
-	match mode
-	{
-		SelectionMode::Add =>
-		{
-			if !items.contains(&id)
-			{
+fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String) {
+	match mode {
+		SelectionMode::Add => {
+			if !items.contains(&id) {
 				items.push(id.clone());
 			}
 		}
-		SelectionMode::Remove =>
-		{
+		SelectionMode::Remove => {
 			*items = items.iter().filter(|i| *i != &id).cloned().collect();
 		}
 	}
 }
 
-fn bulk_change_class(class: MediaClass)
-{
+fn bulk_change_class(class: MediaClass) {
 	spawn(async move {
 		let mut client = get_rpc_client();
 		let mut selection_context: SelectionContext = use_context();
