@@ -33,20 +33,9 @@ pub struct MediaItemProps {
 pub fn MediaItem(props: MediaItemProps) -> Element {
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
-	let mtype = match item.media_type() {
-		MediaType::Image => "Image",
-		MediaType::Audio => "Audio",
-		MediaType::Video => "Video",
-		MediaType::Text => "Text",
-		MediaType::Code => "Code",
-		MediaType::Raw => "Raw",
-		_ => "Unknown",
-	};
-	let class_string = match item.class() {
-		MediaClass::Nsfw => "blur",
-		MediaClass::Secret => "secret",
-		_ => "",
-	};
+	let mtype: &str = item.media_type().into();
+	let class = item.class();
+	let class_string = class.to_class_name();
 	let filename = item.filename;
 	let id = item.id.unwrap_or_default().value;
 	let thumb = item.thumb_url;

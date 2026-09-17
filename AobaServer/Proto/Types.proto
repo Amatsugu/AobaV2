@@ -1,232 +1,243 @@
 syntax = "proto3";
-
-option csharp_namespace = "Aoba.RPC";
 package aoba;
+
 import "google/protobuf/empty.proto";
 
-message Credentials{
-	string user = 1;
-	string password = 2;
+option csharp_namespace = "Aoba.RPC";
+
+message Credentials {
+  string user = 1;
+  string password = 2;
 }
 
-message SetMediaClassRequest{
-	Id id = 1;
-	MediaClass class = 2;
+message SetMediaClassRequest {
+  Id id = 1;
+  MediaClass class = 2;
 }
 
-message SetMediaClassBulkRequest{
-	IdList ids = 1;
-	MediaClass class = 2;
+message SetMediaClassBulkRequest {
+  IdList ids = 1;
+  MediaClass class = 2;
 }
 
-
-message Jwt{
-	string token = 1;
+message Jwt {
+  string token = 1;
 }
 
-message LoginResponse{
-	oneof result {
-		Jwt jwt = 1;
-		LoginError error = 2;
-	}
+message LoginResponse {
+  oneof result {
+    Jwt jwt = 1;
+    LoginError error = 2;
+  }
 }
 
-message LoginError{
-	string message = 1;
+message LoginError {
+  string message = 1;
 }
 
 message PageFilter {
-	optional int32 page = 1;
-	optional int32 page_size = 2;
-	optional string query = 3;
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+  optional string query = 3;
 }
 
 message Id {
-	string value = 1;
+  string value = 1;
 }
 
 message IdList {
-	repeated Id value = 1;
+  repeated Id value = 1;
 }
 
 message MediaResponse {
-	optional MediaModel value = 1;
+  optional MediaModel value = 1;
 }
 
 message ListResponse {
-	repeated MediaModel items = 1;
-	Pagination pagination = 2;
+  repeated MediaModel items = 1;
+  Pagination pagination = 2;
 }
 
 message Pagination {
-	int32 page = 1;
-	int32 page_size = 2;
-	int32 total_pages = 3;
-	int32 total_items = 4;
-	optional string query = 5;
+  int32 page = 1;
+  int32 page_size = 2;
+  int32 total_pages = 3;
+  int32 total_items = 4;
+  optional string query = 5;
 }
 
 message UserResponse {
-	oneof user_result {
-		UserModel user = 1;
-		google.protobuf.Empty empty = 2;
-	}
+  oneof user_result {
+    UserModel user = 1;
+    google.protobuf.Empty empty = 2;
+  }
 }
 
 message UserModel {
-	Id id = 1;
-	string username = 2;
-	string email = 3;
-	bool is_admin = 4;
+  Id id = 1;
+  string username = 2;
+  string email = 3;
+  bool is_admin = 4;
 }
 
-
 message MediaModel {
-	Id id = 1;
-	string filename = 2;
-	MediaType media_type = 3;
-	string ext = 4;
-	int32 view_count = 5;
-	Id owner = 6;
-	string thumb_url = 7;
-	string media_url = 8;
-	MediaClass class = 9;
+  Id id = 1;
+  string filename = 2;
+  MediaType media_type = 3;
+  string ext = 4;
+  int32 view_count = 5;
+  Id owner = 6;
+  string thumb_url = 7;
+  string media_url = 8;
+  MediaClass class = 9;
+  repeated MediaThumbnail thumbnails = 10;
+}
+
+message MediaThumbnail {
+  ThumbnailSize size = 1;
+  string url = 2;
+}
+
+enum ThumbnailSize {
+  THUMBNAIL_SIZE_UNSPECIFIED = 0;
+  THUMBNAIL_SIZE_SMALL = 128;
+  THUMBNAIL_SIZE_MEDIUM = 256;
+  THUMBNAIL_SIZE_LARGE = 512;
+  THUMBNAIL_SIZE_EXTRA_LARGE = 1024;
 }
 
 enum MediaType {
-	MEDIA_TYPE_UNSPECIFIED = 0;
-	MEDIA_TYPE_IMAGE = 1;
-	MEDIA_TYPE_AUDIO = 2;
-	MEDIA_TYPE_VIDEO = 3;
-	MEDIA_TYPE_TEXT = 4;
-	MEDIA_TYPE_CODE = 5;
-	MEDIA_TYPE_RAW = 6;
+  MEDIA_TYPE_UNSPECIFIED = 0;
+  MEDIA_TYPE_IMAGE = 1;
+  MEDIA_TYPE_AUDIO = 2;
+  MEDIA_TYPE_VIDEO = 3;
+  MEDIA_TYPE_TEXT = 4;
+  MEDIA_TYPE_CODE = 5;
+  MEDIA_TYPE_RAW = 6;
 }
 
 enum MediaClass {
-	MEDIA_CLASS_UNSPECIFIED = 0;
-	MEDIA_CLASS_STANDARD = 1;
-	MEDIA_CLASS_NSFW = 2;
-	MEDIA_CLASS_SECRET = 3;
+  MEDIA_CLASS_UNSPECIFIED = 0;
+  MEDIA_CLASS_STANDARD = 1;
+  MEDIA_CLASS_NSFW = 2;
+  MEDIA_CLASS_SECRET = 3;
 }
 
 message ShareXResponse {
-	oneof dst_result {
-		string destination = 1;
-		string error = 2;
-	}
+  oneof dst_result {
+    string destination = 1;
+    string error = 2;
+  }
 }
 
-
 message SearchQuery {
-	optional string query_text = 1;
-	repeated Filter filters = 2;
+  optional string query_text = 1;
+  repeated Filter filters = 2;
 }
 
 message Filter {
-	string key = 1;
-	repeated string values = 2;
+  string key = 1;
+  repeated string values = 2;
 }
 
-message PasskeyAssertionResponse{
-	oneof result{
-		PasskeyAssertionOptions options = 1;
-		string error_message = 2;
-	}
+message PasskeyAssertionResponse {
+  oneof result {
+    PasskeyAssertionOptions options = 1;
+    string error_message = 2;
+  }
 }
 
 message PasskeyLoginRequest {
-	string id = 1;
-	Id ceremony_id = 2;
-	bytes raw_id = 3;
-	bytes client_data_json = 4;
-	bytes authenticator_data = 5;
-	bytes signature = 6;
-	optional bytes user_handle = 7;
+  string id = 1;
+  Id ceremony_id = 2;
+  bytes raw_id = 3;
+  bytes client_data_json = 4;
+  bytes authenticator_data = 5;
+  bytes signature = 6;
+  optional bytes user_handle = 7;
 }
 
-message PasskeyCreationResponse{
-	oneof result {
-		PasskeyCredentialCreateOptions options = 1;
-		LoginError error = 2;
-	}
+message PasskeyCreationResponse {
+  oneof result {
+    PasskeyCredentialCreateOptions options = 1;
+    LoginError error = 2;
+  }
 }
 
-message PasskeyCredentialCreateOptions{
-	bytes challenge = 1;
-	PublicKeyCredentialUser user = 2;
-	PublicKeyCredentialRpEntity rp = 3;
-	repeated PubKeyCredParam pubkey_params = 4;
+message PasskeyCredentialCreateOptions {
+  bytes challenge = 1;
+  PublicKeyCredentialUser user = 2;
+  PublicKeyCredentialRpEntity rp = 3;
+  repeated PubKeyCredParam pubkey_params = 4;
 }
 
-message PubKeyCredParam{
-	int32 alg = 1;
-	string type = 2;
+message PubKeyCredParam {
+  int32 alg = 1;
+  string type = 2;
 }
 
-message PublicKeyCredentialRpEntity{
-	string id = 1;
-	optional string icon = 2;
-	string name = 3;
+message PublicKeyCredentialRpEntity {
+  string id = 1;
+  optional string icon = 2;
+  string name = 3;
 }
 
-message PublicKeyCredentialUser{
-	bytes id = 1;
-	string name = 2;
-	string display_name = 3;
+message PublicKeyCredentialUser {
+  bytes id = 1;
+  string name = 2;
+  string display_name = 3;
 }
 
-message PasskeyRegistrationCredentials{
-	string id = 1;
-	bytes raw_id = 2;
-	bytes client_data_json = 3;
-	bytes attestation_object = 4;
-	bytes authenticator_data = 5;
-	bytes signature = 6;
-	optional bytes user_handle = 7;
+message PasskeyRegistrationCredentials {
+  string id = 1;
+  bytes raw_id = 2;
+  bytes client_data_json = 3;
+  bytes attestation_object = 4;
+  bytes authenticator_data = 5;
+  bytes signature = 6;
+  optional bytes user_handle = 7;
 }
 
-
-message PasskeyAssertionOptions{
-	Id ceremony_id = 1;
-	bytes challenge = 2;
-	optional string rp_id = 3;
-	bytes authenticator_data = 5;
-	bytes signature = 6;
+message PasskeyAssertionOptions {
+  Id ceremony_id = 1;
+  bytes challenge = 2;
+  optional string rp_id = 3;
+  bytes authenticator_data = 5;
+  bytes signature = 6;
 }
 
-message UploadRequest{
-	repeated FileInfo files = 1;
+message UploadRequest {
+  repeated FileInfo files = 1;
 }
 
-message FileInfo{
-	string filename = 1;
-	uint64 size = 2;
+message FileInfo {
+  string filename = 1;
+  uint64 size = 2;
 }
 
 message UploadTargetResponse {
-	oneof result {
-		UploadTargets targets = 1;
-		string error = 2;
-	}
+  oneof result {
+    UploadTargets targets = 1;
+    string error = 2;
+  }
 }
 
-message UploadTargets{
-	repeated UploadTarget targets = 1;
+message UploadTargets {
+  repeated UploadTarget targets = 1;
 }
 
-message UploadTarget{
-	string signed_url = 1;
-	string filename = 2;
-	string content_type = 3;
-	Id id = 4;
+message UploadTarget {
+  string signed_url = 1;
+  string filename = 2;
+  string content_type = 3;
+  Id id = 4;
 }
 
 message UploadResult {
-	uint32 upload_count = 1;
-	optional ErrorList errors = 2;
+  uint32 upload_count = 1;
+  optional ErrorList errors = 2;
 }
 
-message ErrorList{
-	repeated string error_messages = 1;
+message ErrorList {
+  repeated string error_messages = 1;
 }

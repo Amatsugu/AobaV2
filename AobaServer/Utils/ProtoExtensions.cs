@@ -5,6 +5,7 @@ using MongoDB.Bson;
 using Google.Protobuf.WellKnownTypes;
 using AobaCore.Services;
 using Google.Protobuf.Collections;
+using System.Net.Mail;
 
 namespace AobaServer.Utils;
 
@@ -22,22 +23,22 @@ public static class ProtoExtensions
 
 	public static Pagination ToPagination<T>(this PagedResult<T> result)
 	{
-		var p =new Pagination()
+		var p = new Pagination()
 		{
 			Page = result.Page,
 			PageSize = result.PageSize,
 			TotalItems = result.TotalItems,
 			TotalPages = result.TotalPages,
 		};
-		if(result.Query != null)
+		if (result.Query != null)
 			p.Query = result.Query;
 		return p;
 	}
 
 	public static MediaResponse ToResponse(this Media? media, HostInfo host)
 	{
-		if(media == null)
-			return new MediaResponse() {};
+		if (media == null)
+			return new MediaResponse() { };
 		return new MediaResponse()
 		{
 			Value = media.ToMediaModel(host)
@@ -46,8 +47,12 @@ public static class ProtoExtensions
 
 	public static MediaModel ToMediaModel(this Media media, HostInfo host)
 	{
-
-		return new MediaModel()
+		var thumbs = System.Enum.GetValues<AobaCore.Models.ThumbnailSize>().Select(s => new Aoba.RPC.MediaThumbnail
+		{
+			Size = (Aoba.RPC.ThumbnailSize)s,
+			Url = media.GetThumbnailUrl(s, host)
+		});
+		var result = new MediaModel()
 		{
 			Ext = media.Ext,
 			Filename = media.Filename,
@@ -55,10 +60,13 @@ public static class ProtoExtensions
 			MediaType = (Aoba.RPC.MediaType)(media.MediaType + 1),
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
-			ThumbUrl = media.GetThumbnailUrl(ThumbnailSize.Medium, host),
+			ThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.Medium, host),
 			MediaUrl = media.GetMediaUrl(host),
 			Class = (Aoba.RPC.MediaClass)(media.Class + 1),
+
 		};
+		result.Thumbnails.AddRange(thumbs);
+		return result;
 	}
 
 	public static Id ToId(this ObjectId id)

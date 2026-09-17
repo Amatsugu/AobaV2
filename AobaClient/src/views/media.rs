@@ -1,7 +1,7 @@
 use crate::{
 	components::{MediaThumb, basic::Button},
 	rpc::{
-		aoba::{Id, MediaModel},
+		aoba::{Id, MediaModel, ThumbnailSize},
 		get_rpc_client,
 	},
 };
@@ -28,16 +28,12 @@ pub fn Media(id: String) -> Element {
 
 #[component]
 fn MediaPage(media: MediaModel) -> Element {
-	use crate::rpc::aoba::MediaClass;
 	let class = media.class();
 	let media_type = media.media_type();
-	let url = media.thumb_url;
-	let cur_class = use_signal(|| match class {
-		MediaClass::Unspecified => "Unkown",
-		MediaClass::Standard => "Standard",
-		MediaClass::Nsfw => "NSFW",
-		MediaClass::Secret => "Secret",
-	});
+	let url = media
+		.get_thumbnail_url(ThumbnailSize::ExtraLarge)
+		.unwrap_or_default();
+	let cur_class: Signal<&str> = use_signal(|| class.into());
 	rsx! {
 		MediaThumb{
 			media_type,
