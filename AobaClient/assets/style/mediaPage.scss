@@ -1,0 +1,73 @@
+@import "mixins";
+@import "colors";
+
+#mediaPage{
+	.title{
+		font-size: 2rem;
+		font-weight: 200;
+		text-align: center;
+		background-color: $featureColor;
+	}
+
+	.display{
+		overflow: hidden;
+		background-color: $darkBGColor;
+		img,video{
+			height: 60dvh;
+			width: 100%;
+			object-fit: contain;
+		}
+	}
+}
+
+.metadata{
+	display: flex;
+	flex-direction: column;
+	padding: 5px;
+	background-color:$darkFeatureColor;
+
+	.metadataEntry{
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+
+		> *{
+			padding: 5px;
+		}
+	}
+}
+
+.tagList{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+
+	.tag{
+		background-color: $featureColor;
+		border: 1px solid $focusColor;
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		border-radius: 5px;
+		overflow: hidden;
+
+		.label{
+			padding: 5px;
+		}
+
+		.removeBtn{
+			display: flex;
+
+			svg{
+				$size: 30px;
+				height: $size;
+				width: $size;
+				padding: 5px;
+				cursor: pointer;
+
+				&:hover{
+					background-color: $focusColor;
+				}
+			}
+		}
+	}
+}

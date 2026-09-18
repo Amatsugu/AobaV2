@@ -91,6 +91,9 @@ message MediaModel {
   string media_url = 8;
   MediaClass class = 9;
   repeated MediaThumbnail thumbnails = 10;
+  repeated string tags = 11;
+  string cdn_url = 12;
+  optional Dimensions dimensions = 13;
 }
 
 message MediaThumbnail {
@@ -240,4 +243,9 @@ message UploadResult {
 
 message ErrorList {
   repeated string error_messages = 1;
+}
+
+message Dimensions{
+    uint32 height = 1;
+    uint32 width = 2;
 }
