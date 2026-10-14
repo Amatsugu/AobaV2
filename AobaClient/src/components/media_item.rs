@@ -61,6 +61,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		ContextMenu{
 			ContextMenuTrigger{
 				a {
+					key: "{id.clone()}",
 					onmousemove: onmove,
 					class: "mediaItem {class_string} {selected_class}",
 					href: item.media_url.to_string(),
@@ -97,10 +98,25 @@ pub fn MediaThumb(media_type: MediaType, url: String) -> Element
 	{
 		MediaType::Video =>
 		{
-			rsx! { video { src: url, autoplay: true, muted: true, playsinline: true, draggable: false, loop: true } }
+			rsx! {
+				video {
+					src: url,
+					autoplay: true,
+					muted: true,
+					playsinline: true,
+					draggable: false,
+					loop: true
+				}
+			}
 		}
 		MediaType::Raw => rsx! { Stack{} },
-		_ => rsx! { img { src: url, draggable: false, loading: "lazy" } },
+		_ => rsx! {
+			img {
+				src: url,
+				draggable: false,
+				loading: "lazy"
+			}
+		},
 	}
 }
 
