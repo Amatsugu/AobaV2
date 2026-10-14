@@ -22,11 +22,17 @@ input[type="text"] {
 .searchBar {
 	display: grid;
 	width: 100%;
+	grid-template-columns: 1fr auto;
+	grid-template-rows: 40px;
 
 	input {
 		padding: 10px;
 		font-size: 1.5rem;
 		border-radius: 20px;
+
+		border-bottom-right-radius: 0;
+		border-top-right-radius: 0;
+
 		background-color: $inputBGColor;
 		border: none;
 		color: $invertTextColor;
@@ -40,6 +46,39 @@ input[type="text"] {
 			outline-style: solid;
 			outline-color: $inputBGColorFocus;
 			outline-width: 3;
+		}
+	}
+
+	.uploadBtn{
+		display: grid;
+		height: 40px;
+		width: 40px;
+		grid-template-areas: "A";
+		background-color: $buttonAccentedBG;
+		color: $buttonMutedBG;
+		cursor: pointer;
+		border-bottom-right-radius: 20px;
+		border-top-right-radius: 20px;
+		transition: background-color .25s ease-out;
+
+		&:hover{
+			background-color: $buttonAccentedBGHover;
+		}
+
+		> *{
+			grid-area: A;
+		}
+
+		input[type=file]{
+			opacity: 0;
+			display: block;
+		}
+
+		svg{
+			padding: 10px;
+			height: 40px;
+			pointer-events: none;
+			display: block;
 		}
 	}
 }

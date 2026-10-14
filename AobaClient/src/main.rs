@@ -1,6 +1,7 @@
 pub mod components;
 pub mod contexts;
 mod env;
+pub mod file_uploader;
 mod layouts;
 pub mod models;
 pub mod proto_exts;
@@ -29,12 +30,14 @@ const INPUT_CSS: Asset = asset!("/assets/style/inputs.scss");
 const MODAL_CSS: Asset = asset!("/assets/style/modal.scss");
 const DX_COMPONENTS: Asset = asset!("/assets/style/dx-components.scss");
 
-fn main() {
+fn main()
+{
 	dioxus::launch(App);
 }
 
 #[component]
-fn App() -> Element {
+fn App() -> Element
+{
 	use_context_provider(AuthContext::new_from_session);
 	use_context_provider(DragContext::default);
 	rsx! {

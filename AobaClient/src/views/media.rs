@@ -1,10 +1,9 @@
 use crate::{
 	components::{MediaThumb, basic::Button, icons::Cross},
 	rpc::{
-		aoba::{Id, MediaModel, MediaType, ThumbnailSize},
+		aoba::{Id, MediaModel, MediaType},
 		get_rpc_client,
 	},
-	views::media,
 };
 use dioxus::prelude::*;
 
@@ -68,7 +67,7 @@ fn MetadataPanel(media: MediaModel) -> Element
 			class: "metadata",
 			TagsDisplay { tags: media.tags }
 			MetadataEntry { label: "Media Class", {cur_class()} }
-			MetadataEntry { label: "Media Type", "{type_name}" }
+			MetadataEntry { label: "Media Type", {type_name} }
 			MetadataEntry { label: "Views", "{media.view_count}" }
 			if let Some(dim) = &media.dimensions{
 				MetadataEntry { label: "Dimensions", "{dim}" }
