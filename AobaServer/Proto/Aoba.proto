@@ -11,11 +11,18 @@ service AobaRpc {
   rpc DeleteMediaBulk (IdList) returns (google.protobuf.Empty);
   rpc UpdateMedia (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc ListMedia(PageFilter) returns (ListResponse);
-  rpc GetUser(Id) returns (UserResponse);
-  rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
+  //Class
   rpc SetMediaClass(SetMediaClassRequest) returns(google.protobuf.Empty);
-  rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns(google.protobuf.Empty);
-
+  rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns (google.protobuf.Empty);
+  //Tags
+  rpc UpdateMediaTags(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc AddMediaTag(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc RemoveMediaTag(google.protobuf.Empty) returns (google.protobuf.Empty);
+  //User
+  rpc GetUser(Id) returns (UserResponse);
+  //Upload
   rpc StartUpload(UploadRequest) returns(UploadTargetResponse);
   rpc CompleteUpload(IdList) returns(UploadResult);
+
+  rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
 }

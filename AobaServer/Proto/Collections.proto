@@ -1,0 +1,18 @@
+syntax = "proto3";
+package aoba;
+
+option csharp_namespace = "Aoba.RPC";
+
+import "google/protobuf/empty.proto";
+import "Proto/Types.proto";
+
+
+service MediaCollectionsRpc {
+	rpc GetCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc CreateCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc UpdateCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc DeleteCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc AddItemToCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc RemoveItemFromCollection(google.protobuf.empty) returns (google.protobuf.empty);
+	rpc ListMediaCollection(PageFilter) returns (google.protobuf.empty);
+}
