@@ -17,5 +17,5 @@ pub enum Route {
 		Media { id: String },
 		#[route("/settings")]
 		Settings {},
-	// #[end_layout]
+	//#[end_layout]
 }

@@ -4,10 +4,7 @@ use dioxus::prelude::*;
 use tonic::{Response, Status};
 
 use crate::{
-	components::{
-		MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType,
-		OnItemSelectedEvent,
-	},
+	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType, OnItemSelectedEvent},
 	models::toasts::{ToastCommand, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
@@ -16,7 +13,8 @@ use crate::{
 };
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaGridProps {
+pub struct MediaGridProps
+{
 	pub query: Signal<String>,
 	pub max_page: Signal<i32>,
 	pub total_items: Signal<i32>,
@@ -30,13 +28,15 @@ pub struct MediaGridProps {
 	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
-pub struct PaginationInfo {
+pub struct PaginationInfo
+{
 	pub total_pages: i32,
 	pub total_items: i32,
 }
 
 #[component]
-pub fn MediaGrid(props: MediaGridProps) -> Element {
+pub fn MediaGrid(props: MediaGridProps) -> Element
+{
 	let toasts_ctx = use_context::<ToastsContext>();
 	let mut error_display = use_signal(|| {
 		rsx! {}
@@ -49,20 +49,26 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 			page: Some(props.page.cloned()),
 			query: Some(props.query.cloned()),
 		};
-		match client.list_media(request).await {
+		match client.list_media(request).await
+		{
 			Ok(items) => Ok(items.into_inner()),
 			Err(err) => Err(format!("Failed to load results: {}", err.message())),
 		}
 	}));
 
 	use_effect(move || {
-		if let Some(value) = media_result() {
-			match value {
-				Ok(result) => {
-					if let Some(pagination) = result.pagination {
+		if let Some(value) = media_result()
+		{
+			match value
+			{
+				Ok(result) =>
+				{
+					if let Some(pagination) = result.pagination
+					{
 						let total_pages = pagination.total_pages;
 						let total_items = pagination.total_items;
-						if let Some(handler) = props.on_page_loaded {
+						if let Some(handler) = props.on_page_loaded
+						{
 							handler.call(PaginationInfo {
 								total_pages,
 								total_items,
@@ -120,8 +126,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 											})
 											.collect();
 										info!("Class changed");
-										let class_name : &str= e.class.into();
-										toasts_ctx.push(ToastCommand::push_info_with_message("Item classes changed", format!("Class set to {}", class_name)).with_duration(Duration::from_secs(5)));
+										toasts_ctx.push(ToastCommand::push_info_with_message("Item classes changed", format!("Class set to {}", e.class)).with_duration(Duration::from_secs(5)));
 										items.set(Some(updated));
 								}
 							});
@@ -135,7 +140,8 @@ pub fn MediaGrid(props: MediaGridProps) -> Element {
 }
 
 #[component]
-fn PlaceholderGrid(count: usize) -> Element {
+fn PlaceholderGrid(count: usize) -> Element
+{
 	rsx! {
 		div{
 			class: "mediaGrid",
@@ -154,7 +160,8 @@ fn MediaList(
 	on_item_selected: Option<EventHandler<OnItemSelectedEvent>>,
 	on_class_changed: EventHandler<MediaClassChangeEvent>,
 	bulk_change_class: EventHandler<MediaClass>,
-) -> Element {
+) -> Element
+{
 	rsx! {
 		{items.iter().map(|itm| {
 			let is_selected = itm.id.as_ref().map(|id| selected.contains(&id.value)).unwrap_or_default();
@@ -172,26 +179,28 @@ fn MediaList(
 	}
 }
 
-async fn delete_media(id: String) -> Result<Response<()>, Status> {
+async fn delete_media(id: String) -> Result<Response<()>, Status>
+{
 	let mut client = get_rpc_client();
 	return client.delete_media(Id { value: id }).await;
 }
 
-async fn set_class(id: &str, class: MediaClass) -> Result<Response<()>, Status> {
+async fn set_class(id: &str, class: MediaClass) -> Result<Response<()>, Status>
+{
 	let mut client = get_rpc_client();
 	return client
 		.set_media_class(SetMediaClassRequest {
 			class: class.into(),
-			id: Some(Id {
-				value: id.to_owned(),
-			}),
+			id: Some(Id { value: id.to_owned() }),
 		})
 		.await;
 }
 
-fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>) {
+fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>)
+{
 	use_effect(move || {
-		if items().is_some() {
+		if items().is_some()
+		{
 			document::eval(
 				r#"
 				if (window.__thumbObserver) {

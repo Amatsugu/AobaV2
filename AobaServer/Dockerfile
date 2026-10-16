@@ -71,8 +71,8 @@ COPY --from=publish /app/publish .
 ARG VERSION
 # ENV S3_URL
 ENV S3_BUCKET="aoba"
-ENV CDN_HOST="https://aoba.app"
-ENV HOST="https://cdn.aboa.app"
+ENV HOST="https://aoba.app"
+ENV CDN_HOST="https://cdn.aboa.app"
 
 # ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 # ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID

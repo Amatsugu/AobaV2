@@ -1,6 +1,6 @@
 pub mod basic;
 mod context_menu;
-mod icons;
+pub mod icons;
 mod layout_groups;
 mod media_grid;
 mod media_item;

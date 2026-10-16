@@ -36,22 +36,24 @@ public class SearchQuery
 					var mediaTypes = field.Values.Select<string, MediaType?>(v => Enum.TryParse<MediaType>(v, true, out var mClass) ? mClass : null)
 						.Where(m => m != null)
 						.Cast<MediaType>();
-					filters.Add(Builders<Media>.Filter.In(m => m.MediaType, mediaTypes));
+					if(mediaTypes.Any())
+						filters.Add(Builders<Media>.Filter.In(m => m.MediaType, mediaTypes));
 					break;
 				case "class":
 					var mediaClasses = field.Values.Select<string, MediaClass?>(v => Enum.TryParse<MediaClass>(v, true, out var mClass) ? mClass : null)
 						.Where(m => m != null)
 						.Cast<MediaClass>();
-					filters.Add(Builders<Media>.Filter.In(m => m.Class, mediaClasses));
+					if(mediaClasses.Any())
+						filters.Add(Builders<Media>.Filter.In(m => m.Class, mediaClasses));
 					break;
-				case "tags":
+				case "tags" when field.Values.Count > 0:
 					filters.Add(Builders<Media>.Filter.AnyIn(m => m.Tags, field.Values));
 					break;
 			}
 		}
 		if (!string.IsNullOrWhiteSpace(TextQuery))
 			filters.Add(Builders<Media>.Filter.Text(TextQuery));
-		else if (filters.Count == 0)
+		if (filters.Count == 0)
 			filters.Add("{}");
 		return Builders<Media>.Filter.And(filters);
 	}

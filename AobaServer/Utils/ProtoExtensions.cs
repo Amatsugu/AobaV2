@@ -62,10 +62,19 @@ public static class ProtoExtensions
 			ViewCount = media.ViewCount,
 			ThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.Medium, host),
 			MediaUrl = media.GetMediaUrl(host),
+			CdnUrl = media.GetRawMediaUrl(host),
 			Class = (Aoba.RPC.MediaClass)(media.Class + 1),
-
 		};
+		if (media.Dimensions is SixLabors.ImageSharp.Size s)
+		{
+			result.Dimensions = new Dimensions
+			{
+				Height = (uint)s.Height,
+				Width = (uint)s.Width,
+			};
+		}
 		result.Thumbnails.AddRange(thumbs);
+		result.Tags.AddRange(media.Tags);
 		return result;
 	}
 

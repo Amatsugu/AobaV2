@@ -151,6 +151,7 @@ public class Media
 		return filename.Split('_')
 			.SelectMany(v => v.Split('-'))
 			.SelectMany(v => v.Split(' '))
+			.SelectMany(v => v.Split('.'))
 			.ToArray();
 	}
 }

@@ -95,7 +95,7 @@ builder.Services.AddAuthentication(options =>
 	options.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
 	options.Events = new JwtBearerEvents
 	{
-		OnMessageReceived = ctx => //Retreive token from cookie if not found in headers
+		OnMessageReceived = ctx => 
 		{
 			if (string.IsNullOrWhiteSpace(ctx.Token))
 				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");

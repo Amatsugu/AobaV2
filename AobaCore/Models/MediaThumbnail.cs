@@ -15,5 +15,5 @@ public enum ThumbnailSize
 	Small = 128,
 	Medium = 256,
 	Large = 512,
-	ExtraLarge = 1024
+	ExtraLarge = 1024,
 }

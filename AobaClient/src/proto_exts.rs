@@ -1,31 +1,38 @@
-use crate::rpc::aoba::{MediaClass, MediaModel, MediaType, ThumbnailSize};
+use std::fmt::Display;
 
-impl MediaModel {
-	pub fn get_thumbnail_url(&self, size: ThumbnailSize) -> Option<String> {
-		self.thumbnails.iter().find_map(|t| {
-			if t.size() == size {
-				Some(t.url.clone())
-			} else {
-				None
-			}
-		})
+use crate::rpc::aoba::{Dimensions, MediaClass, MediaModel, MediaType, ThumbnailSize};
+
+impl MediaModel
+{
+	pub fn get_thumbnail_url(&self, size: ThumbnailSize) -> Option<String>
+	{
+		self.thumbnails
+			.iter()
+			.find_map(|t| if t.size() == size { Some(t.url.clone()) } else { None })
 	}
 }
 
-impl From<MediaClass> for &str {
-	fn from(value: MediaClass) -> Self {
-		match value {
+impl Display for MediaClass
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		let v = match self
+		{
 			MediaClass::Unspecified => "Unkown",
 			MediaClass::Standard => "Standard",
 			MediaClass::Nsfw => "NSFW",
 			MediaClass::Secret => "Secret",
-		}
+		};
+		f.write_str(v)
 	}
 }
 
-impl From<MediaType> for &str {
-	fn from(value: MediaType) -> Self {
-		match value {
+impl Display for MediaType
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		let v = match self
+		{
 			MediaType::Image => "Image",
 			MediaType::Audio => "Audio",
 			MediaType::Video => "Video",
@@ -33,16 +40,28 @@ impl From<MediaType> for &str {
 			MediaType::Code => "Code",
 			MediaType::Raw => "Raw",
 			_ => "Unknown",
-		}
+		};
+		f.write_str(v)
 	}
 }
 
-impl MediaClass {
-	pub fn to_class_name(&self) -> &str {
-		match self {
+impl MediaClass
+{
+	pub fn to_class_name(&self) -> &str
+	{
+		match self
+		{
 			MediaClass::Nsfw => "blur",
 			MediaClass::Secret => "secret",
 			_ => "",
 		}
+	}
+}
+
+impl Display for Dimensions
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+	{
+		f.write_fmt(format_args!("{}x{}", self.height, self.width))
 	}
 }
