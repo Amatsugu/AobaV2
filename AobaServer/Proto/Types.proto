@@ -2,7 +2,6 @@ syntax = "proto3";
 package aoba;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "Aoba.RPC";
 
@@ -254,7 +253,7 @@ message MediaCollection {
   repeated Id media_items = 5;
   repeated string tags = 6;
   bool is_public = 7;
-  google.protobuf.Timestamp creation_date = 8;
+  // google.protobuf.Timestamp creation_date = 8;
 }
 
 message Dimensions{

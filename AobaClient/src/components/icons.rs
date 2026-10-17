@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn Info() -> Element
-{
+pub fn Info() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -19,8 +18,7 @@ pub fn Info() -> Element
 }
 
 #[component]
-pub fn Warn() -> Element
-{
+pub fn Warn() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -37,8 +35,7 @@ pub fn Warn() -> Element
 }
 
 #[component]
-pub fn Error() -> Element
-{
+pub fn Error() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -55,8 +52,7 @@ pub fn Error() -> Element
 }
 
 #[component]
-pub fn Image() -> Element
-{
+pub fn Image() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -73,8 +69,7 @@ pub fn Image() -> Element
 }
 
 #[component]
-pub fn Cog() -> Element
-{
+pub fn Cog() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -91,8 +86,7 @@ pub fn Cog() -> Element
 }
 
 #[component]
-pub fn Archive() -> Element
-{
+pub fn Archive() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -111,8 +105,7 @@ pub fn Archive() -> Element
 }
 
 #[component]
-pub fn Squares() -> Element
-{
+pub fn Squares() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -131,8 +124,7 @@ pub fn Squares() -> Element
 }
 
 #[component]
-pub fn Stack() -> Element
-{
+pub fn Stack() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -147,8 +139,7 @@ pub fn Stack() -> Element
 }
 
 #[component]
-pub fn Cross() -> Element
-{
+pub fn Cross() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -167,8 +158,7 @@ pub fn Cross() -> Element
 }
 
 #[component]
-pub fn UpCloud() -> Element
-{
+pub fn UpCloud() -> Element {
 	rsx! {
 		svg {
 			class: "size-6",
@@ -179,6 +169,44 @@ pub fn UpCloud() -> Element
 				clip_rule: "evenodd",
 				d: "M10.5 3.75a6 6 0 0 0-5.98 6.496A5.25 5.25 0 0 0 6.75 20.25H18a4.5 4.5 0 0 0 2.206-8.423 3.75 3.75 0 0 0-4.133-4.303A6.001 6.001 0 0 0 10.5 3.75Zm2.03 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v4.94a.75.75 0 0 0 1.5 0v-4.94l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z",
 				fill_rule: "evenodd",
+			}
+		}
+	}
+}
+
+#[component]
+pub fn LeftChevron() -> Element {
+	rsx! {
+		svg {
+			class: "size-6",
+			fill: "none",
+			stroke: "currentColor",
+			stroke_width: "1.5",
+			view_box: "0 0 24 24",
+			xmlns: "http://www.w3.org/2000/svg",
+			path {
+				d: "M15.75 19.5 8.25 12l7.5-7.5",
+				stroke_linecap: "round",
+				stroke_linejoin: "round",
+			}
+		}
+	}
+}
+
+#[component]
+pub fn RightChevron() -> Element {
+	rsx! {
+	  svg {
+			class: "size-6",
+			fill: "none",
+			stroke: "currentColor",
+			stroke_width: "1.5",
+			view_box: "0 0 24 24",
+			xmlns: "http://www.w3.org/2000/svg",
+			path {
+				d: "m8.25 4.5 7.5 7.5-7.5 7.5",
+				stroke_linecap: "round",
+				stroke_linejoin: "round",
 			}
 		}
 	}

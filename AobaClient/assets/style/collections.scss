@@ -1,0 +1,70 @@
+@import "mixins";
+@import "colors";
+
+:root {
+	background-color: $darkBGColor;
+}
+
+#viewerContent {
+	position: fixed;
+	height: 100dvh;
+	width: 100dvw;
+	display: grid;
+	grid-template-areas: "Title Title" "Display Side" "List Side";
+	grid-template-columns: 1fr 0px;
+	grid-template-rows: auto 1fr auto;
+
+	#titleBar {
+		grid-area: Title;
+	}
+
+	#displayArea {
+		grid-area: Display;
+	}
+
+	#sidebar {
+		grid-area: Side;
+	}
+
+	#mediaList {
+		grid-area: List;
+	}
+}
+
+#mediaList {
+	$thumbSize: 128px;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	padding: 10px;
+
+	.prev,
+	.next {
+		display: grid;
+		padding: 10px;
+		width: $thumbSize;
+		svg {
+			display: flex;
+			justify-content: center;
+			border-radius: 30%;
+			cursor: pointer;
+			transition: background-color 0.25s ease-out;
+
+			&:hover {
+				background-color: $buttonMutedBGHover;
+			}
+		}
+	}
+	.list {
+		display: flex;
+		flex-direction: row;
+		gap: 10px;
+		overflow-x: auto;
+
+		.collectionItem {
+			height: $thumbSize;
+			width: $thumbSize;
+			flex-shrink: 0;
+			background-color: #000;
+		}
+	}
+}
