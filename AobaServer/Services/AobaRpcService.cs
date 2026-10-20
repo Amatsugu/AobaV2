@@ -171,4 +171,27 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 		return result;
 	}
+
+	public override Task<Empty> UpdateMedia(Empty request, ServerCallContext context)
+	{
+		return base.UpdateMedia(request, context);
+	}
+
+	public override async Task<Empty> UpdateMediaTags(TagUpateRequest request, ServerCallContext context)
+	{
+		await aobaService.SetTagsAsync(request.MediaId.ToObjectId(), [.. request.Tags], context.CancellationToken);
+		return new Empty();
+	}
+
+	public override async Task<Empty> AddMediaTags(TagUpateRequest request, ServerCallContext context)
+	{
+		await aobaService.AddTagsAsync(request.MediaId.ToObjectId(), [.. request.Tags], context.CancellationToken);
+		return new Empty();
+	}
+
+	public override async Task<Empty> RemoveMediaTags(TagUpateRequest request, ServerCallContext context)
+	{
+		await aobaService.RemoveTagsAsync(request.MediaId.ToObjectId(), [.. request.Tags], context.CancellationToken);
+		return new Empty();
+	}
 }

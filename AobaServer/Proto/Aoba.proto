@@ -15,9 +15,9 @@ service AobaRpc {
   rpc SetMediaClass(SetMediaClassRequest) returns(google.protobuf.Empty);
   rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns (google.protobuf.Empty);
   //Tags
-  rpc UpdateMediaTags(google.protobuf.Empty) returns (google.protobuf.Empty);
-  rpc AddMediaTag(google.protobuf.Empty) returns (google.protobuf.Empty);
-  rpc RemoveMediaTag(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc UpdateMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
+  rpc AddMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
+  rpc RemoveMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   //User
   rpc GetUser(Id) returns (UserResponse);
   //Upload
