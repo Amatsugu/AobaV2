@@ -22,6 +22,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
 	{
+		logger.LogInformation("Handling login for {username}", request.User);
 		var user = await accountsService.VerifyLoginAsync(request.User, request.Password, context.CancellationToken);
 		if (user == null)
 			return new LoginResponse
@@ -35,7 +36,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		var token = user.GetToken(authInfo);
 		return new LoginResponse
 		{
-			Jwt = new ()
+			Jwt = new()
 			{
 				Token = token
 			}
@@ -59,7 +60,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 
 	public override async Task<LoginResponse> LoginPasskey(PasskeyLoginRequest request, ServerCallContext context)
 	{
-		var existingCred = await accountsService.GetStoredCredentialAsync([..request.RawId]);
+		var existingCred = await accountsService.GetStoredCredentialAsync([.. request.RawId]);
 
 		if (existingCred == null || !optsCache.TryRemove(request.CeremonyId.ToObjectId(), out var opts))
 			return new LoginResponse
@@ -72,13 +73,13 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		{
 			AssertionResponse = new AuthenticatorAssertionRawResponse
 			{
-				Id 	= request.Id,
-				RawId = [..request.RawId],
+				Id = request.Id,
+				RawId = [.. request.RawId],
 				Response = new AuthenticatorAssertionRawResponse.AssertionResponse
 				{
-					AuthenticatorData = [..request.AuthenticatorData],
-					ClientDataJson = [..request.ClientDataJson],
-					Signature = [..request.Signature],
+					AuthenticatorData = [.. request.AuthenticatorData],
+					ClientDataJson = [.. request.ClientDataJson],
+					Signature = [.. request.Signature],
 					UserHandle = [.. request.UserHandle]
 				},
 				Type = Fido2NetLib.Objects.PublicKeyCredentialType.PublicKey
@@ -90,10 +91,10 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		}, context.CancellationToken);
 
 
-		var userId = new ObjectId([..request.UserHandle]);
+		var userId = new ObjectId([.. request.UserHandle]);
 		var user = await accountsService.VerifyPasskeyLoginAsync(userId, result, context.CancellationToken);
 
-		if(user == null)
+		if (user == null)
 			return new LoginResponse
 			{
 				Error = new LoginError { Message = "Invalid credentials" }

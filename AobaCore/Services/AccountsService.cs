@@ -3,7 +3,7 @@
 using Fido2NetLib.Objects;
 
 using Isopoh.Cryptography.Argon2;
-
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace AobaCore.Services;
 
-public class AccountsService(IMongoDatabase db)
+public class AccountsService(IMongoDatabase db, ILogger<AccountsService> logger)
 {
 	private readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
 
@@ -46,30 +46,19 @@ public class AccountsService(IMongoDatabase db)
 	public async Task<User?> VerifyLoginAsync(string username, string password, CancellationToken cancellationToken = default)
 	{
 		var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
+
 		if (user == null)
 			return null;
 
 		if (user.IsArgon && Argon2.Verify(user.PasswordHash, password))
 			return user;
 
-		if (LegacyVerifyPassword(password, user.PasswordHash))
-		{
-#if !DEBUG
-			var argon2Hash = Argon2.Hash(password);
-			var update = Builders<User>.Update.Set(u => u.PasswordHash, argon2Hash).Set(u => u.IsArgon, true);
-			await _users.UpdateOneAsync(u => u.Id == user.Id, update, cancellationToken: cancellationToken);
-#endif
-			return user;
-		}
+		logger.LogWarning("Failed to verify login for user: {username}", user.Username);
 
 		return null;
 	}
 
-	public Task<User?> VerifyPasskeyLoginAsync()
-	{
-		throw new NotImplementedException();
-	}
-
+	[Obsolete("Use argon2 verify instead")]
 	public static bool LegacyVerifyPassword(string password, string passwordHash)
 	{
 		if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
@@ -127,7 +116,7 @@ public class AccountsService(IMongoDatabase db)
 			return null;
 
 		var cred = user.Credentials.FirstOrDefault(c => c.Descriptor.Id.Zip(result.CredentialId).All(e => e.First == e.Second));
-		if(cred == null)
+		if (cred == null)
 			return null;
 
 		cred.Counter = result.SignCount;
@@ -138,5 +127,5 @@ public class AccountsService(IMongoDatabase db)
 
 		return user;
 	}
-	
+
 }
