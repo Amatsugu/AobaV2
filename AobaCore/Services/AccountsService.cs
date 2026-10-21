@@ -48,12 +48,15 @@ public class AccountsService(IMongoDatabase db, ILogger<AccountsService> logger)
 		var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync(cancellationToken);
 
 		if (user == null)
+		{
+			logger.LogWarning("Failed to verify login for user: '{username}' - User does not exist", username);
 			return null;
+		}
 
 		if (user.IsArgon && Argon2.Verify(user.PasswordHash, password))
 			return user;
 
-		logger.LogWarning("Failed to verify login for user: {username}", user.Username);
+		logger.LogWarning("Failed to verify login for user: '{username}' - Invalid passowrd", user.Username);
 
 		return null;
 	}

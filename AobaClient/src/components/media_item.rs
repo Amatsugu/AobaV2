@@ -10,19 +10,18 @@ use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMe
 
 use crate::{
 	components::icons::Stack,
+	route::Route,
 	rpc::aoba::{MediaClass, MediaModel, MediaType},
 };
 pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);
 
-pub struct MediaClassChangeEvent
-{
+pub struct MediaClassChangeEvent {
 	pub id: String,
 	pub class: MediaClass,
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaItemProps
-{
+pub struct MediaItemProps {
 	pub item: MediaModel,
 	pub is_selected: bool,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
@@ -32,8 +31,7 @@ pub struct MediaItemProps
 }
 
 #[component]
-pub fn MediaItem(props: MediaItemProps) -> Element
-{
+pub fn MediaItem(props: MediaItemProps) -> Element {
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
 	let class = item.class();
@@ -41,8 +39,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let filename = item.filename;
 	let id = item.id.unwrap_or_default().value;
 	let thumb = item.thumb_url;
-	let selected_class = match props.is_selected
-	{
+	let selected_class = match props.is_selected {
 		true => "selected",
 		false => "",
 	};
@@ -64,8 +61,8 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 					key: "{id.clone()}",
 					onmousemove: onmove,
 					class: "mediaItem {class_string} {selected_class}",
-					href: item.media_url.to_string(),
-					target: "_blank",
+					href: "/media/{id.clone()}",
+					// href: Route::Media { id },
 					draggable: false,
 					"data-id" : id.clone(),
 					MediaThumb { media_type: thumb_type, url: thumb }
@@ -92,12 +89,9 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 }
 
 #[component]
-pub fn MediaThumb(media_type: MediaType, url: String) -> Element
-{
-	match media_type
-	{
-		MediaType::Video =>
-		{
+pub fn MediaThumb(media_type: MediaType, url: String) -> Element {
+	match media_type {
+		MediaType::Video => {
 			rsx! {
 				video {
 					src: url,
@@ -121,8 +115,7 @@ pub fn MediaThumb(media_type: MediaType, url: String) -> Element
 }
 
 #[component]
-pub fn MediaItemPlaceHolder() -> Element
-{
+pub fn MediaItemPlaceHolder() -> Element {
 	return rsx! {
 		div { class: "mediaItem placeholder",
 			img { },

@@ -43,7 +43,6 @@ pub fn PasskeyRegistrationButton() -> Element {
 
 	rsx! {
 		Button{
-			text: button_text(),
 			disabled: button_disabled(),
 			onclick: move |_| {
 				buttion_state.set(RegistrationState::Registering);
@@ -59,7 +58,8 @@ pub fn PasskeyRegistrationButton() -> Element {
 						},
 					};
 				});
-			}
+			},
+			{button_text()}
 		}
 	}
 }

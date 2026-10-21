@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Clone, Props)]
 pub struct ButtonProps {
 	pub variant: Option<ButtonVariant>,
-	pub text: String,
+	pub children: Element,
 	pub onclick: Option<EventHandler<Event<MouseData>>>,
 	pub disabled: Option<bool>,
 }
@@ -35,7 +35,7 @@ pub fn Button(props: ButtonProps) -> Element {
 					h.call(event);
 				}
 			},
-			"{props.text}"
+			{props.children}
 		}
 	}
 }

@@ -98,18 +98,18 @@ pub fn SelectionBar(
 						class: "horizFlexBox center",
 						style: "gap:10px",
 						Button{
-							text: "Delete",
 							onclick: move |_|{
 								delete_modal_open.set(false);
 								on_items_delete.call(());
-							}
+							},
+							"Delete",
 						}
 						Button{
-							text: "Cancel",
 							variant: ButtonVariant::Cancel,
 							onclick: move |_|{
 								delete_modal_open.set(false);
-							}
+							},
+							"Cancel",
 						}
 					}
 				}

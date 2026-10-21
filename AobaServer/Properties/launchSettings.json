@@ -1,22 +1,22 @@
 {
-  "profiles": {
-    "DevDB": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_NAME": "Aoba_dev"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:8081"
-    },
-    "LiveDB": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:8081"
-    }
-  },
-  "$schema": "https://json.schemastore.org/launchsettings.json"
+	"profiles": {
+		"DevDB": {
+			"commandName": "Project",
+			"environmentVariables": {
+				"ASPNETCORE_ENVIRONMENT": "Development",
+				"DB_NAME": "Aoba"
+			},
+			"dotnetRunMessages": true,
+			"applicationUrl": "http://localhost:8081"
+		},
+		"LiveDB": {
+			"commandName": "Project",
+			"environmentVariables": {
+				"ASPNETCORE_ENVIRONMENT": "Development"
+			},
+			"dotnetRunMessages": true,
+			"applicationUrl": "http://localhost:8081"
+		}
+	},
+	"$schema": "https://json.schemastore.org/launchsettings.json"
 }

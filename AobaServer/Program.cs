@@ -33,6 +33,7 @@ builder.Services.AddGrpc();
 //DB
 var dbString = config["DB_STRING"];
 var dbName = config["DB_NAME"];
+Console.WriteLine($"Using db: '{dbName}' at '{dbString}'");
 var settings = MongoClientSettings.FromConnectionString(dbString);
 settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
 var dbClient = new MongoClient(settings);
@@ -95,7 +96,7 @@ builder.Services.AddAuthentication(options =>
 	options.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
 	options.Events = new JwtBearerEvents
 	{
-		OnMessageReceived = ctx => 
+		OnMessageReceived = ctx =>
 		{
 			if (string.IsNullOrWhiteSpace(ctx.Token))
 				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");

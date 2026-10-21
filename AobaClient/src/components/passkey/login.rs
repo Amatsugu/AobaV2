@@ -20,7 +20,6 @@ pub fn PasskeyLoginButton(error: Signal<Option<String>>) -> Element {
 	let mut disabled = use_signal(|| false);
 	rsx! {
 		Button{
-			text: "Login with Passkey",
 			disabled: disabled(),
 			onclick: move |_|{
 				disabled.set(true);
@@ -31,7 +30,8 @@ pub fn PasskeyLoginButton(error: Signal<Option<String>>) -> Element {
 					}
 					disabled.set(false);
 				});
-			}
+			},
+			"Login with Passkey"
 		}
 	}
 }

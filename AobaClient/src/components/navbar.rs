@@ -41,7 +41,7 @@ pub fn MainNaviagation() -> Element {
 pub fn Branding() -> Element {
 	rsx! {
 		div { class: "branding",
-			img { src: NAV_ICON, alt: "Aoba" }
+			img { height: "64", width: "64", src: NAV_ICON, alt: "Aoba" }
 		}
 	}
 }
