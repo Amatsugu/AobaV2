@@ -18,6 +18,10 @@ service AobaRpc {
   rpc UpdateMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc AddMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc RemoveMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
+  //Tags Bulk
+  rpc UpdateMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
+  rpc AddMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
+  rpc RemoveMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
   //User
   rpc GetUser(Id) returns (UserResponse);
   //Upload
