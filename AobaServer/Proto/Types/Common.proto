@@ -1,0 +1,74 @@
+syntax = "proto3";
+package aoba;
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "Aoba.RPC.Models";
+
+
+
+message PageFilter {
+  optional int32 page = 1;
+  optional int32 page_size = 2;
+  optional string query = 3;
+}
+
+message Id {
+  string value = 1;
+}
+
+message IdList {
+  repeated Id value = 1;
+}
+
+
+message Pagination {
+  int32 page = 1;
+  int32 page_size = 2;
+  int32 total_pages = 3;
+  int32 total_items = 4;
+  optional string query = 5;
+}
+
+message UserResponse {
+  oneof user_result {
+    UserModel user = 1;
+    google.protobuf.Empty empty = 2;
+  }
+}
+
+message UserModel {
+  Id id = 1;
+  string username = 2;
+  string email = 3;
+  bool is_admin = 4;
+}
+
+
+
+message ShareXResponse {
+  oneof dst_result {
+    string destination = 1;
+    string error = 2;
+  }
+}
+
+message SearchQuery {
+  optional string query_text = 1;
+  repeated Filter filters = 2;
+}
+
+message Filter {
+  string key = 1;
+  repeated string values = 2;
+}
+
+message ErrorList {
+  repeated string error_messages = 1;
+}
+
+message Error {
+  string message = 1;
+}
+
+

@@ -3,7 +3,10 @@ import "google/protobuf/empty.proto";
 
 option csharp_namespace = "Aoba.RPC";
 package aoba;
-import "Proto/Types.proto";
+import "Proto/Types/Common.proto";
+import "Proto/Types/Media.proto";
+import "Proto/Types/Auth.proto";
+
 
 service AobaRpc {
   rpc GetMedia (Id) returns (MediaResponse);

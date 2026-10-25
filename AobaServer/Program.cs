@@ -127,8 +127,8 @@ builder.Services.AddAoba().AddAobaS3();
 var host = config["HOST"] ?? throw new NotImplementedException("HOST is not set");
 builder.Services.AddFido2(opts =>
 {
-	opts.ServerName = "Aoba";
-	opts.ServerDomain = new Uri(host).Host;
+	opts.RPName = "Aoba";
+	opts.RPID = new Uri(host).Host;
 #if DEBUG
 	opts.Origins = new HashSet<string> { "http://localhost:8080", "http://127.0.0.1:8080" };
 #else

@@ -223,37 +223,37 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 
 	public async Task AddTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags);
+		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
 	}
 
 	public async Task RemoveTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags);
+		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
 	}
 
 	public async Task SetTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.Set(m => m.Tags, tags);
+		var update = Builders<Media>.Update.Set(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
 	}
 
 	public async Task AddTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags);
+		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
 	}
 
 	public async Task RemoveTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags);
+		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
 	}
 
 	public async Task SetTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<Media>.Update.Set(m => m.Tags, tags);
+		var update = Builders<Media>.Update.Set(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
 		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
 	}
 

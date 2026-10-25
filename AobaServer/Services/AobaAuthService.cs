@@ -13,6 +13,7 @@ using Aoba.RPC;
 using Fido2NetLib;
 using MongoDB.Bson;
 using Google.Protobuf.WellKnownTypes;
+using Aoba.RPC.Models;
 
 
 namespace AobaServer.Services;
@@ -27,7 +28,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		if (user == null)
 			return new LoginResponse
 			{
-				Error = new LoginError
+				Error = new Error
 				{
 					Message = "Invalid login credentials"
 				}
@@ -65,7 +66,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		if (existingCred == null || !optsCache.TryRemove(request.CeremonyId.ToObjectId(), out var opts))
 			return new LoginResponse
 			{
-				Error = new LoginError { Message = "Invalid credentials" }
+				Error = new Error { Message = "Invalid credentials" }
 			};
 		logger.LogInformation("Assertion Response for {id}", request.CeremonyId.ToObjectId());
 

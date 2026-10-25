@@ -1,5 +1,6 @@
 ﻿using Aoba.RPC;
 using Aoba.RPC.Auth;
+using Aoba.RPC.Models;
 
 using Google.Protobuf.WellKnownTypes;
 

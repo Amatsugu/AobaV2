@@ -1,4 +1,5 @@
 ﻿using Aoba.RPC;
+using Aoba.RPC.Models;
 
 using AobaCore.Models;
 using AobaCore.Services;

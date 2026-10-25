@@ -152,6 +152,7 @@ public class Media
 			.SelectMany(v => v.Split('-'))
 			.SelectMany(v => v.Split(' '))
 			.SelectMany(v => v.Split('.'))
+			.Where(t => !string.IsNullOrWhiteSpace(t))
 			.ToArray();
 	}
 }
