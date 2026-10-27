@@ -3,7 +3,10 @@ import "google/protobuf/empty.proto";
 
 option csharp_namespace = "Aoba.RPC";
 package aoba;
-import "Proto/Types.proto";
+import "Proto/Types/Common.proto";
+import "Proto/Types/Media.proto";
+import "Proto/Types/Auth.proto";
+
 
 service AobaRpc {
   rpc GetMedia (Id) returns (MediaResponse);
@@ -18,6 +21,10 @@ service AobaRpc {
   rpc UpdateMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc AddMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc RemoveMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
+  //Tags Bulk
+  rpc UpdateMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
+  rpc AddMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
+  rpc RemoveMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
   //User
   rpc GetUser(Id) returns (UserResponse);
   //Upload

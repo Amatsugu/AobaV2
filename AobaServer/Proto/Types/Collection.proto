@@ -1,0 +1,26 @@
+syntax = "proto3";
+package aoba;
+
+import "google/protobuf/empty.proto";
+import "Proto/Types/Common.proto";
+
+option csharp_namespace = "Aoba.RPC.Models";
+
+message MediaCollection {
+  Id id = 1;
+  Id owner = 2;
+  string title = 3;
+  optional string description = 4;
+  repeated Id media_items = 5;
+  repeated string tags = 6;
+  bool is_public = 7;
+  // google.protobuf.Timestamp creation_date = 8;
+}
+
+
+message MediaCollectionResponse {
+	optional MediaCollection result = 1;
+}
+
+message CreateCollectionRequest{
+}

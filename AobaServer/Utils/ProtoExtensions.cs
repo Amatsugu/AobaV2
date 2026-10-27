@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 using AobaCore.Services;
 using Google.Protobuf.Collections;
 using System.Net.Mail;
+using Aoba.RPC.Models;
 
 namespace AobaServer.Utils;
 
@@ -47,9 +48,9 @@ public static class ProtoExtensions
 
 	public static MediaModel ToMediaModel(this Media media, HostInfo host)
 	{
-		var thumbs = System.Enum.GetValues<AobaCore.Models.ThumbnailSize>().Select(s => new Aoba.RPC.MediaThumbnail
+		var thumbs = System.Enum.GetValues<AobaCore.Models.ThumbnailSize>().Select(s => new Aoba.RPC.Models.MediaThumbnail
 		{
-			Size = (Aoba.RPC.ThumbnailSize)s,
+			Size = (Aoba.RPC.Models.ThumbnailSize)s,
 			Url = media.GetThumbnailUrl(s, host)
 		});
 		var result = new MediaModel()
@@ -57,13 +58,13 @@ public static class ProtoExtensions
 			Ext = media.Ext,
 			Filename = media.Filename,
 			Id = media.MediaId.ToId(),
-			MediaType = (Aoba.RPC.MediaType)(media.MediaType + 1),
+			MediaType = (Aoba.RPC.Models.MediaType)(media.MediaType + 1),
 			Owner = media.Owner.ToId(),
 			ViewCount = media.ViewCount,
 			ThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.Medium, host),
 			MediaUrl = media.GetMediaUrl(host),
 			CdnUrl = media.GetRawMediaUrl(host),
-			Class = (Aoba.RPC.MediaClass)(media.Class + 1),
+			Class = (Aoba.RPC.Models.MediaClass)(media.Class + 1),
 		};
 		if (media.Dimensions is SixLabors.ImageSharp.Size s)
 		{
@@ -93,7 +94,7 @@ public static class ProtoExtensions
 		return id.Value.Select(v => v.ToObjectId());
 	}
 
-	public static AobaCore.Models.MediaClass FromRPC(this Aoba.RPC.MediaClass mediaClass) => (AobaCore.Models.MediaClass)(mediaClass - 1);
+	public static AobaCore.Models.MediaClass FromRPC(this Aoba.RPC.Models.MediaClass mediaClass) => (AobaCore.Models.MediaClass)(mediaClass - 1);
 
 
 	public static PasskeyCreationResponse ToResponse(this Fido2NetLib.CredentialCreateOptions opts)

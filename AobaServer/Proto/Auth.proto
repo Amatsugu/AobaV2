@@ -4,7 +4,8 @@ option csharp_namespace = "Aoba.RPC.Auth";
 package aoba;
 
 import "google/protobuf/empty.proto";
-import "Proto/Types.proto";
+import "Proto/Types/Common.proto";
+import "Proto/Types/Auth.proto";
 
 service AuthRpc {
 	rpc Login(Credentials) returns (LoginResponse);

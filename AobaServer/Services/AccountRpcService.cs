@@ -1,5 +1,6 @@
 ﻿using Aoba.RPC;
 using Aoba.RPC.Account;
+using Aoba.RPC.Models;
 
 using AobaCore.Services;
 
@@ -11,7 +12,6 @@ using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
 
-using Isopoh.Cryptography.Argon2;
 
 namespace AobaServer.Services;
 
@@ -24,7 +24,7 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 		{
 			return new PasskeyCreationResponse
 			{
-				Error = new LoginError
+				Error = new Error
 				{
 					Message = "User is not logged in or does not exist"
 				}
