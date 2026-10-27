@@ -242,9 +242,25 @@ fn MediaDisplay(url: String, media_type: MediaType) -> Element {
 	rsx! {
 		div{
 			class: "display",
-			MediaThumb {
-				media_type,
-				url
+			match media_type {
+				MediaType::Video => {
+					rsx! {
+						video {
+							src: url,
+							autoplay: false,
+							muted: false,
+							playsinline: true,
+							loop: false
+						}
+					}
+				},
+				MediaType::Raw => rsx!{ Stack {} },
+				_ => rsx! {
+					img {
+						src: url,
+						loading: "lazy"
+					}
+				}
 			}
 		}
 	}
