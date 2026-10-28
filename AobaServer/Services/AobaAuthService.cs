@@ -98,7 +98,7 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		if (user == null)
 			return new LoginResponse
 			{
-				Error = new LoginError { Message = "Invalid credentials" }
+				Error = new Error { Message = "Invalid credentials" }
 			};
 
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();

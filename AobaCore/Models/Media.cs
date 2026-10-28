@@ -25,10 +25,10 @@ public class Media
 	public ObjectId Owner { get; set; }
 	public DateTime UploadDate { get; set; }
 	public string[] Tags { get; set; } = [];
-	public Size? Dimensions { get; set; }
 	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
 	public MediaClass Class { get; set; }
 	public CdnData? Cdn { get; set; }
+	public MediaMetadata? Metadata { get; set; }
 
 	public static readonly Dictionary<string, MediaType> KnownTypes = new()
 		{
@@ -178,4 +178,12 @@ public enum MediaClass
 	Standard,
 	NSFW,
 	Secret
+}
+
+public class MediaMetadata
+{
+	public Size? Dimensions { get; set; }
+	public long FileSize { get; set; }
+	public long? Duration { get; set; }
+	public bool? Hdr { get; set; }
 }

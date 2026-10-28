@@ -269,4 +269,10 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 		Console.WriteLine("All Tags Derived");
 	}
+
+	public async Task<List<Media>> GetMediaWithoutMetadataAsync(int limit = 100, CancellationToken cancellationToken = default)
+	{
+		var filter = Builders<Media>.Filter.Exists(m => m.Metadata, false);
+		return await _media.Find(filter).Limit(limit).ToListAsync(cancellationToken);
+	}
 }
