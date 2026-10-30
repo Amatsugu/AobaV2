@@ -7,6 +7,7 @@ mod media_item;
 mod media_item_context_menu_items;
 mod metrics_token;
 mod modal;
+pub mod modals;
 mod navbar;
 mod notif;
 mod pagination;
