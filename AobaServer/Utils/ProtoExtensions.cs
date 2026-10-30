@@ -66,7 +66,7 @@ public static class ProtoExtensions
 			CdnUrl = media.GetRawMediaUrl(host),
 			Class = (Aoba.RPC.Models.MediaClass)(media.Class + 1),
 		};
-		if (media.Dimensions is SixLabors.ImageSharp.Size s)
+		if (media.Metadata?.Dimensions is SixLabors.ImageSharp.Size s)
 		{
 			result.Dimensions = new Dimensions
 			{

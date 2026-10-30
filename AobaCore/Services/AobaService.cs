@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using AobaCore.Models;
 
 using MaybeError.Errors;
@@ -275,4 +276,23 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		var filter = Builders<Media>.Filter.Exists(m => m.Metadata, false);
 		return await _media.Find(filter).Limit(limit).ToListAsync(cancellationToken);
 	}
+
+	public async Task<Dictionary<string, int>> GetBulkTagInfoAsync(IEnumerable<ObjectId> ids, CancellationToken cancellationToken = default)
+	{
+		_media.Aggregate().Match(m => ids.Contains(m.MediaId)).As<MediaTags>()
+			.Unwind(m => m.Tags, new AggregateUnwindOptions<TagsUnwind>())
+			.Group(id: m => m.Tags, group: g =>
+			new TagGroups
+			{
+				Count = g.Count()
+			});
+		throw new NotImplementedException();
+	}
+	private record MediaTags(ObjectId Id, string[] Tags);
+	private record TagsUnwind(ObjectId Id, string Tags);
+	private record TagGroups
+	{
+		public String Id { get; set; } = "";
+		public int Count { get; set; }
+	};
 }
