@@ -277,22 +277,22 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		return await _media.Find(filter).Limit(limit).ToListAsync(cancellationToken);
 	}
 
-	public async Task<Dictionary<string, int>> GetBulkTagInfoAsync(IEnumerable<ObjectId> ids, CancellationToken cancellationToken = default)
+	public async Task<List<TagGroup>> GetBulkTagInfoAsync(IEnumerable<ObjectId> ids, CancellationToken cancellationToken = default)
 	{
-		_media.Aggregate().Match(m => ids.Contains(m.MediaId)).As<MediaTags>()
+		var groups = await _media.Aggregate().Match(m => ids.Contains(m.MediaId)).As<MediaTags>()
 			.Unwind(m => m.Tags, new AggregateUnwindOptions<TagsUnwind>())
-			.Group(id: m => m.Tags, group: g =>
-			new TagGroups
+			.Group(id: m => m.Tags, group: g => new TagGroup
 			{
+				Id = g.Key,
 				Count = g.Count()
-			});
-		throw new NotImplementedException();
+			}).ToListAsync(cancellationToken);
+		return groups;
 	}
 	private record MediaTags(ObjectId Id, string[] Tags);
 	private record TagsUnwind(ObjectId Id, string Tags);
-	private record TagGroups
+	public record TagGroup
 	{
-		public String Id { get; set; } = "";
+		public string Id { get; set; } = "";
 		public int Count { get; set; }
 	};
 }

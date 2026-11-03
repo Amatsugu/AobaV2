@@ -23,10 +23,10 @@ public class AccountsService(IMongoDatabase db, ILogger<AccountsService> logger)
 	private readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
 
 #if DEBUG
-	public async Task CreateDevAccountAsync()
+	public async Task<bool> CreateDevAccountAsync()
 	{
 		if (await _users.AsQueryable().AnyAsync())
-			return;
+			return false;
 		var user = new User
 		{
 			Username = "dev",
@@ -35,6 +35,7 @@ public class AccountsService(IMongoDatabase db, ILogger<AccountsService> logger)
 			PasswordHash = Argon2.Hash("dev")
 		};
 		await _users.InsertOneAsync(user);
+		return true;
 	}
 #endif
 
