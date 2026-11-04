@@ -23,7 +23,7 @@ public static class OpenTelemetry
 
 		otel.ConfigureResource(res =>
 		{
-			res.AddService(serviceName: $"Breeze: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+			res.AddService(serviceName: $"Aoba: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
 		});
 
 
@@ -41,23 +41,27 @@ public static class OpenTelemetry
 			.AddMeter("System.Net.NameResolution")
 			.AddMeter("System.Runtime")
 			.AddMeter("Microsoft.AspNetCore.Diagnostics")
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
 			.AddPrometheusExporter());
 
-		// Add Tracing for ASP.NET Core and our custom ActivitySource and export to Jaeger
 		var tracingOtlpEndpoint = configuration["OTLP_ENDPOINT_URL"];
-		otel.WithTracing(tracing =>
+		if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
 		{
-			tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources");
-			tracing.AddAspNetCoreInstrumentation();
-			tracing.AddHttpClientInstrumentation();
-			if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
+			otel.WithTracing(tracing =>
 			{
-				tracing.AddOtlpExporter(otlpOptions =>
+				tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources");
+				tracing.AddAspNetCoreInstrumentation();
+				tracing.AddHttpClientInstrumentation();
+				if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
 				{
-					otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
-				});
-			}
-		});
+					tracing.AddOtlpExporter(otlpOptions =>
+					{
+						otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+					});
+				}
+			});
+		}
 	}
 
 
