@@ -35,9 +35,12 @@ public static class OpenTelemetry
 			// Metrics provides by ASP.NET Core in .NET 8
 			.AddMeter("Microsoft.AspNetCore.Hosting")
 			.AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+			.AddMeter("Grpc.AspNetCore.Server")
 			// Metrics provided by System.Net libraries
 			.AddMeter("System.Net.Http")
 			.AddMeter("System.Net.NameResolution")
+			.AddMeter("System.Runtime")
+			.AddMeter("Microsoft.AspNetCore.Diagnostics")
 			.AddPrometheusExporter());
 
 		// Add Tracing for ASP.NET Core and our custom ActivitySource and export to Jaeger
