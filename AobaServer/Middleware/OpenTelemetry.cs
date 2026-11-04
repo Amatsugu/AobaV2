@@ -17,7 +17,7 @@ namespace AobaServer.Middleware;
 
 public static class OpenTelemetry
 {
-	public static void AddObersability(this IServiceCollection services, IConfiguration configuration)
+	public static void AddObservability(this IServiceCollection services, IConfiguration configuration)
 	{
 		var otel = services.AddOpenTelemetry();
 
@@ -72,9 +72,9 @@ public static class OpenTelemetry
 		return builder;
 	}
 
-	public static IEndpointRouteBuilder MapObserability(this IEndpointRouteBuilder endpoints)
+	public static IEndpointRouteBuilder MapObservability(this IEndpointRouteBuilder endpoints)
 	{
-		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization(o => o.RequireRole("metrics"));
+		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization(Consts.MetricsAuthPolicy);
 		return endpoints;
 	}
 }

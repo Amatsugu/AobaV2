@@ -39,7 +39,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 	public override async Task<Empty> SetMediaClass(SetMediaClassRequest request, ServerCallContext context)
 	{
-		await aobaService.SetMediaClassAsync(request.Id.ToObjectId(), request.Class.FromRPC(), context.CancellationToken);
+		await aobaService.SetMediaClassAsync(request.Id.ToObjectId(), request.Class.FromRPC(), context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
@@ -75,11 +75,11 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		{
 			await s3.DeleteFileAsync(media.Cdn.Url, CancellationToken.None);
 			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
-			await aobaService.DeleteMediaAsync(media.MediaId, context.CancellationToken);
+			await aobaService.DeleteMediaAsync(media.MediaId, context.GetUserId(), context.CancellationToken);
 		}
 		else
 		{
-			await aobaService.DeleteFileAsync(media.MediaId, context.CancellationToken);
+			await aobaService.DeleteFileAsync(media.MediaId, context.GetUserId(), context.CancellationToken);
 			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
 		}
 		return new Empty();
@@ -90,14 +90,14 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
 		if (media.Count == 0)
 			return new Empty();
-		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.CancellationToken);
+		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.GetUserId(), context.CancellationToken);
 		foreach (var item in media)
 		{
 			if (item.Cdn != null)
 			{
 				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);
 				await thumbnailService.DeleteAllThumbnailsAsync(item.MediaId);
-				await aobaService.DeleteMediaAsync(item.MediaId, context.CancellationToken);
+				await aobaService.DeleteMediaAsync(item.MediaId, context.GetUserId(), context.CancellationToken);
 			}
 			else
 			{
@@ -109,7 +109,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 	public override async Task<Empty> SetMediaClassBulk(SetMediaClassBulkRequest request, ServerCallContext context)
 	{
-		await aobaService.SetMediaClassAsync(request.Ids.ToObjectId(), request.Class.FromRPC(), context.CancellationToken);
+		await aobaService.SetMediaClassAsync(request.Ids.ToObjectId(), request.Class.FromRPC(), context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
@@ -180,37 +180,37 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 
 	public override async Task<Empty> UpdateMediaTags(TagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.SetTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.SetTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
 	public override async Task<Empty> AddMediaTags(TagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.AddTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.AddTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
 	public override async Task<Empty> RemoveMediaTags(TagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.RemoveTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.RemoveTagsAsync(request.MediaId.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
 	public override async Task<Empty> UpdateMediaTagsBulk(BulkTagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.SetTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.SetTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
 	public override async Task<Empty> AddMediaTagsBulk(BulkTagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.AddTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.AddTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 
 	public override async Task<Empty> RemoveMediaTagsBulk(BulkTagUpateRequest request, ServerCallContext context)
 	{
-		await aobaService.RemoveTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.CancellationToken);
+		await aobaService.RemoveTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
 	}
 }

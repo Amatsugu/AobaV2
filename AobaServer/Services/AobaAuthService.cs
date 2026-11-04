@@ -53,8 +53,11 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 			AllowedCredentials = [],
 			UserVerification = Fido2NetLib.Objects.UserVerificationRequirement.Required
 		});
-		if (!optsCache.TryAdd(ceremonyId, opts))
-			return Task.FromResult(new PasskeyAssertionResponse { ErrorMessage = "Failed to get assertion options" });
+		if (!optsCache.Add(ceremonyId, opts))
+		{
+			logger.LogWarning("Failed to cache {}, id conflict", nameof(AssertionOptions));
+			return Task.FromResult(new PasskeyAssertionResponse { ErrorMessage = "Failed to start assertion" });
+		}
 
 		return Task.FromResult(opts.ToResponse(ceremonyId));
 	}

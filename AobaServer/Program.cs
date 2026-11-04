@@ -1,5 +1,6 @@
 using AobaCore;
 
+using AobaServer;
 using AobaServer.Auth;
 using AobaServer.Middleware;
 using AobaServer.Models;
@@ -8,6 +9,7 @@ using AobaServer.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 using MongoDB.Driver;
@@ -27,13 +29,13 @@ var config = builder.Configuration;
 // Add services to the container.
 builder.Services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonIdModelBinderProvider()));
 
-builder.Services.AddObersability(builder.Configuration);
+builder.Services.AddObservability(builder.Configuration);
 builder.Services.AddGrpc();
 
 //DB
-var dbString = config["DB_STRING"];
-var dbName = config["DB_NAME"];
-Console.WriteLine($"Using db: '{dbName}' at '{dbString}'");
+var dbString = config["DB_STRING"] ?? throw new InvalidOperationException("DB_STRING is not set");
+var dbName = config["DB_NAME"] ?? throw new InvalidOperationException("DB_NAME is not set");
+Console.WriteLine($"Using db: '{dbName}'");
 var settings = MongoClientSettings.FromConnectionString(dbString);
 settings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
 var dbClient = new MongoClient(settings);
@@ -48,7 +50,7 @@ var authCfg = new AuthConfigService(db);
 builder.Services.AddSingleton(authCfg);
 
 
-var authInfo = authCfg.GetDefaultAuthInfoAsync().GetAwaiter().GetResult();
+var authInfo = await authCfg.GetDefaultAuthInfoAsync();
 var signingKey = new SymmetricSecurityKey(authInfo.SecureKey);
 
 var validationParams = new TokenValidationParameters
@@ -63,6 +65,7 @@ var validationParams = new TokenValidationParameters
 	ClockSkew = TimeSpan.FromMinutes(1),
 };
 
+var host = config["HOST"] ?? throw new InvalidOperationException("HOST is not set");
 builder.Services.AddCors(o =>
 {
 	o.AddPolicy("AllowAll", p =>
@@ -76,55 +79,56 @@ builder.Services.AddCors(o =>
 		p.AllowAnyMethod();
 		p.AllowAnyHeader();
 		p.WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+#if DEBUG
 		p.AllowAnyOrigin();
+#else
+		p.WithOrigins(new Uri(host).GetLeftPart(UriPartial.Authority));
+#endif
 	});
 });
+
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy(Consts.MetricsAuthPolicy, p =>
+	{
+		p.AddAuthenticationSchemes(Consts.MetricsAuthScheme)
+			.RequireAuthenticatedUser()
+			.RequireRole("metrics");
+	});
 builder.Services.AddRequestTimeouts(cfg =>
 {
 	cfg.AddPolicy("upload", TimeSpan.FromMinutes(10));
 	cfg.AddPolicy("thumbnails", TimeSpan.FromMinutes(10));
 });
 
-var metricsAuthInfo = authCfg.GetAuthInfoAsync("aoba", "metrics").GetAwaiter().GetResult();
+var metricsAuthInfo = await authCfg.GetAuthInfoAsync("aoba", "metrics");
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = "Aoba";
+	options.DefaultChallengeScheme = Consts.AobaChallengeScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
 	options.TokenValidationParameters = validationParams;
-	options.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
 	options.Events = new JwtBearerEvents
 	{
+#if DEBUG //allow cookie based auth when in debug mode
 		OnMessageReceived = ctx =>
 		{
 			if (string.IsNullOrWhiteSpace(ctx.Token))
-				ctx.Token = ctx.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
-
-#if DEBUG //allow cookie based auth when in debug mode
-			if (string.IsNullOrWhiteSpace(ctx.Token))
-				ctx.Token = ctx.Request.Cookies.FirstOrDefault(c => c.Key == "token").Value;
-#endif
+				ctx.Token = ctx.Request.Cookies["token"];
 
 			return Task.CompletedTask;
 		},
-		OnAuthenticationFailed = ctx =>
-		{
-			ctx.Response.Cookies.Append("token", "", new CookieOptions
-			{
-				MaxAge = TimeSpan.Zero,
-				Expires = DateTime.Now
-			});
-			ctx.Options.ForwardChallenge = "Aoba";
-
-			return Task.CompletedTask;
-		}
+#endif
 	};
-}).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>("Aoba", null);
+}).AddJwtBearer(Consts.MetricsAuthScheme, opts =>
+{
+	opts.TokenHandlers.Clear();
+	opts.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
+
+}).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>(Consts.AobaChallengeScheme, null);
 
 
 builder.Services.AddAoba().AddAobaS3();
-var host = config["HOST"] ?? throw new NotImplementedException("HOST is not set");
 builder.Services.AddFido2(opts =>
 {
 	opts.RPName = "Aoba";
@@ -155,10 +159,11 @@ if (!app.Environment.IsDevelopment())
 	app.UseHsts();
 }
 
-app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.UseForwardedHeaders();
 app.UseStaticFiles();
 app.UseRouting();
-
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.UseRequestTimeouts();
 
 app.UseCors();
 
@@ -179,7 +184,7 @@ app.MapGrpcService<MetricsRpcService>()
 app.MapGrpcService<AobaAuthService>()
 	.AllowAnonymous()
 	.RequireCors("RPC");
-app.MapObserability();
+app.MapObservability();
 app.MapFallbackToFile("index.html");
 
 app.Run();
