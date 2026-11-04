@@ -74,7 +74,7 @@ public static class OpenTelemetry
 
 	public static IEndpointRouteBuilder MapObserability(this IEndpointRouteBuilder endpoints)
 	{
-		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization();
+		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization(o => o.RequireRole("metrics"));
 		return endpoints;
 	}
 }
