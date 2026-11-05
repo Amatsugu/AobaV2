@@ -17,13 +17,13 @@ namespace AobaServer.Middleware;
 
 public static class OpenTelemetry
 {
-	public static void AddObersability(this IServiceCollection services, IConfiguration configuration)
+	public static void AddObservability(this IServiceCollection services, IConfiguration configuration)
 	{
 		var otel = services.AddOpenTelemetry();
 
 		otel.ConfigureResource(res =>
 		{
-			res.AddService(serviceName: $"Breeze: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+			res.AddService(serviceName: $"Aoba: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
 		});
 
 
@@ -35,26 +35,33 @@ public static class OpenTelemetry
 			// Metrics provides by ASP.NET Core in .NET 8
 			.AddMeter("Microsoft.AspNetCore.Hosting")
 			.AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+			.AddMeter("Grpc.AspNetCore.Server")
 			// Metrics provided by System.Net libraries
 			.AddMeter("System.Net.Http")
 			.AddMeter("System.Net.NameResolution")
+			.AddMeter("System.Runtime")
+			.AddMeter("Microsoft.AspNetCore.Diagnostics")
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
 			.AddPrometheusExporter());
 
-		// Add Tracing for ASP.NET Core and our custom ActivitySource and export to Jaeger
 		var tracingOtlpEndpoint = configuration["OTLP_ENDPOINT_URL"];
-		otel.WithTracing(tracing =>
+		if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
 		{
-			tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources");
-			tracing.AddAspNetCoreInstrumentation();
-			tracing.AddHttpClientInstrumentation();
-			if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
+			otel.WithTracing(tracing =>
 			{
-				tracing.AddOtlpExporter(otlpOptions =>
+				tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources");
+				tracing.AddAspNetCoreInstrumentation();
+				tracing.AddHttpClientInstrumentation();
+				if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
 				{
-					otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
-				});
-			}
-		});
+					tracing.AddOtlpExporter(otlpOptions =>
+					{
+						otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+					});
+				}
+			});
+		}
 	}
 
 
@@ -65,9 +72,9 @@ public static class OpenTelemetry
 		return builder;
 	}
 
-	public static IEndpointRouteBuilder MapObserability(this IEndpointRouteBuilder endpoints)
+	public static IEndpointRouteBuilder MapObservability(this IEndpointRouteBuilder endpoints)
 	{
-		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization();
+		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization(Consts.MetricsAuthPolicy);
 		return endpoints;
 	}
 }

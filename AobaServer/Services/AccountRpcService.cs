@@ -15,7 +15,7 @@ using Grpc.Core;
 
 namespace AobaServer.Services;
 
-public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache) : AccountRpc.AccountRpcBase
+public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache, ILogger<AccountRpcService> logger) : AccountRpc.AccountRpcBase
 {
 	public override async Task<PasskeyCreationResponse> RegisterPasskey(Empty request, ServerCallContext context)
 	{
@@ -50,7 +50,17 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 			],
 			AttestationPreference = Fido2NetLib.Objects.AttestationConveyancePreference.None
 		});
-		optsCache.AddOrUpdate(user.Id, opts, (_, _) => opts);
+		if (!optsCache.Add(user.Id, opts))
+		{
+			logger.LogWarning("Failed to cache {name}, id conflict", nameof(CredentialCreateOptions));
+			return new PasskeyCreationResponse
+			{
+				Error = new Error
+				{
+					Message = "Failed to start passkey registration"
+				}
+			};
+		}
 		return opts.ToResponse();
 	}
 

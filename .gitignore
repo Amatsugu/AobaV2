@@ -367,3 +367,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 sixlabors.lic
+/AobaServer/OTEL_DIAGNOSTICS.json

@@ -1,4 +1,5 @@
 using System.Security.AccessControl;
+
 using AobaCore.Models;
 
 using MaybeError.Errors;
@@ -33,7 +34,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 
 	public async Task<PagedResult<Media>> FindMediaAsync(FilterDefinition<Media> filter, ObjectId userId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
 	{
-		var find = _media.Find(Builders<Media>.Filter.And(Builders<Media>.Filter.Eq(m => m.Owner, userId), filter));
+		var find = _media.Find(filter.WithUserFilter(userId));
 		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);
 		var total = await find.CountDocumentsAsync(cancellationToken);
 		page -= 1;
@@ -50,7 +51,8 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			":secret" => [Builders<Media>.Filter.Eq(m => m.Class, MediaClass.Secret)],
 			_ => [string.IsNullOrWhiteSpace(query) ? "{}" : Builders<Media>.Filter.Text(query)]
 		};
-		filters.Add(Builders<Media>.Filter.Eq(m => m.Owner, userId));
+		if (userId != default)
+			filters.Add(Builders<Media>.Filter.Eq(m => m.Owner, userId));
 		var sort = Builders<Media>.Sort.Descending(m => m.UploadDate);
 		var find = _media.Find(Builders<Media>.Filter.And(filters));
 		var total = await find.CountDocumentsAsync(cancellationToken);
@@ -59,9 +61,9 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		return new PagedResult<Media>(items, page, pageSize, (int)total);
 	}
 
-	public async Task<List<Media>> FindMediaWithExtAsync(string ext, CancellationToken cancellationToken = default)
+	public async Task<List<Media>> FindMediaWithExtAsync(string ext, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
-		var filter = Builders<Media>.Filter.Eq(m => m.Ext, ext);
+		var filter = Builders<Media>.Filter.Eq(m => m.Ext, ext).WithUserFilter(userId);
 		return await _media.Find(filter).ToListAsync(cancellationToken);
 	}
 
@@ -73,18 +75,18 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.InsertOneAsync(media, null, cancellationToken);
 	}
 
-	public async Task SetMediaClassAsync(ObjectId mediaId, MediaClass mediaClass, CancellationToken cancellationToken = default)
+	public async Task SetMediaClassAsync(ObjectId mediaId, MediaClass mediaClass, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update
 			.Set(m => m.Class, mediaClass);
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, cancellationToken: cancellationToken);
 	}
 
-	public async Task SetMediaClassAsync(IEnumerable<ObjectId> mediaIds, MediaClass mediaClass, CancellationToken cancellationToken = default)
+	public async Task SetMediaClassAsync(IEnumerable<ObjectId> mediaIds, MediaClass mediaClass, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update
 			.Set(m => m.Class, mediaClass);
-		await _media.UpdateManyAsync(m => mediaIds.Contains(m.MediaId), update, cancellationToken: cancellationToken);
+		await _media.UpdateManyAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), update, cancellationToken: cancellationToken);
 	}
 
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
@@ -114,11 +116,13 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 	}
 
 #if DEBUG
+
 	public async Task ClearS3ThumbnailsAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Set(m => m.Cdn!.ThumbnailUrls, []);
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
+
 #endif
 
 	public async Task<ObjectId> GetThumbnailIdAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
@@ -132,11 +136,10 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		return _media.UpdateOneAsync(m => m.MediaId == mediaId, Builders<Media>.Update.Inc(m => m.ViewCount, 1), cancellationToken: cancellationToken);
 	}
 
-
-	public async Task SetMediaTypeAsync(ObjectId mediaId, MediaType type, CancellationToken cancellationToken = default)
+	public async Task SetMediaTypeAsync(ObjectId mediaId, MediaType type, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Set(m => m.MediaType, type);
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
 	public async Task SetCdnUrlAsync(ObjectId mediaId, string url, CancellationToken cancellationToken)
@@ -186,18 +189,18 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
-	public async Task DeleteMediaAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
+	public async Task DeleteMediaAsync(ObjectId mediaId, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
-		await _media.DeleteOneAsync(m => m.MediaId == mediaId, cancellationToken);
+		await _media.DeleteOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), cancellationToken);
 	}
 
-	public async Task DeleteFileAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
+	public async Task DeleteFileAsync(ObjectId mediaId, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		try
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			await _gridFs.DeleteAsync(mediaId, CancellationToken.None);
-			await _media.DeleteOneAsync(m => m.MediaId == mediaId, CancellationToken.None);
+			await _media.DeleteOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), CancellationToken.None);
 		}
 		catch (GridFSFileNotFoundException)
 		{
@@ -205,7 +208,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
-	public async Task DeleteFilesAsync(IEnumerable<ObjectId> mediaIds, CancellationToken cancellationToken = default)
+	public async Task DeleteFilesAsync(IEnumerable<ObjectId> mediaIds, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		foreach (var id in mediaIds)
 		{
@@ -213,7 +216,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 				await _gridFs.DeleteAsync(id, CancellationToken.None);
-				await _media.DeleteOneAsync(m => m.MediaId == id, CancellationToken.None);
+				await _media.DeleteOneAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), CancellationToken.None);
 			}
 			catch (GridFSFileNotFoundException)
 			{
@@ -222,40 +225,40 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
-	public async Task AddTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task AddTagsAsync(ObjectId mediaId, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
-	public async Task RemoveTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task RemoveTagsAsync(ObjectId mediaId, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
-	public async Task SetTagsAsync(ObjectId mediaId, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task SetTagsAsync(ObjectId mediaId, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Set(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
-	public async Task AddTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task AddTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.AddToSetEach(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
-	public async Task RemoveTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task RemoveTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.PullAll(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
-	public async Task SetTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, CancellationToken cancellationToken = default)
+	public async Task SetTagsAsync(IEnumerable<ObjectId> mediaIds, IEnumerable<string> tags, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Set(m => m.Tags, tags.Where(t => !string.IsNullOrWhiteSpace(t)));
-		await _media.UpdateOneAsync(m => mediaIds.Contains(m.MediaId), update, null, cancellationToken);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), update, null, cancellationToken);
 	}
 
 	public async Task DeriveTagsAsync(CancellationToken cancellationToken = default)
@@ -288,6 +291,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			}).ToListAsync(cancellationToken);
 		return groups;
 	}
+
 	private record MediaTags(ObjectId Id, string[] Tags);
 	private record TagsUnwind(ObjectId Id, string Tags);
 	public record TagGroup
