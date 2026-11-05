@@ -6,7 +6,6 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "Aoba.RPC.Models";
 import "Proto/Types/Common.proto";
 
-
 message MediaThumbnail {
   ThumbnailSize size = 1;
   string url = 2;
@@ -53,9 +52,7 @@ enum MediaClass {
   MEDIA_CLASS_SECRET = 3;
 }
 
-message MediaResponse {
-  optional MediaModel value = 1;
-}
+message MediaResponse { optional MediaModel value = 1; }
 
 message ListResponse {
   repeated MediaModel items = 1;
@@ -72,26 +69,22 @@ message SetMediaClassBulkRequest {
   MediaClass class = 2;
 }
 
-
-message Dimensions{
-    uint32 height = 1;
-    uint32 width = 2;
+message Dimensions {
+  uint32 height = 1;
+  uint32 width = 2;
 }
 
-
-message TagUpateRequest{
-	Id media_id = 1;
-	repeated string tags = 2;
+message TagUpateRequest {
+  Id media_id = 1;
+  repeated string tags = 2;
 }
 
-message BulkTagUpateRequest{
-	IdList media_ids = 1;
-	repeated string tags = 2;
+message BulkTagUpateRequest {
+  IdList media_ids = 1;
+  repeated string tags = 2;
 }
 
-message UploadRequest {
-  repeated FileInfo files = 1;
-}
+message UploadRequest { repeated FileInfo files = 1; }
 
 message FileInfo {
   string filename = 1;
@@ -105,9 +98,7 @@ message UploadTargetResponse {
   }
 }
 
-message UploadTargets {
-  repeated UploadTarget targets = 1;
-}
+message UploadTargets { repeated UploadTarget targets = 1; }
 
 message UploadTarget {
   string signed_url = 1;
@@ -119,4 +110,11 @@ message UploadTarget {
 message UploadResult {
   uint32 upload_count = 1;
   optional ErrorList errors = 2;
+}
+
+message BulkTagInfo { repeated TagGroup tags = 1; }
+
+message TagGroup {
+  string tag = 1;
+  int32 count = 2;
 }

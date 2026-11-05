@@ -164,7 +164,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			await aobaService.AddMediaAsync(media, context.CancellationToken);
 			result.UploadCount++;
 		}
-		if(errors.Count != 0)
+		if (errors.Count != 0)
 		{
 			result.Errors = new ErrorList();
 			result.Errors.ErrorMessages.AddRange(errors);
@@ -212,5 +212,11 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 	{
 		await aobaService.RemoveTagsAsync(request.MediaIds.ToObjectId(), request.Tags, context.GetUserId(), context.CancellationToken);
 		return new Empty();
+	}
+
+	public override async Task<BulkTagInfo> GetBulkTagInfo(IdList request, ServerCallContext context)
+	{
+		var tagInfo = await aobaService.GetBulkTagInfoAsync(request.ToObjectId(), context.CancellationToken);
+		return tagInfo.ToResponse();
 	}
 }

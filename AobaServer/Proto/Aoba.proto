@@ -7,29 +7,30 @@ import "Proto/Types/Common.proto";
 import "Proto/Types/Media.proto";
 import "Proto/Types/Auth.proto";
 
-
 service AobaRpc {
-  rpc GetMedia (Id) returns (MediaResponse);
-  rpc DeleteMedia (Id) returns (google.protobuf.Empty);
-  rpc DeleteMediaBulk (IdList) returns (google.protobuf.Empty);
-  rpc UpdateMedia (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GetMedia(Id) returns (MediaResponse);
+  rpc DeleteMedia(Id) returns (google.protobuf.Empty);
+  rpc DeleteMediaBulk(IdList) returns (google.protobuf.Empty);
+  rpc UpdateMedia(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc ListMedia(PageFilter) returns (ListResponse);
-  //Class
-  rpc SetMediaClass(SetMediaClassRequest) returns(google.protobuf.Empty);
-  rpc SetMediaClassBulk(SetMediaClassBulkRequest) returns (google.protobuf.Empty);
-  //Tags
+  // Class
+  rpc SetMediaClass(SetMediaClassRequest) returns (google.protobuf.Empty);
+  rpc SetMediaClassBulk(SetMediaClassBulkRequest)
+      returns (google.protobuf.Empty);
+  // Tags
   rpc UpdateMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc AddMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
   rpc RemoveMediaTags(TagUpateRequest) returns (google.protobuf.Empty);
-  //Tags Bulk
+  // Tags Bulk
+  rpc GetBulkTagInfo(IdList) returns (BulkTagInfo);
   rpc UpdateMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
   rpc AddMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
   rpc RemoveMediaTagsBulk(BulkTagUpateRequest) returns (google.protobuf.Empty);
-  //User
+  // User
   rpc GetUser(Id) returns (UserResponse);
-  //Upload
-  rpc StartUpload(UploadRequest) returns(UploadTargetResponse);
-  rpc CompleteUpload(IdList) returns(UploadResult);
+  // Upload
+  rpc StartUpload(UploadRequest) returns (UploadTargetResponse);
+  rpc CompleteUpload(IdList) returns (UploadResult);
 
   rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
 }

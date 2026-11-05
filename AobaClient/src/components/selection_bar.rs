@@ -2,7 +2,15 @@ use std::time::Duration;
 
 use crate::{
 	HOST,
+	components::{
+		basic::flex::{FlexColumn, FlexRow},
+		modals::BulkTagEditor,
+	},
 	models::toasts::{ToastCommand, ToastLevel, ToastsContext},
+	rpc::{
+		aoba::{BulkTagUpateRequest, Id, IdList},
+		get_rpc_client,
+	},
 };
 use dioxus::prelude::*;
 use web_sys::window;
@@ -17,18 +25,24 @@ const TRASH_ICON: Asset = asset!("/assets/icons/trash.svg");
 const TAG_ICON: Asset = asset!("/assets/icons/tag.svg");
 const COPY_ICON: Asset = asset!("/assets/icons/copy-doc.svg");
 
+#[derive(Debug, Clone)]
+struct ModalInfo {
+	pub title: String,
+	pub content: Element,
+}
+
 #[component]
 pub fn SelectionBar(
-	selected_items: Vec<String>,
+	selected_items: Signal<Vec<String>>,
 	on_selection_cleared: EventHandler,
 	on_items_delete: EventHandler,
 ) -> Element {
-	let mut delete_modal_open = use_signal(|| false);
+	let mut modal_content: Signal<Option<ModalInfo>> = use_signal(|| None);
 	let toasts_ctx = use_context::<ToastsContext>();
-	if selected_items.is_empty() {
+	if selected_items.read().is_empty() {
 		return rsx! {};
 	} else {
-		let selection_count = selected_items.len();
+		let selection_count = selected_items.read().len();
 		return rsx! {
 			div{
 				id: "selectionBarContainer",
@@ -41,10 +55,9 @@ pub fn SelectionBar(
 					div{
 						class: "controls",
 						BarButton{
-							onclick: move|_|{
-								let item_ids = selected_items.clone();
+							onclick: move |_| {
 								spawn(async move {
-									let links : Vec<String> = item_ids.iter()
+									let links : Vec<String> = selected_items.read().iter()
 										.map(|id| format!("{HOST}/m/{id}"))
 										.collect();
 									let joined = links.join("\n");
@@ -53,7 +66,7 @@ pub fn SelectionBar(
 											error!("Failed to write to clipboard");
 											toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to write to clipboard".into(), message: None, level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) });
 										}else{
-											toasts_ctx.handle.send(ToastCommand::Push { title: "Urls copied".into(), message: Some(format!("{} urls copied", item_ids.len())), level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
+											toasts_ctx.handle.send(ToastCommand::Push { title: "Urls copied".into(), message: Some(format!("{} urls copied", selection_count)), level: ToastLevel::Info, duration: Some(Duration::from_secs(5)) });
 										},
 										None => toasts_ctx.handle.send(ToastCommand::Push { title: "Failed to write to clipboard".into(), message: Some("Unable to retreive clipboard".into()), level: ToastLevel::Error, duration: Some(Duration::from_secs(5)) }),
 									}
@@ -64,14 +77,32 @@ pub fn SelectionBar(
 							}
 						}
 						BarButton{
-							onclick: move|_|{},
+							onclick: move |_|{
+								modal_content.set(Some(ModalInfo {
+									title: "Bulk Tags Editor".into(),
+									content: rsx! {
+										BulkTagEditModal {
+											on_close: move |_| modal_content.set(None),
+											selected_items
+										}
+									}
+								}));
+							},
 							img{
 								src: TAG_ICON
 							}
 						}
 						BarButton{
 							onclick: move|_|{
-								delete_modal_open.set(true);
+								modal_content.set(Some(ModalInfo {
+									title: format!("Confirm Deletion of {} items", selection_count),
+									content: rsx! {
+										DeleteModalContent {
+											on_close: move |_| modal_content.set(None),
+											on_items_delete: on_items_delete
+										}
+									}
+								 }));
 							},
 							img{
 								src: TRASH_ICON
@@ -88,30 +119,11 @@ pub fn SelectionBar(
 					}
 				}
 			}
-			Modal{
-				title: "Confirm Deletion of {selection_count} items",
-				is_open: delete_modal_open(),
-				div{
-					class: "vertFlexBox",
-					"Are you sure you want to delete these items? This cannot be undone!",
-					div{
-						class: "horizFlexBox center",
-						style: "gap:10px",
-						Button{
-							onclick: move |_|{
-								delete_modal_open.set(false);
-								on_items_delete.call(());
-							},
-							"Delete",
-						}
-						Button{
-							variant: ButtonVariant::Cancel,
-							onclick: move |_|{
-								delete_modal_open.set(false);
-							},
-							"Cancel",
-						}
-					}
+			if let Some(modal) = modal_content.cloned() {
+				Modal{
+					title: modal.title,
+					is_open: true,
+					{modal.content}
 				}
 			}
 		};
@@ -119,7 +131,154 @@ pub fn SelectionBar(
 }
 
 #[component]
-pub fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element {
+fn BulkTagEditModal(on_close: EventHandler, selected_items: Signal<Vec<String>>) -> Element {
+	let toasts_ctx = use_context::<ToastsContext>();
+	let tag_groups = use_resource(move || async move {
+		let mut rpc = get_rpc_client();
+		rpc.get_bulk_tag_info(IdList {
+			value: selected_items
+				.read()
+				.iter()
+				.map(|id| Id { value: id.clone() })
+				.collect(),
+		})
+		.await
+		.map(|r| r.into_inner())
+	});
+
+	rsx! {
+		FlexColumn{
+			match tag_groups() {
+				Some(result) => match result {
+					Ok(tags) => rsx! {
+						BulkTagEditor {
+							tags,
+							on_add: move |tag| add_tag(selected_items, tag, toasts_ctx),
+							on_remove: move |tag| remove_tag(selected_items, tag, toasts_ctx)
+						 }
+					},
+					Err(status) => rsx! { "{status}" },
+				},
+				None => rsx! { "Loading..." },
+			}
+			FlexRow{
+				Button{
+					variant: ButtonVariant::Cancel,
+					onclick: move |_| {
+						on_close.call(());
+					},
+					"Cancel"
+				}
+				Button{
+					variant: ButtonVariant::Accented,
+					onclick: move |_| {
+						on_close.call(());
+					},
+					"Save"
+				}
+			}
+		}
+	}
+}
+
+fn add_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext) {
+	let item_count = items.read().len();
+	spawn(async move {
+		let mut rpc = get_rpc_client();
+		let result = rpc
+			.add_media_tags_bulk(BulkTagUpateRequest {
+				media_ids: Some(IdList {
+					value: items
+						.read()
+						.iter()
+						.map(|id| Id { value: id.clone() })
+						.collect(),
+				}),
+				tags: vec![tag.clone()],
+			})
+			.await
+			.map(|r| r.into_inner());
+
+		match result {
+			Ok(_) => toasts_ctx.push(ToastCommand::Push {
+				title: "Tag Added".into(),
+				message: Some(format!("'{}' added to {} items", tag, item_count)),
+				level: ToastLevel::Info,
+				duration: Some(Duration::from_secs(5)),
+			}),
+			Err(status) => toasts_ctx.push(ToastCommand::Push {
+				title: "Failed to add tag".into(),
+				message: Some(status.to_string()),
+				level: ToastLevel::Info,
+				duration: Some(Duration::from_secs(5)),
+			}),
+		}
+	});
+}
+fn remove_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext) {
+	let item_count = items.read().len();
+	spawn(async move {
+		let mut rpc = get_rpc_client();
+		let result = rpc
+			.remove_media_tags_bulk(BulkTagUpateRequest {
+				media_ids: Some(IdList {
+					value: items
+						.read()
+						.iter()
+						.map(|id| Id { value: id.clone() })
+						.collect(),
+				}),
+				tags: vec![tag.clone()],
+			})
+			.await
+			.map(|r| r.into_inner());
+
+		match result {
+			Ok(_) => toasts_ctx.push(ToastCommand::Push {
+				title: "Tag Removed".into(),
+				message: Some(format!("'{}' removed from {} items", tag, item_count)),
+				level: ToastLevel::Info,
+				duration: Some(Duration::from_secs(5)),
+			}),
+			Err(status) => toasts_ctx.push(ToastCommand::Push {
+				title: "Failed to remove tag".into(),
+				message: Some(status.to_string()),
+				level: ToastLevel::Info,
+				duration: Some(Duration::from_secs(5)),
+			}),
+		}
+	});
+}
+
+#[component]
+fn DeleteModalContent(on_close: EventHandler, on_items_delete: EventHandler) -> Element {
+	rsx! {
+		div{
+			class: "vertFlexBox",
+			"Are you sure you want to delete these items? This cannot be undone!",
+			div{
+				class: "horizFlexBox center",
+				style: "gap:10px",
+				Button{
+					onclick: move |_| {
+						on_close.call(());
+						on_items_delete.call(());
+					},
+					"Delete"
+				}
+				Button{
+					variant: ButtonVariant::Cancel,
+					onclick: move |_| {
+						on_close.call(());
+					},
+					"Cancel"
+				}
+			}
+		}
+	}
+}
+#[component]
+fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element {
 	rsx! {
 		div{
 			class: "button",

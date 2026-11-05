@@ -148,6 +148,21 @@ public static class ProtoExtensions
 			res.Options.RpId = options.RpId;
 
 		return res;
+	}
 
+	public static Aoba.RPC.Models.TagGroup ToRpc(this AobaCore.Models.TagGroup tag)
+	{
+		return new Aoba.RPC.Models.TagGroup
+		{
+			Count = tag.Count,
+			Tag = tag.Tag
+		};
+	}
+
+	public static BulkTagInfo ToResponse(this List<AobaCore.Models.TagGroup> tags)
+	{
+		var result = new BulkTagInfo();
+		result.Tags.AddRange(tags.Select(t => t.ToRpc()));
+		return result;
 	}
 }

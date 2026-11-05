@@ -286,7 +286,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			.Unwind(m => m.Tags, new AggregateUnwindOptions<TagsUnwind>())
 			.Group(id: m => m.Tags, group: g => new TagGroup
 			{
-				Id = g.Key,
+				Tag = g.Key,
 				Count = g.Count()
 			}).ToListAsync(cancellationToken);
 		return groups;
@@ -294,9 +294,5 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 
 	private record MediaTags(ObjectId Id, string[] Tags);
 	private record TagsUnwind(ObjectId Id, string Tags);
-	public record TagGroup
-	{
-		public string Id { get; set; } = "";
-		public int Count { get; set; }
-	};
+
 }
