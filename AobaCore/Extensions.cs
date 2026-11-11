@@ -14,15 +14,17 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AobaCore;
+
 public static class Extensions
 {
 	public static IServiceCollection AddAoba(this IServiceCollection services, bool s3 = false)
 	{
 
-		services.AddSingleton<AobaService>();
-		services.AddSingleton<AutoTagger>();
-		services.AddSingleton<ThumbnailService>();
-		services.AddSingleton<AccountsService>();
+		services.AddSingleton<AobaService>()
+			.AddSingleton<AutoTagger>()
+			.AddSingleton<ThumbnailService>()
+			.AddSingleton<AccountsService>()
+			.AddSingleton<UserSessionsService>();
 		services.AddSingleton<HostInfo>();
 		services.AddHostedService<AobaIndexCreationService>();
 		return services;
