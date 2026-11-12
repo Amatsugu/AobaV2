@@ -50,7 +50,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		if (user == null)
 			return new ShareXResponse { Error = "User does not exist" };
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		var token = user.GetToken(authInfo);
+		var token = "";//user.GetToken(authInfo);
 		var dest = new ShareXDestination
 		{
 			DeletionURL = string.Empty,
@@ -133,7 +133,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			{
 				Filename = file.Filename,
 				ContentType = MimeTypesMap.GetMimeType(file.Filename),
-				Id = info.Value.Id.ToId(),
+				Id = info.Value.Id.ToRpc(),
 				SignedUrl = info.Value.Url
 			};
 			response.Targets.Targets.Add(tgt);

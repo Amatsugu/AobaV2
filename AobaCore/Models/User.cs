@@ -24,13 +24,14 @@ public class User
 	public List<ObjectId> RegTokens { get; set; } = [];
 	public List<StoredCredential> Credentials { get; set; } = [];
 
-	public ClaimsIdentity GetIdentity()
+	public ClaimsIdentity GetIdentity(ObjectId tokenId)
 	{
 		var id = new ClaimsIdentity(new[]
 		{
 			new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
 			new Claim(ClaimTypes.Name, Username),
-			new Claim(ClaimTypes.Role, "user")
+			new Claim(ClaimTypes.Role, "user"),
+			new Claim("tokenId", tokenId.ToString())
 		});
 
 		if (Role != null)
@@ -39,5 +40,18 @@ public class User
 	}
 
 
-	public List<PublicKeyCredentialDescriptor> GetCredentialDescriptors() => Credentials.Select(c => c.Descriptor).ToList();
+	public List<PublicKeyCredentialDescriptor> GetCredentialDescriptors() => [.. Credentials.Select(c => c.Descriptor)];
+}
+
+
+public class UserSession
+{
+	[BsonId]
+	public required ObjectId TokenId { get; set; }
+	public required ObjectId UserId { get; set; }
+	public required string UserAgent { get; set; }
+	public required string Label { get; set; }
+	public required string Token { get; set; }
+	public required DateTime DateCreated { get; set; }
+	public required DateTime LastUsed { get; set; }
 }

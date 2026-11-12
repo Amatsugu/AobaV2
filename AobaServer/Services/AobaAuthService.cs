@@ -18,11 +18,20 @@ using Aoba.RPC.Models;
 
 namespace AobaServer.Services;
 
-public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, IFido2 fido2, PasskeyAssertionOptsCache optsCache, ILogger<AobaAuthService> logger) : AuthRpc.AuthRpcBase
+public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, IFido2 fido2, PasskeyAssertionOptsCache optsCache, UserSessionsService sessionsService, ILogger<AobaAuthService> logger) : AuthRpc.AuthRpcBase
 {
 	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
 	{
+#if !DEBUG
+		return new LoginResponse
+		{
+			Error = new Error
+			{
+				Message = "Only Passkey Logins are allowed"
+			}
+		};
+#else
 		logger.LogInformation("Handling login for {username}", request.User);
 		var user = await accountsService.VerifyLoginAsync(request.User, request.Password, context.CancellationToken);
 		if (user == null)
@@ -34,14 +43,16 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 				}
 			};
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		var token = user.GetToken(authInfo);
+		var session = await sessionsService.CreateUserSessionAsync(user.Id, context.GetUserAgent(), tokenId => user.GetToken(authInfo, tokenId));
+		// var token = user.GetToken(authInfo);
 		return new LoginResponse
 		{
 			Jwt = new()
 			{
-				Token = token
+				Token = session.Token
 			}
 		};
+#endif
 	}
 
 	public override Task<PasskeyAssertionResponse> GetAssertionOptions(Empty request, ServerCallContext context)
@@ -105,12 +116,13 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 			};
 
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		var token = user.GetToken(authInfo);
+		var session = await sessionsService.CreateUserSessionAsync(user.Id, context.GetUserAgent(), tokenId => user.GetToken(authInfo, tokenId));
+
 		return new LoginResponse
 		{
 			Jwt = new()
 			{
-				Token = token
+				Token = session.Token
 			}
 		};
 	}

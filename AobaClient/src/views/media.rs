@@ -250,6 +250,7 @@ fn MediaDisplay(url: String, media_type: MediaType) -> Element {
 							autoplay: false,
 							muted: false,
 							playsinline: true,
+							controls: true,
 							loop: false
 						}
 					}

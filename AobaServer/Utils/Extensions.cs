@@ -18,18 +18,18 @@ public static class Extensions
 {
 	public static ObjectId ToObjectId(this string? value)
 	{
-		if(value == null)
+		if (value == null)
 			return ObjectId.Empty;
-		if(ObjectId.TryParse(value, out ObjectId result))
+		if (ObjectId.TryParse(value, out ObjectId result))
 			return result;
 		return ObjectId.Empty;
 	}
 
-	public static string GetToken(this User user, AuthInfo authInfo)
+	public static string GetToken(this User user, AuthInfo authInfo, ObjectId tokenId)
 	{
 		var handler = new JwtSecurityTokenHandler();
 		var signCreds = new SigningCredentials(new SymmetricSecurityKey(authInfo.SecureKey), SecurityAlgorithms.HmacSha256);
-		var identity = user.GetIdentity();
+		var identity = user.GetIdentity(tokenId);
 		var token = handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity, notBefore: DateTime.Now, expires: null, issuedAt: DateTime.Now, signCreds);
 		return token;
 	}
@@ -43,5 +43,15 @@ public static class Extensions
 	public static ObjectId GetUserId(this ServerCallContext context)
 	{
 		return context.GetHttpContext().User.GetId();
+	}
+
+	public static string GetUserAgent(this ServerCallContext context)
+	{
+		return context.RequestHeaders.GetValue("User-Agent") ?? string.Empty;
+	}
+
+	public static string GetUserAgent(this HttpContext context)
+	{
+		return context.Request.Headers.UserAgent.ToString();
 	}
 }

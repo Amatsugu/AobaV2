@@ -1,11 +1,12 @@
+using System.Security.Claims;
 using AobaCore;
-
+using AobaCore.Services;
 using AobaServer;
 using AobaServer.Auth;
 using AobaServer.Middleware;
 using AobaServer.Models;
 using AobaServer.Services;
-
+using AobaServer.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
@@ -50,20 +51,8 @@ var authCfg = new AuthConfigService(db);
 builder.Services.AddSingleton(authCfg);
 
 
-var authInfo = await authCfg.GetDefaultAuthInfoAsync();
-var signingKey = new SymmetricSecurityKey(authInfo.SecureKey);
+var userAuthInfo = await authCfg.GetDefaultAuthInfoAsync();
 
-var validationParams = new TokenValidationParameters
-{
-	ValidateIssuerSigningKey = true,
-	IssuerSigningKey = signingKey,
-	ValidateIssuer = true,
-	ValidIssuer = authInfo.Issuer,
-	ValidateAudience = true,
-	ValidAudience = authInfo.Audience,
-	ValidateLifetime = false,
-	ClockSkew = TimeSpan.FromMinutes(1),
-};
 
 var host = config["HOST"] ?? throw new InvalidOperationException("HOST is not set");
 builder.Services.AddCors(o =>
@@ -107,9 +96,34 @@ builder.Services.AddAuthentication(options =>
 	options.DefaultChallengeScheme = Consts.AobaChallengeScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
-	options.TokenValidationParameters = validationParams;
+	options.TokenValidationParameters = new TokenValidationParameters
+	{
+		ValidateIssuerSigningKey = true,
+		IssuerSigningKey = new SymmetricSecurityKey(userAuthInfo.SecureKey),
+		ValidateIssuer = true,
+		ValidIssuer = userAuthInfo.Issuer,
+		ValidateAudience = true,
+		ValidAudience = userAuthInfo.Audience,
+		ValidateLifetime = true,
+		ClockSkew = TimeSpan.FromMinutes(1),
+	};
 	options.Events = new JwtBearerEvents
 	{
+		OnTokenValidated = async ctx =>
+		{
+			var sessions = ctx.HttpContext.RequestServices.GetRequiredService<UserSessionsService>();
+			if (ctx.Principal == null)
+			{
+				ctx.Fail("User is not validated");
+				return;
+			}
+			var session = await sessions.VerifyTokenUserSessionAsync(ctx.Principal.GetId(), ctx.Principal.FindFirstValue("tokenId").ToObjectId());
+			if (session == null)
+			{
+				ctx.Fail("Session Expired");
+				return;
+			}
+		},
 #if DEBUG //allow cookie based auth when in debug mode
 		OnMessageReceived = ctx =>
 		{
@@ -122,8 +136,18 @@ builder.Services.AddAuthentication(options =>
 	};
 }).AddJwtBearer(Consts.MetricsAuthScheme, opts =>
 {
-	opts.TokenHandlers.Clear();
-	opts.TokenHandlers.Add(new MetricsTokenValidator(metricsAuthInfo));
+	opts.TokenValidationParameters = new TokenValidationParameters
+	{
+
+		ValidateIssuerSigningKey = true,
+		IssuerSigningKey = new SymmetricSecurityKey(metricsAuthInfo.SecureKey),
+		ValidateIssuer = true,
+		ValidIssuer = metricsAuthInfo.Issuer,
+		ValidateAudience = true,
+		ValidAudience = metricsAuthInfo.Audience,
+		ValidateLifetime = false,
+		ClockSkew = TimeSpan.FromMinutes(1)
+	};
 
 }).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>(Consts.AobaChallengeScheme, null);
 

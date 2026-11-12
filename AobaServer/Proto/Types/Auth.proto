@@ -6,10 +6,7 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "Aoba.RPC.Models";
 import "Proto/Types/Common.proto";
 
-
-message Jwt {
-  string token = 1;
-}
+message Jwt { string token = 1; }
 
 message Credentials {
   string user = 1;
@@ -89,3 +86,19 @@ message LoginResponse {
   }
 }
 
+message UserSession {
+  Id token_id = 1;
+  string date_created = 2;
+  string last_used = 3;
+  string user_agent = 4;
+  string label = 5;
+}
+
+message UserSessionListResponse {
+  oneof result {
+    UserSessionList list = 1;
+    Error error = 2;
+  }
+}
+
+message UserSessionList { repeated UserSession sessions = 1; }

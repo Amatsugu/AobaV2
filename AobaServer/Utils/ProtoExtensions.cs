@@ -57,9 +57,9 @@ public static class ProtoExtensions
 		{
 			Ext = media.Ext,
 			Filename = media.Filename,
-			Id = media.MediaId.ToId(),
+			Id = media.MediaId.ToRpc(),
 			MediaType = (Aoba.RPC.Models.MediaType)(media.MediaType + 1),
-			Owner = media.Owner.ToId(),
+			Owner = media.Owner.ToRpc(),
 			ViewCount = media.ViewCount,
 			ThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.Medium, host),
 			MediaUrl = media.GetMediaUrl(host),
@@ -79,7 +79,7 @@ public static class ProtoExtensions
 		return result;
 	}
 
-	public static Id ToId(this ObjectId id)
+	public static Id ToRpc(this ObjectId id)
 	{
 		return new Id() { Value = id.ToString() };
 	}
@@ -139,7 +139,7 @@ public static class ProtoExtensions
 		{
 			Options = new PasskeyAssertionOptions
 			{
-				CeremonyId = ceremonyId.ToId(),
+				CeremonyId = ceremonyId.ToRpc(),
 				Challenge = Google.Protobuf.ByteString.CopyFrom(options.Challenge),
 			}
 		};
@@ -164,5 +164,17 @@ public static class ProtoExtensions
 		var result = new BulkTagInfo();
 		result.Tags.AddRange(tags.Select(t => t.ToRpc()));
 		return result;
+	}
+
+	public static Aoba.RPC.Models.UserSession ToRpc(this AobaCore.Models.UserSession session)
+	{
+		return new()
+		{
+			DateCreated = session.DateCreated.ToString("u"),
+			LastUsed = session.LastUsed.ToString("u"),
+			Label = session.Label,
+			TokenId = session.TokenId.ToRpc(),
+			UserAgent = session.UserAgent,
+		};
 	}
 }
