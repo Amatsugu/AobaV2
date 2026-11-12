@@ -17,7 +17,7 @@ namespace AobaServer.Controllers;
 #if DEBUG
 [AllowAnonymous]
 [Route("auth")]
-public class AuthController(AccountsService accountsService, AuthConfigService authConfig) : Controller
+public class AuthController(AccountsService accountsService, AuthConfigService authConfig, UserSessionsService sessionsService) : Controller
 {
 	[HttpPost("login")]
 	public async Task<IActionResult> Login([FromForm] string username, [FromForm] string password, CancellationToken cancellationToken)
@@ -27,7 +27,8 @@ public class AuthController(AccountsService accountsService, AuthConfigService a
 		if (user == null)
 			return Problem("Invalid login Credentials", statusCode: StatusCodes.Status400BadRequest);
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		Response.Cookies.Append("token", user.GetToken(authInfo), new CookieOptions
+		var session = await sessionsService.CreateUserSessionAsync(user.Id, HttpContext.GetUserAgent(), tokenId => user.GetToken(authInfo, tokenId));
+		Response.Cookies.Append("token", session.Token, new CookieOptions
 		{
 			IsEssential = true,
 			SameSite = SameSiteMode.Strict,

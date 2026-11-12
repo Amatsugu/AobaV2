@@ -15,7 +15,7 @@ using Grpc.Core;
 
 namespace AobaServer.Services;
 
-public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache, ILogger<AccountRpcService> logger) : AccountRpc.AccountRpcBase
+public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache, UserSessionsService sessionsService, ILogger<AccountRpcService> logger) : AccountRpc.AccountRpcBase
 {
 	public override async Task<PasskeyCreationResponse> RegisterPasskey(Empty request, ServerCallContext context)
 	{
@@ -77,13 +77,13 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 				RawId = [.. request.RawId],
 				Response = new AuthenticatorAttestationRawResponse.AttestationResponse
 				{
-					ClientDataJson = [..request.ClientDataJson],
-					AttestationObject = [..request.AttestationObject],
+					ClientDataJson = [.. request.ClientDataJson],
+					AttestationObject = [.. request.AttestationObject],
 					Transports = []
 				},
 			},
 			OriginalOptions = opts,
-			IsCredentialIdUniqueToUserCallback = async (usr, ct) => ! await accounts.CredentialExistsAsync(usr.CredentialId, ct)
+			IsCredentialIdUniqueToUserCallback = async (usr, ct) => !await accounts.CredentialExistsAsync(usr.CredentialId, ct)
 		}, context.CancellationToken);
 
 
@@ -91,4 +91,14 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 		return new Empty();
 	}
 
+	public async override Task<UserSessionListResponse> GetUserSessions(Empty request, ServerCallContext context)
+	{
+		var sessions = await sessionsService.GetUserSessionsAsync(context.GetUserId(), context.CancellationToken);
+		var list = new UserSessionList();
+		list.Sessions.AddRange(sessions.ToRpc());
+		return new UserSessionListResponse
+		{
+			List = list
+		};
+	}
 }

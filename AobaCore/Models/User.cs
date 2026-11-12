@@ -50,6 +50,7 @@ public class UserSession
 	public required ObjectId TokenId { get; set; }
 	public required ObjectId UserId { get; set; }
 	public required string UserAgent { get; set; }
+	public required string Label { get; set; }
 	public required string Token { get; set; }
 	public required DateTime DateCreated { get; set; }
 	public required DateTime LastUsed { get; set; }
