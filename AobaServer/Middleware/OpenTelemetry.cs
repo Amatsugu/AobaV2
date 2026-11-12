@@ -67,14 +67,13 @@ public static class OpenTelemetry
 
 	public static MeterProviderBuilder AddCustomMetrics(this MeterProviderBuilder builder)
 	{
-
-
 		return builder;
 	}
 
 	public static IEndpointRouteBuilder MapObservability(this IEndpointRouteBuilder endpoints)
 	{
-		endpoints.MapPrometheusScrapingEndpoint().RequireAuthorization(Consts.MetricsAuthPolicy);
+		endpoints.MapPrometheusScrapingEndpoint()
+			.RequireAuthorization(Consts.MetricsAuthPolicy);
 		return endpoints;
 	}
 }
