@@ -177,4 +177,9 @@ public static class ProtoExtensions
 			UserAgent = session.UserAgent,
 		};
 	}
+
+	public static IEnumerable<Aoba.RPC.Models.UserSession> ToRpc(this IEnumerable<AobaCore.Models.UserSession> sessions)
+	{
+		return sessions.Select(s => s.ToRpc());
+	}
 }
