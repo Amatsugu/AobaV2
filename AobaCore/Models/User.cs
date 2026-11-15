@@ -52,6 +52,7 @@ public class UserSession
 	public required string UserAgent { get; set; }
 	public required string Label { get; set; }
 	public required string Token { get; set; }
+	public required DateTime Expiration { get; set; }
 	public required DateTime DateCreated { get; set; }
 	public required DateTime LastUsed { get; set; }
 }

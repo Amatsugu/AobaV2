@@ -1,23 +1,23 @@
 use dioxus::signals::{Signal, WritableExt};
 use web_sys::window;
 
-use crate::rpc::{login, logout};
+use crate::rpc::{aoba::Jwt, login, logout};
 
 #[derive(Clone, Copy, Default)]
 pub struct AuthContext {
-	pub jwt: Signal<Option<String>>,
+	pub jwt: Signal<Option<Jwt>>,
 }
 
 impl AuthContext {
-	pub fn login(&mut self, token: String) {
-		self.jwt.set(Some(token.clone()));
+	pub fn login(&mut self, jwt: Jwt) {
+		self.jwt.set(Some(jwt.clone()));
 		if window()
 			.and_then(|w| w.local_storage().ok())
 			.flatten()
-			.and_then(|l| l.set_item("token", token.as_str()).ok())
+			.and_then(|l| l.set_item("token", &jwt.token.as_str()).ok())
 			.is_some()
 		{
-			login(token.clone());
+			login(jwt.token.clone());
 		}
 	}
 
@@ -40,7 +40,8 @@ impl AuthContext {
 			Some(jwt) => {
 				login(jwt.clone());
 				AuthContext {
-					jwt: Signal::new(Some(jwt)),
+					jwt: Signal::new(Some(Jwt { token: jwt, exp: 0 })),
+					//todo: store + retreive exp
 				}
 			}
 			_ => AuthContext::default(),

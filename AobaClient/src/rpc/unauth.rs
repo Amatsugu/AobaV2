@@ -1,4 +1,4 @@
-use futures_util::future::{BoxFuture, LocalBoxFuture};
+use futures_util::future::LocalBoxFuture;
 use tower_layer::Layer;
 use tower_service::Service;
 

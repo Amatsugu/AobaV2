@@ -10,7 +10,6 @@ use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMe
 
 use crate::{
 	components::icons::Stack,
-	route::Route,
 	rpc::aoba::{MediaClass, MediaModel, MediaType},
 };
 pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);

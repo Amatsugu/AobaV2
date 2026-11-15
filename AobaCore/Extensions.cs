@@ -51,4 +51,9 @@ public static class Extensions
 			await collection.Indexes.CreateOneAsync(indexModel);
 		}
 	}
+
+	extension(DateTime date)
+	{
+		public ulong UnixTime => (ulong)(date - DateTime.UnixEpoch).TotalMilliseconds;
+	}
 }

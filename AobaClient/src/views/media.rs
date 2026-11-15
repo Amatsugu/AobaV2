@@ -1,7 +1,6 @@
 use crate::{
 	components::{
-		MediaThumb,
-		basic::{Button, Input, flex::FlexRow},
+		basic::{Button, flex::FlexRow},
 		icons::{Cross, NewTabArrowIcon, Stack},
 	},
 	models::toasts::{ToastCommand, ToastLevel, ToastsContext},

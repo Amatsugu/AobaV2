@@ -14,11 +14,12 @@ using Fido2NetLib;
 using MongoDB.Bson;
 using Google.Protobuf.WellKnownTypes;
 using Aoba.RPC.Models;
+using AobaCore;
 
 
 namespace AobaServer.Services;
 
-public class AobaAuthService(AccountsService accountsService, AuthConfigService authConfig, IFido2 fido2, PasskeyAssertionOptsCache optsCache, UserSessionsService sessionsService, ILogger<AobaAuthService> logger) : AuthRpc.AuthRpcBase
+public class AuthRpcService(AccountsService accountsService, AuthConfigService authConfig, IFido2 fido2, PasskeyAssertionOptsCache optsCache, UserSessionsService sessionsService, ILogger<AuthRpcService> logger) : AuthRpc.AuthRpcBase
 {
 	[AllowAnonymous]
 	public override async Task<LoginResponse> Login(Credentials request, ServerCallContext context)
@@ -49,7 +50,8 @@ public class AobaAuthService(AccountsService accountsService, AuthConfigService 
 		{
 			Jwt = new()
 			{
-				Token = session.Token
+				Token = session.Token,
+				Exp = session.Expiration.UnixTime
 			}
 		};
 #endif

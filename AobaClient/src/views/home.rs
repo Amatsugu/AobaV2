@@ -1,6 +1,6 @@
 use crate::{
 	components::{MediaGrid, Pagination, PaginationInfo, Search, SelectionBar, UploadArea},
-	contexts::SelectionContext,
+	contexts::{DragContext, SelectionContext},
 	rpc::{
 		aoba::{Id, IdList, MediaClass, SetMediaClassBulkRequest},
 		get_rpc_client,
@@ -31,6 +31,12 @@ const MIN_DRAG_DISTANCE: f64 = 8.0;
 
 #[component]
 pub fn Home(page: Option<i32>, q: Option<String>) -> Element {
+	let mut drag_context = use_context::<DragContext>();
+
+	let on_drag_enter = move |_| {
+		drag_context.is_dragging.set(true);
+	};
+
 	let mut query = use_signal(|| q.unwrap_or("".to_string()));
 	let mut page = use_signal(|| page.unwrap_or(1));
 	let page_size = use_signal::<i32>(|| 100);
@@ -44,6 +50,11 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element {
 	rsx! {
 		div	{
 			class: "stickyTop",
+			//Drag
+			ondragenter: on_drag_enter,
+			ondragover: on_drag_enter,
+			ondragstart: on_drag_enter,
+
 			Search {
 				query: query(),
 				oninput: move |q| {

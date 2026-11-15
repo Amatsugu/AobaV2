@@ -24,6 +24,7 @@ pub mod aoba {
 
 type AuthorizedClient = InterceptedService<UnauthService<Client>, AuthInterceptor>;
 pub static UNAUTH_TX: OnceLock<UnboundedSender<()>> = OnceLock::new();
+
 static RPC_CLIENTS: LazyLock<RpcConnection> = LazyLock::new(|| {
 	let wasm_client = Client::new(RPC_HOST.into());
 	let unauth = UnAuthLayer(on_unauth).layer(wasm_client.clone());

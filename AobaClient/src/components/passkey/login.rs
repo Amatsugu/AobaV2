@@ -5,7 +5,7 @@ use crate::{
 	},
 	contexts::AuthContext,
 	rpc::{
-		aoba::{PasskeyAssertionOptions, PasskeyLoginRequest},
+		aoba::{Jwt, PasskeyAssertionOptions, PasskeyLoginRequest},
 		get_auth_rpc_client,
 	},
 };
@@ -36,7 +36,7 @@ pub fn PasskeyLoginButton(error: Signal<Option<String>>) -> Element {
 	}
 }
 
-async fn start_passkey_auth() -> Result<String, anyhow::Error> {
+async fn start_passkey_auth() -> Result<Jwt, anyhow::Error> {
 	info!("Passkey Auth Start");
 	let mut rpc = get_auth_rpc_client();
 	let Some(opts) = rpc.get_assertion_options(()).await.map(|r| {
@@ -64,7 +64,7 @@ async fn start_passkey_auth() -> Result<String, anyhow::Error> {
 	};
 	use crate::rpc::aoba::login_response::Result;
 	match result {
-		Result::Jwt(jwt) => Ok(jwt.token),
+		Result::Jwt(jwt) => Ok(jwt),
 		Result::Error(login_error) => Err(anyhow!(login_error.message)),
 	}
 }

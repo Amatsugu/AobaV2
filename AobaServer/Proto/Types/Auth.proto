@@ -6,7 +6,10 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "Aoba.RPC.Models";
 import "Proto/Types/Common.proto";
 
-message Jwt { string token = 1; }
+message Jwt {
+  string token = 1;
+  uint64 exp = 2;
+}
 
 message Credentials {
   string user = 1;

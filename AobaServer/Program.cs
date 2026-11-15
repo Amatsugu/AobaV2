@@ -205,7 +205,7 @@ app.MapGrpcService<AccountRpcService>()
 app.MapGrpcService<MetricsRpcService>()
 	.RequireAuthorization()
 	.RequireCors("RPC");
-app.MapGrpcService<AobaAuthService>()
+app.MapGrpcService<AuthRpcService>()
 	.AllowAnonymous()
 	.RequireCors("RPC");
 app.MapObservability();
