@@ -2,7 +2,7 @@
 using Aoba.RPC;
 using Aoba.RPC.Account;
 using Aoba.RPC.Models;
-
+using AobaCore;
 using AobaCore.Services;
 
 using AobaServer.Utils;
@@ -105,7 +105,34 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 
 	public async override Task<LoginResponse> RefreshSession(Empty request, ServerCallContext context)
 	{
-		var session = await sessionsService.RefreshSession(context.GetUserId(), context.GetTokenId());
+		var authConfig = context.GetHttpContext().RequestServices.GetRequiredService<AuthConfigService>();
+		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
+		var user = await accounts.GetUserAsync(context.GetUserId());
+		if (user == null)
+			return new LoginResponse
+			{
+				Error = new Error
+				{
+					Message = "User does not exist"
+				}
+			};
+		var session = await sessionsService.RefreshSession(context.GetUserId(), context.GetTokenId(), tokenId => user.GetToken(authInfo, tokenId));
+		if (session == null)
+			return new LoginResponse
+			{
+				Error = new Error
+				{
+					Message = "Failed to renew session"
+				}
+			};
+		return new LoginResponse
+		{
+			Jwt = new Jwt
+			{
+				Token = session.Token,
+				Exp = session.Expiration.UnixTime
+			}
+		};
 	}
 
 }
