@@ -96,7 +96,7 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 	{
 		var sessions = await sessionsService.GetUserSessionsAsync(context.GetUserId(), context.CancellationToken);
 		var list = new UserSessionList();
-		list.Sessions.AddRange(sessions.ToRpc());
+		list.Sessions.AddRange(sessions.ToRpc(context.GetTokenId()));
 		return new UserSessionListResponse
 		{
 			List = list
@@ -133,6 +133,12 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 				Exp = session.Expiration.UnixTime
 			}
 		};
+	}
+
+	public async override Task<Empty> RevokeSession(Id request, ServerCallContext context)
+	{
+		await sessionsService.RevokeUserSessionAsync(context.GetUserId(), request.ToObjectId(), context.CancellationToken);
+		return new Empty();
 	}
 
 }

@@ -1,6 +1,10 @@
+using Amazon.S3.Model;
+
 using AobaCore.Models;
+
 using MongoDB.Bson;
 using MongoDB.Driver;
+
 using UAParser;
 
 namespace AobaCore.Services;
@@ -61,6 +65,7 @@ public class UserSessionsService(IMongoDatabase db)
 			.Set(s => s.Expiration, exp)
 			.Set(s => s.LastUsed, session.LastUsed);
 		await _sessions.UpdateOneAsync(s => s.TokenId == tokenId, update, null, cancellationToken);
+		await _sessions.DeleteManyAsync(s => s.UserId == userId && s.Expiration <= DateTime.UtcNow, null, cancellationToken);
 		return session;
 	}
 
@@ -70,6 +75,13 @@ public class UserSessionsService(IMongoDatabase db)
 		var update = Builders<UserSession>.Update
 			.Set(s => s.Token, token)
 			.Set(s => s.Expiration, expiration)
+			.Set(s => s.LastUsed, DateTime.UtcNow);
+		await _sessions.UpdateOneAsync(s => s.TokenId == tokenId, update, null, cancellationToken);
+	}
+
+	public async Task UpdateUseDateAsync(ObjectId tokenId, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<UserSession>.Update
 			.Set(s => s.LastUsed, DateTime.UtcNow);
 		await _sessions.UpdateOneAsync(s => s.TokenId == tokenId, update, null, cancellationToken);
 	}

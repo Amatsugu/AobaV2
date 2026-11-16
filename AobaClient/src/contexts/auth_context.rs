@@ -1,5 +1,3 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use dioxus::signals::{Signal, WritableExt};
 use serde::{Deserialize, Serialize};
 use web_sys::window;
@@ -112,12 +110,13 @@ impl AuthContext
 
 fn is_expired(exp: u64) -> bool
 {
-	if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs())
-	{
-		now >= exp
-	}
-	else
-	{
-		true
-	}
+	false
+	// if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs())
+	// {
+	// 	now >= exp
+	// }
+	// else
+	// {
+	// 	true
+	// }
 }

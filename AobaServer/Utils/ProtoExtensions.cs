@@ -166,7 +166,7 @@ public static class ProtoExtensions
 		return result;
 	}
 
-	public static Aoba.RPC.Models.UserSession ToRpc(this AobaCore.Models.UserSession session)
+	public static Aoba.RPC.Models.UserSession ToRpc(this AobaCore.Models.UserSession session, ObjectId currentTokenId)
 	{
 		return new()
 		{
@@ -175,11 +175,12 @@ public static class ProtoExtensions
 			Label = session.Label,
 			TokenId = session.TokenId.ToRpc(),
 			UserAgent = session.UserAgent,
+			IsCurrent = session.TokenId == currentTokenId
 		};
 	}
 
-	public static IEnumerable<Aoba.RPC.Models.UserSession> ToRpc(this IEnumerable<AobaCore.Models.UserSession> sessions)
+	public static IEnumerable<Aoba.RPC.Models.UserSession> ToRpc(this IEnumerable<AobaCore.Models.UserSession> sessions, ObjectId currentTokenId)
 	{
-		return sessions.Select(s => s.ToRpc());
+		return sessions.Select(s => s.ToRpc(currentTokenId));
 	}
 }

@@ -108,7 +108,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 									 let Some(mut cur) = items.cloned() {
 										cur.retain(|i| i.id.as_ref().map(|i| i.value != id).unwrap_or_default());
 										items.set(Some(cur));
-										toasts_ctx.push(ToastCommand::push_info("Items Deleted").with_duration(Duration::from_secs(5)));
+										toasts_ctx.push(ToastCommand::info("Items Deleted").with_duration(Duration::from_secs(5)));
 								}
 							});
 						},
@@ -126,7 +126,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 											})
 											.collect();
 										info!("Class changed");
-										toasts_ctx.push(ToastCommand::push_info_with_message("Item classes changed", format!("Class set to {}", e.class)).with_duration(Duration::from_secs(5)));
+										toasts_ctx.push(ToastCommand::info_with_message("Item classes changed", format!("Class set to {}", e.class)).with_duration(Duration::from_secs(5)));
 										items.set(Some(updated));
 								}
 							});

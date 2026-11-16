@@ -5,6 +5,7 @@ package aoba;
 
 import "google/protobuf/empty.proto";
 import "Proto/Types/Auth.proto";
+import "Proto/Types/Common.proto";
 
 service AccountRpc {
   rpc RegisterPasskey(google.protobuf.Empty) returns (PasskeyCreationResponse);

@@ -95,6 +95,7 @@ message UserSession {
   string last_used = 3;
   string user_agent = 4;
   string label = 5;
+  bool is_current = 6;
 }
 
 message UserSessionListResponse {

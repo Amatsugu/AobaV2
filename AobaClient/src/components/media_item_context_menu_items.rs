@@ -12,7 +12,8 @@ use crate::{
 };
 
 #[derive(Props, PartialEq, Clone)]
-pub struct MediaItemContextMenuProps {
+pub struct MediaItemContextMenuProps
+{
 	pub item: MediaModel,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
@@ -20,7 +21,8 @@ pub struct MediaItemContextMenuProps {
 }
 
 #[component]
-pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element {
+pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element
+{
 	let toasts_ctx = use_context::<ToastsContext>();
 	let item = props.item;
 	let class = item.class();
@@ -55,9 +57,9 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element {
 				spawn(async move {
 					if let Some(clipboard) = window().map(|w| w.navigator().clipboard()) && clipboard.write_text(&url).await.is_err() {
 						error!("Failed to copy url");
-						toasts_ctx.push(ToastCommand::push_error("Failed to copy url").with_duration(Duration::from_secs(10)));
+						toasts_ctx.push(ToastCommand::error("Failed to copy url").with_duration(Duration::from_secs(10)));
 					}else{
-						toasts_ctx.push(ToastCommand::push_info("Url copied").with_duration(Duration::from_secs(5)));
+						toasts_ctx.push(ToastCommand::info("Url copied").with_duration(Duration::from_secs(5)));
 					}
 				});
 			},
@@ -74,7 +76,7 @@ pub fn MediaItemContextMenuItems(props: MediaItemContextMenuProps) -> Element {
 			value: download.clone(),
 			on_select: move |url: String|{
 				if window().and_then(|w| w.open_with_url_and_target(&url, "_blank").ok()).is_none(){
-					toasts_ctx.push(ToastCommand::push_error("Failed to open download page"));
+					toasts_ctx.push(ToastCommand::error("Failed to open download page"));
 				}
 			},
 			div{
