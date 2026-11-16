@@ -12,4 +12,5 @@ service AccountRpc {
       returns (google.protobuf.Empty);
   rpc GetUserSessions(google.protobuf.Empty) returns (UserSessionListResponse);
   rpc RefreshSession(google.protobuf.Empty) returns (LoginResponse);
+  rpc RevokeSession(Id) returns (google.protobuf.Empty);
 }
