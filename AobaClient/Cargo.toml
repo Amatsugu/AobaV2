@@ -42,6 +42,7 @@ futures-timer = { version = "3.0.4", features = ["wasm-bindgen"] }
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
 http = "1.5.0"
+serde_json = "1.0.154"
 
 [build-dependencies]
 tonic-build = { version = "*", default-features = false, features = ["prost"] }

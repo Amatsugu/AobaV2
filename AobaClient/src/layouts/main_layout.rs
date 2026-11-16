@@ -9,7 +9,7 @@ use crate::{
 	Route,
 	components::{Navbar, toasts::ToastsDisplay},
 	contexts::AuthContext,
-	rpc::use_unauth_hook,
+	rpc::{get_account_rpc_client, use_unauth_hook},
 	views::Login,
 };
 
@@ -46,15 +46,32 @@ pub fn MainLayout() -> Element {
 	};
 }
 
-fn init_session_refresh(auth_context: AuthContext) {
+fn init_session_refresh(mut auth_context: AuthContext) {
 	use_resource(move || {
 		let token = auth_context.jwt.cloned();
 		async move {
-			let Some(_token) = token else {
+			let Some(token) = token else {
+				auth_context.logout();
 				return;
 			};
-			loop {
-				futures_timer::Delay::new(Duration::from_secs(5)).await;
+
+			let mut rpc = get_account_rpc_client();
+			let refresh = rpc.refresh_session(()).await;
+			let refresh = refresh
+				.ok()
+				.map(|e| {
+					e.into_inner().result.and_then(|r| {
+						use crate::rpc::aoba::login_response::Result;
+						match r {
+							Result::Jwt(jwt) => Some(jwt),
+							Result::Error(_) => None,
+						}
+					})
+				})
+				.flatten();
+			match refresh {
+				Some(token) => auth_context.jwt.set(Some(token)),
+				None => auth_context.logout(),
 			}
 		}
 	});

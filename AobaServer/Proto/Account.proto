@@ -11,4 +11,5 @@ service AccountRpc {
   rpc CompletePasskeyRegistration(PasskeyRegistrationCredentials)
       returns (google.protobuf.Empty);
   rpc GetUserSessions(google.protobuf.Empty) returns (UserSessionListResponse);
+  rpc RefreshSession(google.protobuf.Empty) returns (LoginResponse);
 }

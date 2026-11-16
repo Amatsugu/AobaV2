@@ -1,4 +1,5 @@
-﻿using Aoba.RPC;
+﻿using System.Diagnostics;
+using Aoba.RPC;
 using Aoba.RPC.Account;
 using Aoba.RPC.Models;
 
@@ -101,4 +102,10 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 			List = list
 		};
 	}
+
+	public async override Task<LoginResponse> RefreshSession(Empty request, ServerCallContext context)
+	{
+		var session = await sessionsService.RefreshSession(context.GetUserId(), context.GetTokenId());
+	}
+
 }
