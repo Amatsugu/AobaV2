@@ -37,14 +37,14 @@ public class UserSessionsService(IMongoDatabase db)
 		await _sessions.DeleteOneAsync(s => s.UserId == userId && s.TokenId == tokenId, cancellationToken);
 	}
 
-	public async Task<UserSession?> VerifyTokenUserSessionAsync(ObjectId userId, ObjectId tokenId, CancellationToken cancellationToken = default)
-	{
-		return await _sessions.Find(s => s.UserId == userId && s.TokenId == tokenId).FirstOrDefaultAsync(cancellationToken);
-	}
-
 	public async Task<List<UserSession>> GetUserSessionsAsync(ObjectId userId, CancellationToken cancellationToken = default)
 	{
 		return await _sessions.Find(s => s.UserId == userId).ToListAsync(cancellationToken);
+	}
+
+	public async Task<UserSession?> GetUserSessionAsync(ObjectId tokenId, CancellationToken cancellationToken = default)
+	{
+		return await _sessions.Find(s => s.TokenId == tokenId).FirstOrDefaultAsync(cancellationToken);
 	}
 
 	public async Task<UserSession?> RefreshSession(ObjectId userId, ObjectId tokenId, Func<ObjectId, (string name, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
@@ -64,4 +64,13 @@ public class UserSessionsService(IMongoDatabase db)
 		return session;
 	}
 
+
+	public async Task UpdateTokenAsync(ObjectId tokenId, string token, DateTime expiration, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<UserSession>.Update
+			.Set(s => s.Token, token)
+			.Set(s => s.Expiration, expiration)
+			.Set(s => s.LastUsed, DateTime.UtcNow);
+		await _sessions.UpdateOneAsync(s => s.TokenId == tokenId, update, null, cancellationToken);
+	}
 }

@@ -46,6 +46,7 @@ builder.Services.AddSingleton(dbClient);
 builder.Services.AddSingleton<IMongoDatabase>(db);
 builder.Services.AddSingleton<PasskeyCreationOptsCache>();
 builder.Services.AddSingleton<PasskeyAssertionOptsCache>();
+builder.Services.AddSingleton<LoginService>();
 
 var authCfg = new AuthConfigService(db);
 builder.Services.AddSingleton(authCfg);
@@ -67,7 +68,8 @@ builder.Services.AddCors(o =>
 	{
 		p.AllowAnyMethod();
 		p.AllowAnyHeader();
-		p.WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+		//p.AllowAnyHeader();
+		p.WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding", "Token-Refresh", "Token-Refresh-Exp");
 #if DEBUG
 		p.AllowAnyOrigin();
 #else
@@ -111,18 +113,20 @@ builder.Services.AddAuthentication(options =>
 	{
 		OnTokenValidated = async ctx =>
 		{
-			var sessions = ctx.HttpContext.RequestServices.GetRequiredService<UserSessionsService>();
 			if (ctx.Principal == null)
 			{
 				ctx.Fail("User is not validated");
 				return;
 			}
-			var session = await sessions.VerifyTokenUserSessionAsync(ctx.Principal.GetId(), ctx.Principal.FindFirstValue("tokenId").ToObjectId());
+			var loginService = ctx.HttpContext.RequestServices.GetRequiredService<LoginService>();
+			var session = await loginService.VerifyUserSessionTokenAsync(ctx.Principal);
 			if (session == null)
 			{
 				ctx.Fail("Session Expired");
 				return;
 			}
+			ctx.HttpContext.Response.Headers["Token-Refresh"] = session.Token;
+			ctx.HttpContext.Response.Headers["Token-Refresh-Exp"] = session.Expiration.UnixTime.ToString();
 		},
 #if DEBUG //allow cookie based auth when in debug mode
 		OnMessageReceived = ctx =>

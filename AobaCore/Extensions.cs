@@ -54,6 +54,6 @@ public static class Extensions
 
 	extension(DateTime date)
 	{
-		public ulong UnixTime => (ulong)(date - DateTime.UnixEpoch).TotalMilliseconds;
+		public ulong UnixTime => (ulong)(date - DateTime.UnixEpoch).TotalSeconds;
 	}
 }

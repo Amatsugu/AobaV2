@@ -31,7 +31,7 @@ public class User
 			new Claim(ClaimTypes.NameIdentifier, Id.ToString()),
 			new Claim(ClaimTypes.Name, Username),
 			new Claim(ClaimTypes.Role, "user"),
-			new Claim("tokenId", tokenId.ToString())
+			new Claim(ClaimTypes.Sid, tokenId.ToString())
 		});
 
 		if (Role != null)

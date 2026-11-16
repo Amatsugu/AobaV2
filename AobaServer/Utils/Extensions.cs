@@ -25,36 +25,49 @@ public static class Extensions
 		return ObjectId.Empty;
 	}
 
-	public static (string token, DateTime exp) GetToken(this User user, AuthInfo authInfo, ObjectId tokenId)
+	extension(User user)
 	{
-		var handler = new JwtSecurityTokenHandler();
-		var signCreds = new SigningCredentials(new SymmetricSecurityKey(authInfo.SecureKey), SecurityAlgorithms.HmacSha256);
-		var identity = user.GetIdentity(tokenId);
-		var exp = DateTime.UtcNow.AddDays(5);
-		var token = handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity,
-		 	notBefore: DateTime.UtcNow, expires: exp, issuedAt: DateTime.Now, signCreds);
-		return (token, exp);
+		public (string token, DateTime exp) GetToken(AuthInfo authInfo, ObjectId tokenId)
+		{
+			var handler = new JwtSecurityTokenHandler();
+			var signCreds = new SigningCredentials(new SymmetricSecurityKey(authInfo.SecureKey), SecurityAlgorithms.HmacSha256);
+			var identity = user.GetIdentity(tokenId);
+			var exp = DateTime.UtcNow.AddDays(5);
+			var token = handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity,
+				 notBefore: DateTime.UtcNow, expires: exp, issuedAt: DateTime.Now, signCreds);
+			return (token, exp);
+		}
+
 	}
 
-
-	public static ObjectId GetId(this ClaimsPrincipal user)
+	extension(ClaimsPrincipal user)
 	{
-		return user.FindFirstValue(ClaimTypes.NameIdentifier).ToObjectId();
+		public ObjectId GetId()
+		{
+			return user.FindFirstValue(ClaimTypes.NameIdentifier).ToObjectId();
+		}
+		public ObjectId GetTokenId()
+		{
+			return user.FindFirstValue(ClaimTypes.Sid).ToObjectId();
+		}
 	}
 
-	public static ObjectId GetUserId(this ServerCallContext context)
+	extension(ServerCallContext context)
 	{
-		return context.GetHttpContext().User.GetId();
-	}
+		public ObjectId GetUserId()
+		{
+			return context.GetHttpContext().User.GetId();
+		}
 
-	public static ObjectId GetTokenId(this ServerCallContext context)
-	{
-		return context.GetHttpContext().User.FindFirstValue("token").ToObjectId();
-	}
+		public ObjectId GetTokenId()
+		{
+			return context.GetHttpContext().User.GetTokenId();
+		}
 
-	public static string GetUserAgent(this ServerCallContext context)
-	{
-		return context.RequestHeaders.GetValue("User-Agent") ?? string.Empty;
+		public string GetUserAgent()
+		{
+			return context.RequestHeaders.GetValue("User-Agent") ?? string.Empty;
+		}
 	}
 
 	public static string GetUserAgent(this HttpContext context)
