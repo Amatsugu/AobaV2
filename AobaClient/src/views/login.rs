@@ -68,7 +68,7 @@ pub fn Login() -> Element {
 
 #[component]
 #[cfg(not(debug_assertions))]
-fn LoginForm(_username: Signal<String>, _password: Signal<String>) -> Element {
+fn LoginForm(username: Signal<String>, password: Signal<String>) -> Element {
 	rsx! {}
 }
 
