@@ -58,8 +58,7 @@ pub fn Login() -> Element {
 				Notif { r#type: NotifType::Error, message: err }
 			}
 			form {
-				LoginForm { username, password }
-				button { onclick: login, "Login!" }
+				LoginForm { username, password, onlogin: login }
 				PasskeyLoginButton { error }
 			}
 		}
@@ -68,13 +67,21 @@ pub fn Login() -> Element {
 
 #[component]
 #[cfg(not(debug_assertions))]
-fn LoginForm(username: Signal<String>, password: Signal<String>) -> Element {
+fn LoginForm(
+	username: Signal<String>,
+	password: Signal<String>,
+	onlogin: EventHandler<Event<MouseData>>,
+) -> Element {
 	rsx! {}
 }
 
 #[component]
 #[cfg(debug_assertions)]
-fn LoginForm(username: Signal<String>, password: Signal<String>) -> Element {
+fn LoginForm(
+	username: Signal<String>,
+	password: Signal<String>,
+	onlogin: EventHandler<Event<MouseData>>,
+) -> Element {
 	rsx! {
 		Input {
 			r#type: "text",
@@ -90,6 +97,7 @@ fn LoginForm(username: Signal<String>, password: Signal<String>) -> Element {
 			value: password,
 			required: true,
 		}
+		button { onclick: move |e| onlogin.call(e), "Login!" }
 	}
 }
 
