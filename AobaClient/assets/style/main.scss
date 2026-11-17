@@ -44,6 +44,7 @@ body {
 	overflow-y: auto;
 	height: 100dvh;
 	padding: 10px;
+	container: card-box;
 	/* margin-left: $navBarSize; */
 }
 
@@ -59,7 +60,7 @@ $mediaItemSize: 300px;
 
 	.mediaItem {
 		width: $mediaItemSize;
-		height: $mediaItemSize;
+		height: auto;
 		overflow: hidden;
 		display: grid;
 		grid-template-columns: $mediaItemSize;
