@@ -1,8 +1,10 @@
 use dioxus::prelude::*;
 use tonic::IntoRequest;
 
+#[cfg(debug_assertions)]
+use crate::components::basic::Input;
 use crate::{
-	components::{Notif, NotifType, PasskeyLoginButton, basic::Input},
+	components::{Notif, NotifType, PasskeyLoginButton},
 	contexts::AuthContext,
 	rpc::{
 		aoba::{Credentials, Error},

@@ -106,3 +106,14 @@ message UserSessionListResponse {
 }
 
 message UserSessionList { repeated UserSession sessions = 1; }
+
+message StoredPasskeyCredential {
+	string id = 1;
+	string display_name = 2;
+	string date_created = 3;
+	string last_used = 4;
+}
+
+message PasskeyCredentialsResponse {
+	repeated StoredPasskeyCredential credentials = 1;
+}
