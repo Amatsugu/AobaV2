@@ -24,7 +24,8 @@ public static class Extensions
 			.AddSingleton<AutoTagger>()
 			.AddSingleton<ThumbnailService>()
 			.AddSingleton<AccountsService>()
-			.AddSingleton<UserSessionsService>();
+			.AddSingleton<UserSessionsService>()
+			.AddSingleton<AccessTokenService>();
 		services.AddSingleton<HostInfo>();
 		services.AddHostedService<AobaIndexCreationService>();
 		return services;

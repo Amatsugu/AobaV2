@@ -140,12 +140,12 @@ message AccessTokenCreationRequest {
 
 message AccessTokenCreationResponse {
   oneof result {
-    AccesTokenFull token = 1;
+    AccessTokenFull token = 1;
     Error error = 2;
   }
 }
 
-message AccesTokenFull {
+message AccessTokenFull {
   Id token_id = 1;
   string token = 2;
 }

@@ -1,6 +1,6 @@
 use crate::{
 	layouts::{MainLayout, ViewerLayout},
-	views::{Home, Media, MediaCollection, Settings},
+	views::{AccessTokensManager, Home, Media, MediaCollection, Settings},
 };
 use dioxus::prelude::*;
 
@@ -14,8 +14,12 @@ pub enum Route {
 		// Home { },
 		#[route("/media/:id")]
 		Media { id: String },
-		#[route("/settings")]
-		Settings {},
+		#[nest("/settings")]
+			#[route("/")]
+			Settings {},
+			#[route("/accessTokens")]
+			AccessTokensManager {},
+		#[end_nest]
 	#[end_layout]
 	#[layout(ViewerLayout)]
 	#[route("/collection/:id")]

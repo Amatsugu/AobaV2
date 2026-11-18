@@ -175,7 +175,7 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 		}, context.CancellationToken);
 		return new AccessTokenCreationResponse
 		{
-			Token = new AccesTokenFull
+			Token = new AccessTokenFull
 			{
 				Token = token.Token,
 				TokenId = token.TokenId.ToRpc()

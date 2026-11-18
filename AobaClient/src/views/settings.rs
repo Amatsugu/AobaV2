@@ -1,14 +1,26 @@
 use dioxus::prelude::*;
 
-use crate::components::{MetricsToken, PasskeyRegistrationButton, sharex::ShareXToken, user::UserSessions};
+use crate::{
+	components::{PasskeyRegistrationButton, basic::Button, user::UserSessions},
+	route::Route,
+};
 
 #[component]
-pub fn Settings() -> Element
-{
+pub fn Settings() -> Element {
 	rsx! {
-		ShareXToken {}
-		MetricsToken {}
+		ManageTokens {  }
 		PasskeyRegistrationButton {}
 		UserSessions {}
+	}
+}
+
+#[component]
+fn ManageTokens() -> Element {
+	rsx! {
+		h3 { "Tokens" }
+		Link {
+			to: Route::AccessTokensManager {  },
+			Button { "Manage Tokens" }
+		 }
 	}
 }
