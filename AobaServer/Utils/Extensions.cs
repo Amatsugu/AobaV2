@@ -34,7 +34,7 @@ public static class Extensions
 			var identity = user.GetIdentity(tokenId);
 			var exp = DateTime.UtcNow.AddDays(5);
 			var token = handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity,
-				 notBefore: DateTime.UtcNow, expires: exp, issuedAt: DateTime.Now, signCreds);
+				 notBefore: DateTime.UtcNow, expires: exp, issuedAt: DateTime.UtcNow, signCreds);
 			return (token, exp);
 		}
 

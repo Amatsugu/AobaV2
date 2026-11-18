@@ -7,14 +7,11 @@ use crate::{
 
 #[component]
 pub fn PasskeyManager() -> Element {
-	let creds = use_resource(async || {
+	let _creds = use_resource(async || {
 		let mut rpc = get_account_rpc_client();
 		rpc.get_stored_passkey_credentials(())
 			.await
-			.map_err(|e| e.to_string())?
-			.into_inner()
-			.result
-			.unwrap_or_else(|| Err("".to_string()))
+			.map_err(|e| e.to_string())
 	});
 	rsx! {}
 }

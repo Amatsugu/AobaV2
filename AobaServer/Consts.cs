@@ -3,6 +3,7 @@
 public class Consts
 {
 	public const string AobaChallengeScheme = "Aoba";
-	public const string MetricsAuthScheme = "Metrics";
+	public const string AccessTokenAuthScheme = "AccessToken";
 	public const string MetricsAuthPolicy = "Metrics";
+	public const string UploadAuthPolicy = "Upload";
 }

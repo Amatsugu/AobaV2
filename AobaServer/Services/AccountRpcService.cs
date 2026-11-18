@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using Aoba.RPC;
 using Aoba.RPC.Account;
 using Aoba.RPC.Models;
@@ -12,11 +13,13 @@ using Fido2NetLib;
 using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace AobaServer.Services;
 
-public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache, UserSessionsService sessionsService, ILogger<AccountRpcService> logger) : AccountRpc.AccountRpcBase
+public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCreationOptsCache optsCache, UserSessionsService sessionsService,
+	ILogger<AccountRpcService> logger, AccessTokenService tokenService) : AccountRpc.AccountRpcBase
 {
 	public override async Task<PasskeyCreationResponse> RegisterPasskey(Empty request, ServerCallContext context)
 	{
@@ -139,6 +142,54 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 	{
 		await sessionsService.RevokeUserSessionAsync(context.GetUserId(), request.ToObjectId(), context.CancellationToken);
 		return new Empty();
+	}
+
+	public async override Task<AccessTokenCreationResponse> CreateAccessToken(AccessTokenCreationRequest request, ServerCallContext context)
+	{
+
+		var authConfig = context.GetHttpContext().RequestServices.GetRequiredService<AuthConfigService>();
+		var authInfo = await authConfig.GetAccessTokenAuthInfoAsync();
+		string[]? roles = request.Type switch
+		{
+			AccessTokenType.Metrics => ["metrics"],
+			AccessTokenType.Upload => ["upload"],
+			_ => null,
+		};
+		if (roles == null)
+		{
+			return new AccessTokenCreationResponse
+			{
+				Error = new Error
+				{
+					Message = $"Invalid Access Token type: {request.Type}"
+				}
+			};
+		}
+
+		var token = await tokenService.AddTokenAsync(context.GetUserId(), request.Label, roles, identity =>
+		{
+			var handler = new JwtSecurityTokenHandler();
+			var signCreds = new SigningCredentials(new SymmetricSecurityKey(authInfo.SecureKey), SecurityAlgorithms.HmacSha256);
+			return handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity,
+				 notBefore: DateTime.UtcNow, expires: null, issuedAt: DateTime.UtcNow, signCreds);
+		}, context.CancellationToken);
+		return new AccessTokenCreationResponse
+		{
+			Token = new AccesTokenFull
+			{
+				Token = token.Token,
+				TokenId = token.TokenId.ToRpc()
+			}
+		};
+	}
+
+
+	public async override Task<AccessTokenList> GetAccessTokens(Empty request, ServerCallContext context)
+	{
+		var tokens = await tokenService.GetAccessTokensAsync(context.GetUserId(), context.CancellationToken);
+		var res = new AccessTokenList();
+		res.Tokens.AddRange(tokens.ToRpc());
+		return res;
 	}
 
 }

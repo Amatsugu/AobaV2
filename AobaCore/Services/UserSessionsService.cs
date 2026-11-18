@@ -14,7 +14,7 @@ public class UserSessionsService(IMongoDatabase db)
 	private readonly IMongoCollection<UserSession> _sessions = db.GetCollection<UserSession>("userSessions");
 
 
-	public async Task<UserSession> CreateUserSessionAsync(ObjectId userId, string userAgent, Func<ObjectId, (string name, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
+	public async Task<UserSession> CreateUserSessionAsync(ObjectId userId, string userAgent, Func<ObjectId, (string token, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
 	{
 		var tokenId = ObjectId.GenerateNewId();
 		var parser = Parser.GetDefault();
@@ -51,7 +51,7 @@ public class UserSessionsService(IMongoDatabase db)
 		return await _sessions.Find(s => s.TokenId == tokenId).FirstOrDefaultAsync(cancellationToken);
 	}
 
-	public async Task<UserSession?> RefreshSession(ObjectId userId, ObjectId tokenId, Func<ObjectId, (string name, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
+	public async Task<UserSession?> RefreshSession(ObjectId userId, ObjectId tokenId, Func<ObjectId, (string token, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
 	{
 		var session = await _sessions.Find(s => s.UserId == userId).FirstOrDefaultAsync(cancellationToken);
 		if (session == null || session.Expiration < DateTime.UtcNow)

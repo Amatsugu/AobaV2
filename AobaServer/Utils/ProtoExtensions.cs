@@ -7,6 +7,7 @@ using AobaCore.Services;
 using Google.Protobuf.Collections;
 using System.Net.Mail;
 using Aoba.RPC.Models;
+using SharpCompress.Compressors.ZStandard.Unsafe;
 
 namespace AobaServer.Utils;
 
@@ -182,5 +183,21 @@ public static class ProtoExtensions
 	public static IEnumerable<Aoba.RPC.Models.UserSession> ToRpc(this IEnumerable<AobaCore.Models.UserSession> sessions, ObjectId currentTokenId)
 	{
 		return sessions.Select(s => s.ToRpc(currentTokenId));
+	}
+
+	public static Aoba.RPC.Models.AccessToken ToRpc(this AobaCore.Models.AccessToken token)
+	{
+		return new Aoba.RPC.Models.AccessToken
+		{
+			DateCreated = token.IssuedDate.ToString("u"),
+			Label = token.Label,
+			LastUsed = token.LastUsed.ToString("u"),
+			TokenId = token.TokenId.ToRpc()
+		};
+	}
+
+	public static IEnumerable<Aoba.RPC.Models.AccessToken> ToRpc(this IEnumerable<AobaCore.Models.AccessToken> tokens)
+	{
+		return tokens.Select(t => t.ToRpc());
 	}
 }

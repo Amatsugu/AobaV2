@@ -11,7 +11,7 @@ using MongoDB.Bson;
 
 namespace AobaServer.Controllers.Api;
 
-[ApiController, Authorize]
+[ApiController, Authorize(Policy = Consts.UploadAuthPolicy)]
 [Route("/api/media")]
 [RequestTimeout("upload")]
 public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase

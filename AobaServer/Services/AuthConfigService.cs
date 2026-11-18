@@ -23,4 +23,10 @@ public class AuthConfigService(IMongoDatabase db)
 	{
 		return GetAuthInfoAsync("aobaV2", "aoba");
 	}
+
+	public Task<AuthInfo> GetAccessTokenAuthInfoAsync()
+	{
+		return GetAuthInfoAsync("aobaV2", "accessToken");
+
+	}
 }

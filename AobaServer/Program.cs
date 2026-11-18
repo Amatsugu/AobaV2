@@ -86,9 +86,14 @@ builder.Services.AddCors(o =>
 builder.Services.AddAuthorizationBuilder()
 	.AddPolicy(Consts.MetricsAuthPolicy, p =>
 	{
-		p.AddAuthenticationSchemes(Consts.MetricsAuthScheme)
+		p.AddAuthenticationSchemes(Consts.AccessTokenAuthScheme)
 			.RequireAuthenticatedUser()
 			.RequireRole("metrics");
+	}).AddPolicy(Consts.UploadAuthPolicy, p =>
+	{
+		p.AddAuthenticationSchemes(Consts.AccessTokenAuthScheme, JwtBearerDefaults.AuthenticationScheme)
+			.RequireAuthenticatedUser()
+			.RequireRole("user", "upload");
 	});
 builder.Services.AddRequestTimeouts(cfg =>
 {
@@ -96,7 +101,7 @@ builder.Services.AddRequestTimeouts(cfg =>
 	cfg.AddPolicy("thumbnails", TimeSpan.FromMinutes(10));
 });
 
-var metricsAuthInfo = await authCfg.GetAuthInfoAsync("aoba", "metrics");
+var accessTokenAuthInfo = await authCfg.GetAccessTokenAuthInfoAsync();
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -143,19 +148,36 @@ builder.Services.AddAuthentication(options =>
 		},
 #endif
 	};
-}).AddJwtBearer(Consts.MetricsAuthScheme, opts =>
+}).AddJwtBearer(Consts.AccessTokenAuthScheme, opts =>
 {
 	opts.TokenValidationParameters = new TokenValidationParameters
 	{
-
 		ValidateIssuerSigningKey = true,
-		IssuerSigningKey = new SymmetricSecurityKey(metricsAuthInfo.SecureKey),
+		IssuerSigningKey = new SymmetricSecurityKey(accessTokenAuthInfo.SecureKey),
 		ValidateIssuer = true,
-		ValidIssuer = metricsAuthInfo.Issuer,
+		ValidIssuer = accessTokenAuthInfo.Issuer,
 		ValidateAudience = true,
-		ValidAudience = metricsAuthInfo.Audience,
+		ValidAudience = accessTokenAuthInfo.Audience,
 		ValidateLifetime = false,
 		ClockSkew = TimeSpan.FromMinutes(1)
+	};
+	opts.Events = new JwtBearerEvents
+	{
+		OnTokenValidated = async ctx =>
+		{
+			if (ctx.Principal == null)
+			{
+				ctx.Fail("User is not validated");
+				return;
+			}
+			var tokenService = ctx.HttpContext.RequestServices.GetRequiredService<AccessTokenService>();
+			var token = await tokenService.GetAccessTokenAsync(ctx.Principal.GetTokenId());
+			if (token == null || token.UserId != ctx.Principal.GetId())
+			{
+				ctx.Fail("Invalid Access Token");
+				return;
+			}
+		}
 	};
 
 }).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>(Consts.AobaChallengeScheme, null);
