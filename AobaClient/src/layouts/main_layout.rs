@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::{
 	Route,
 	components::{Navbar, toasts::ToastsDisplay},
-	contexts::AuthContext,
+	contexts::{AuthContext, DragContext},
 	rpc::use_unauth_hook,
 	views::Login,
 };
@@ -12,6 +12,11 @@ use crate::{
 pub fn MainLayout() -> Element
 {
 	let auth_context = use_context::<AuthContext>();
+	let mut drag_context = use_context::<DragContext>();
+
+	let on_drag_enter = move |_| {
+		drag_context.is_dragging.set(true);
+	};
 
 	use_unauth_hook(auth_context);
 
@@ -26,6 +31,10 @@ pub fn MainLayout() -> Element
 		Navbar { }
 		div {
 			id: "content",
+			ondragenter: on_drag_enter,
+			ondragover: on_drag_enter,
+			ondragstart: on_drag_enter,
+
 			Outlet::<Route> { }
 		}
 	};

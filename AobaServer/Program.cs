@@ -94,6 +94,11 @@ builder.Services.AddAuthorizationBuilder()
 		p.AddAuthenticationSchemes(Consts.AccessTokenAuthScheme, JwtBearerDefaults.AuthenticationScheme)
 			.RequireAuthenticatedUser()
 			.RequireRole("user", "upload");
+	}).AddDefaultPolicy(Consts.BaseAuthPolicy, p =>
+	{
+		p.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+			.RequireAuthenticatedUser()
+			.RequireRole("user");
 	});
 builder.Services.AddRequestTimeouts(cfg =>
 {
@@ -171,7 +176,7 @@ builder.Services.AddAuthentication(options =>
 				return;
 			}
 			var tokenService = ctx.HttpContext.RequestServices.GetRequiredService<AccessTokenService>();
-			var token = await tokenService.GetAccessTokenAsync(ctx.Principal.GetTokenId());
+			var token = await tokenService.GetAccessTokenAsync(ctx.Principal.GetTokenId(), updateUseDate: true);
 			if (token == null || token.UserId != ctx.Principal.GetId())
 			{
 				ctx.Fail("Invalid Access Token");

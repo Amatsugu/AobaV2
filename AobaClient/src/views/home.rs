@@ -34,12 +34,7 @@ const MIN_DRAG_DISTANCE: f64 = 8.0;
 #[component]
 pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 {
-	let mut drag_context = use_context::<DragContext>();
-
-	let on_drag_enter = move |_| {
-		drag_context.is_dragging.set(true);
-	};
-
+	init_hooks();
 	let mut query = use_signal(|| q.unwrap_or("".to_string()));
 	let mut page = use_signal(|| page.unwrap_or(1));
 	let page_size = use_signal::<i32>(|| 100);
@@ -50,13 +45,11 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 	// let mut selected_items: Signal<Vec<String>> = use_signal(|| Vec::new());
 	let mut seletion_mode: Signal<SelectionMode> = use_signal(|| SelectionMode::Add);
 	let mut seletion_phase: Signal<SelectionPhase> = use_signal(|| SelectionPhase::Start);
+
 	rsx! {
 		div	{
 			class: "stickyTop",
 			//Drag
-			ondragenter: on_drag_enter,
-			ondragover: on_drag_enter,
-			ondragstart: on_drag_enter,
 
 			Search {
 				query: query(),
@@ -165,6 +158,14 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 			}
 		}
 	}
+}
+
+fn init_hooks()
+{
+	let mut drag_context = use_context::<DragContext>();
+	use_hook(|| {
+		drag_context.is_dragging.set(false);
+	});
 }
 
 fn process_selection(items: &mut Vec<String>, mode: SelectionMode, id: String)

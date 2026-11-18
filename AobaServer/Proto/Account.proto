@@ -19,4 +19,5 @@ service AccountRpc {
   rpc CreateAccessToken(AccessTokenCreationRequest)
       returns (AccessTokenCreationResponse);
   rpc GetAccessTokens(google.protobuf.Empty) returns (AccessTokenList);
+  rpc RevokeAccessToken(Id) returns (google.protobuf.Empty);
 }

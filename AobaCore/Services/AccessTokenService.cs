@@ -27,13 +27,18 @@ public class AccessTokenService(IMongoDatabase db)
 		return token;
 	}
 
-	public async Task RevokeTokenAsync(ObjectId tokenId, CancellationToken cancellationToken = default)
+	public async Task RevokeTokenAsync(ObjectId tokenId, ObjectId ownerId, CancellationToken cancellationToken = default)
 	{
-		await _accessTokens.DeleteOneAsync(t => t.TokenId == tokenId, null, cancellationToken);
+		await _accessTokens.DeleteOneAsync(t => t.TokenId == tokenId && t.UserId == ownerId, null, cancellationToken);
 	}
 
-	public async Task<AccessToken?> GetAccessTokenAsync(ObjectId tokenId, CancellationToken cancellationToken = default)
+	public async Task<AccessToken?> GetAccessTokenAsync(ObjectId tokenId, bool updateUseDate = false, CancellationToken cancellationToken = default)
 	{
+		if (updateUseDate)
+		{
+			var update = Builders<AccessToken>.Update.Set(t => t.LastUsed, DateTime.UtcNow);
+			await _accessTokens.UpdateOneAsync(t => t.TokenId == tokenId, update, null, cancellationToken);
+		}
 		return await _accessTokens.Find(t => t.TokenId == tokenId).FirstOrDefaultAsync(cancellationToken);
 	}
 

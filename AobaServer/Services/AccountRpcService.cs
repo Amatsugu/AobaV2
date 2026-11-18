@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
-using Aoba.RPC;
+﻿using Aoba.RPC;
 using Aoba.RPC.Account;
 using Aoba.RPC.Models;
+
 using AobaCore;
 using AobaCore.Services;
 
+using AobaServer.Models;
 using AobaServer.Utils;
 
 using Fido2NetLib;
@@ -13,7 +13,12 @@ using Fido2NetLib;
 using Google.Protobuf.WellKnownTypes;
 
 using Grpc.Core;
+
 using Microsoft.IdentityModel.Tokens;
+
+using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 
 
 namespace AobaServer.Services;
@@ -173,13 +178,27 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 			return handler.CreateEncodedJwt(authInfo.Issuer, authInfo.Audience, identity,
 				 notBefore: DateTime.UtcNow, expires: null, issuedAt: DateTime.UtcNow, signCreds);
 		}, context.CancellationToken);
+		var accessToken = new AccessTokenFull
+		{
+			Token = token.Token,
+			TokenId = token.TokenId.ToRpc()
+		};
+		if (roles.Contains("upload"))
+		{
+			var dest = new ShareXDestination
+			{
+				DeletionURL = string.Empty,
+				ThumbnailURL = string.Empty,
+				Headers = new()
+				{
+					{ "Authorization", $"Bearer {token}" }
+				}
+			};
+			accessToken.SharexDestination = JsonSerializer.Serialize(dest);
+		}
 		return new AccessTokenCreationResponse
 		{
-			Token = new AccessTokenFull
-			{
-				Token = token.Token,
-				TokenId = token.TokenId.ToRpc()
-			}
+			Token = accessToken
 		};
 	}
 
@@ -192,4 +211,9 @@ public class AccountRpcService(IFido2 fido2, AccountsService accounts, PasskeyCr
 		return res;
 	}
 
+	public override async Task<Empty> RevokeAccessToken(Id request, ServerCallContext context)
+	{
+		await tokenService.RevokeTokenAsync(request.ToObjectId(), context.GetUserId(), context.CancellationToken);
+		return new Empty();
+	}
 }

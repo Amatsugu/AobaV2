@@ -148,4 +148,5 @@ message AccessTokenCreationResponse {
 message AccessTokenFull {
   Id token_id = 1;
   string token = 2;
+  optional string sharex_destination = 3;
 }

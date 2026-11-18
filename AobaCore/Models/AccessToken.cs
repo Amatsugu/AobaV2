@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace AobaCore.Models;
 
 
 public class AccessToken
 {
+	[BsonId]
 	public ObjectId TokenId { get; set; }
 	public required string Label { get; set; }
 	public required string Token { get; set; }

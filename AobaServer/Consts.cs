@@ -6,4 +6,5 @@ public class Consts
 	public const string AccessTokenAuthScheme = "AccessToken";
 	public const string MetricsAuthPolicy = "Metrics";
 	public const string UploadAuthPolicy = "Upload";
+	public const string BaseAuthPolicy = "User";
 }
