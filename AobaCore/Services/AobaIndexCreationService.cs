@@ -9,7 +9,7 @@ using MongoDB.Driver;
 
 namespace AobaCore.Services;
 
-public class AobaIndexCreationService(IMongoDatabase db): BackgroundService
+public class AobaIndexCreationService(IMongoDatabase db) : BackgroundService
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
 
@@ -37,7 +37,17 @@ public class AobaIndexCreationService(IMongoDatabase db): BackgroundService
 			Background = true
 		});
 
+		var ownerDateKeys = Builders<Media>.IndexKeys
+		.Hashed(m => m.Owner)
+		.Descending(m => m.UploadDate);
+		var ownerDateModel = new CreateIndexModel<Media>(ownerDateKeys, new CreateIndexOptions
+		{
+			Name = "OwnerDate",
+			Background = true
+		});
+
 		await _media.EnsureIndexAsync(mediaIdModel);
 		await _media.EnsureIndexAsync(textModel);
+		await _media.EnsureIndexAsync(ownerDateModel);
 	}
 }

@@ -48,6 +48,8 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		var media = await aobaService.GetMediaAsync(request.ToObjectId());
 		if (media == null)
 			return new Empty();
+		if (media.Owner != context.GetUserId())
+			return new Empty();
 		if (media.Cdn != null)
 		{
 			await s3.DeleteFileAsync(media.Cdn.Url, CancellationToken.None);
@@ -70,6 +72,8 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.GetUserId(), context.CancellationToken);
 		foreach (var item in media)
 		{
+			if (item.Owner != context.GetUserId())
+				continue;
 			if (item.Cdn != null)
 			{
 				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);

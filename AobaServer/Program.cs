@@ -2,7 +2,6 @@ using AobaCore;
 using AobaCore.Services;
 
 using AobaServer;
-using AobaServer.Auth;
 using AobaServer.Middleware;
 using AobaServer.Models;
 using AobaServer.Services;
@@ -94,11 +93,6 @@ builder.Services.AddAuthorizationBuilder()
 		p.AddAuthenticationSchemes(Consts.AccessTokenAuthScheme, JwtBearerDefaults.AuthenticationScheme)
 			.RequireAuthenticatedUser()
 			.RequireRole("user", "upload");
-	}).AddDefaultPolicy(Consts.BaseAuthPolicy, p =>
-	{
-		p.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-			.RequireAuthenticatedUser()
-			.RequireRole("user");
 	});
 builder.Services.AddRequestTimeouts(cfg =>
 {
@@ -110,7 +104,6 @@ var accessTokenAuthInfo = await authCfg.GetAccessTokenAuthInfoAsync();
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = Consts.AobaChallengeScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
 	options.TokenValidationParameters = new TokenValidationParameters
@@ -176,7 +169,7 @@ builder.Services.AddAuthentication(options =>
 				return;
 			}
 			var tokenService = ctx.HttpContext.RequestServices.GetRequiredService<AccessTokenService>();
-			var token = await tokenService.GetAccessTokenAsync(ctx.Principal.GetTokenId(), updateUseDate: true);
+			var token = await tokenService.GetAccessTokenAsync(ctx.Principal.GetTokenId());
 			if (token == null || token.UserId != ctx.Principal.GetId())
 			{
 				ctx.Fail("Invalid Access Token");
@@ -185,7 +178,7 @@ builder.Services.AddAuthentication(options =>
 		}
 	};
 
-}).AddScheme<AuthenticationSchemeOptions, AobaAuthenticationHandler>(Consts.AobaChallengeScheme, null);
+});
 
 
 builder.Services.AddAoba().AddAobaS3();
