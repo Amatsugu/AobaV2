@@ -72,7 +72,6 @@ builder.Services.AddCors(o =>
 	{
 		p.AllowAnyMethod();
 		p.AllowAnyHeader();
-		//p.AllowAnyHeader();
 		p.WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding", "Token-Refresh", "Token-Refresh-Exp");
 #if DEBUG
 		p.AllowAnyOrigin();
@@ -208,8 +207,7 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+	app.UseOwaspHeaders();
 }
 
 app.UseForwardedHeaders();
