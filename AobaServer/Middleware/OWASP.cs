@@ -21,9 +21,9 @@ public static class Owasp
 				headers["Cross-Origin-Embedder-Policy"] = "require-corp";
 				headers["Cross-Origin-Opener-Policy"] = "same-origin";
 				headers["Cross-Origin-Resource-Policy"] = "same-origin";
-				headers["Permissions-Policy"] = "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(self), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), unload=()";
+				headers["Permissions-Policy"] = "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(self), usb=(), web-share=(), xr-spatial-tracking=(), gamepad=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), unload=()";
 				headers["X-DNS-Prefetch-Control"] = "off";
-				headers["X-XSS-Protection"] = "0";
+				headers.XXSSProtection = "0";
 				return Task.CompletedTask;
 			});
 			await next();
