@@ -11,18 +11,17 @@ public class RetroTaggerService(IMongoDatabase db, AutoTagger tagger, ILogger<Re
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var items = await _media.Find("{}").ToListAsync(stoppingToken);
-		foreach (var item in items)
+		await _media.Find("{}").ForEachAsync(async item =>
 		{
 			var tags = await tagger.GetTagsAsync(item.Filename);
 			if (!tags.Any())
-				continue;
+				return;
 			var combined = item.Tags.Concat(tags).Distinct().ToArray();
 			if (combined.Length == item.Tags.Length)
-				continue;
+				return;
 			var update = Builders<Media>.Update.Set(m => m.Tags, combined);
 			await _media.UpdateOneAsync(m => m.MediaId == item.MediaId, update, null, stoppingToken);
-		}
+		}, stoppingToken);
 		logger.LogInformation("Retro Tagging completed");
 	}
 }
