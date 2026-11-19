@@ -66,7 +66,7 @@ public static class AVIFTools
 			var colorSpaceOpt = MapColorSpaceOption(color.Value.ColorSpace);
 			var vf = $"scale={size}:{size}:force_original_aspect_ratio=increase:flags=lanczos,crop={size}:{size}";
 
-			var success = await FFMpegArguments.FromFileInput(inputFile)
+			var result = await FFMpegArguments.FromFileInput(inputFile)
 				.OutputToFile(outputFile, overwrite: true, opts =>
 				{
 					var colorInfo = color.Value;
@@ -87,7 +87,7 @@ public static class AVIFTools
 						opts.WithCustomArgument($"-colorspace {colorSpaceOpt}");
 				}).CancellableThrough(cancellationToken)
 				.ProcessAsynchronously();
-			if (!success)
+			if (!result.Success)
 				return new Error("Failed to process file");
 		}
 		catch (Exception ex)
