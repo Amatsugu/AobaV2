@@ -24,6 +24,7 @@ public static class Owasp
 				headers["Permissions-Policy"] = "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(self), usb=(), web-share=(), xr-spatial-tracking=(), gamepad=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), unload=()";
 				headers["X-DNS-Prefetch-Control"] = "off";
 				headers.XXSSProtection = "0";
+				headers.Remove("Server");
 				return Task.CompletedTask;
 			});
 			await next();
