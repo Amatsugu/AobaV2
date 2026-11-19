@@ -15,7 +15,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS client-builder
 WORKDIR /app/AobaClient
 COPY --from=planner /app/AobaClient/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json --target wasm32-unknown-unknown
 COPY /AobaClient /app/AobaClient
 COPY /AobaServer/Proto /app/AobaServer/Proto
 

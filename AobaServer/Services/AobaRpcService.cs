@@ -20,7 +20,7 @@ using SearchQuery = AobaServer.Models.SearchQuery;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, AccountsService accountsService, AuthConfigService authConfig, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
 {
 
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
