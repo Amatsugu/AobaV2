@@ -31,6 +31,4 @@ service AobaRpc {
   // Upload
   rpc StartUpload(UploadRequest) returns (UploadTargetResponse);
   rpc CompleteUpload(IdList) returns (UploadResult);
-
-  rpc GetShareXDestination(google.protobuf.Empty) returns (ShareXResponse);
 }

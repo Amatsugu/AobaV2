@@ -15,7 +15,6 @@ mod pagination;
 mod passkey;
 mod search;
 mod selection_bar;
-pub mod sharex;
 pub mod toasts;
 mod upload_area;
 pub mod user;

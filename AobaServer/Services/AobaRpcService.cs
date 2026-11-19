@@ -43,29 +43,6 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		return new Empty();
 	}
 
-	public override async Task<ShareXResponse> GetShareXDestination(Empty request, ServerCallContext context)
-	{
-		var userId = context.GetHttpContext().User.GetId();
-		var user = await accountsService.GetUserAsync(userId, context.CancellationToken);
-		if (user == null)
-			return new ShareXResponse { Error = "User does not exist" };
-		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		var token = "";//user.GetToken(authInfo);
-		var dest = new ShareXDestination
-		{
-			DeletionURL = string.Empty,
-			ThumbnailURL = string.Empty,
-			Headers = new()
-			{
-				{ "Authorization", $"Bearer {token}" }
-			}
-		};
-		return new ShareXResponse
-		{
-			Destination = JsonSerializer.Serialize(dest)
-		};
-	}
-
 	public override async Task<Empty> DeleteMedia(Id request, ServerCallContext context)
 	{
 		var media = await aobaService.GetMediaAsync(request.ToObjectId());

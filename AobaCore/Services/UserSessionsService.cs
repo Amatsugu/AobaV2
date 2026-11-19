@@ -53,7 +53,7 @@ public class UserSessionsService(IMongoDatabase db)
 
 	public async Task<UserSession?> RefreshSession(ObjectId userId, ObjectId tokenId, Func<ObjectId, (string token, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)
 	{
-		var session = await _sessions.Find(s => s.UserId == userId).FirstOrDefaultAsync(cancellationToken);
+		var session = await _sessions.Find(s => s.UserId == userId && s.TokenId == tokenId).FirstOrDefaultAsync(cancellationToken);
 		if (session == null || session.Expiration < DateTime.UtcNow)
 			return null;
 		var (token, exp) = tokenFactory(tokenId);

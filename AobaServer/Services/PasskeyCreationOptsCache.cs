@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AobaServer.Services;
 
-public class OptsCache<T> where T: class
+public class OptsCache<T> where T : class
 {
 	public MemoryCache Cache { get; } = new MemoryCache(nameof(T));
 
@@ -17,7 +17,7 @@ public class OptsCache<T> where T: class
 		var cacheKey = key.ToString();
 		return Cache.Add(cacheKey, value, new CacheItemPolicy
 		{
-			AbsoluteExpiration = DateTime.Now.AddSeconds(5),
+			AbsoluteExpiration = DateTime.Now.AddSeconds(120),
 		});
 	}
 

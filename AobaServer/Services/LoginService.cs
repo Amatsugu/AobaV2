@@ -33,7 +33,7 @@ public class LoginService(AccountsService accountsService, UserSessionsService s
 	public async Task<UserSession?> RefreshUserSessionAsync(User user, UserSession session, CancellationToken cancellationToken = default)
 	{
 		var authInfo = await authConfig.GetDefaultAuthInfoAsync();
-		var timeLeft = DateTime.UtcNow - session.Expiration;
+		var timeLeft = session.Expiration - DateTime.UtcNow;
 		if (timeLeft.Days < 1)
 		{
 			(session.Token, session.Expiration) = user.GetToken(authInfo, session.TokenId);
