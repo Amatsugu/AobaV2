@@ -18,7 +18,6 @@ public static class Owasp
 				headers.CacheControl = "no-store, max-age=0";
 				headers["X-Permitted-Cross-Domain-Policies"] = "none";
 				headers["Referrer-Policy"] = "no-referrer";
-				headers["Cross-Origin-Embedder-Policy"] = "require-corp";
 				headers["Cross-Origin-Opener-Policy"] = "same-origin";
 				headers["Cross-Origin-Resource-Policy"] = "same-origin";
 				headers["Permissions-Policy"] = "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), sync-xhr=(self), usb=(), web-share=(), xr-spatial-tracking=(), gamepad=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), unload=()";
