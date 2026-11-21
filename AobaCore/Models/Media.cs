@@ -186,4 +186,6 @@ public class MediaMetadata
 	public long FileSize { get; set; }
 	public long? Duration { get; set; }
 	public bool? Hdr { get; set; }
+	public int? AudioBitrate { get; set; }
+	public int?	VideoBitrate { get; set; }
 }
