@@ -11,7 +11,7 @@ namespace AobaCore.Services;
 
 public class UserSessionsService(IMongoDatabase db)
 {
-	private readonly IMongoCollection<UserSession> _sessions = db.GetCollection<UserSession>("userSessions");
+	private readonly IMongoCollection<UserSession> _sessions = db.GetCollection<UserSession>(Collections.UserSessions);
 
 
 	public async Task<UserSession> CreateUserSessionAsync(ObjectId userId, string userAgent, Func<ObjectId, (string token, DateTime exp)> tokenFactory, CancellationToken cancellationToken = default)

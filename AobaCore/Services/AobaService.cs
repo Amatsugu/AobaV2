@@ -14,7 +14,7 @@ namespace AobaCore.Services;
 
 public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger)
 {
-	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
+	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>(Collections.Media);
 	private readonly GridFSBucket _gridFs = new(db);
 
 	public async Task<Media?> GetMediaFromLegacyIdAsync(ObjectId id, CancellationToken cancellationToken = default)

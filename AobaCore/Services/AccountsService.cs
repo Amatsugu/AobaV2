@@ -20,7 +20,7 @@ namespace AobaCore.Services;
 
 public class AccountsService(IMongoDatabase db, ILogger<AccountsService> logger)
 {
-	private readonly IMongoCollection<User> _users = db.GetCollection<User>("users");
+	private readonly IMongoCollection<User> _users = db.GetCollection<User>(Collections.Users);
 
 #if DEBUG
 	public async Task<bool> CreateDevAccountAsync()

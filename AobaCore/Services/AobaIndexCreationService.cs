@@ -12,6 +12,8 @@ namespace AobaCore.Services;
 public class AobaIndexCreationService(IMongoDatabase db) : BackgroundService
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
+	private readonly IMongoCollection<ThumbnailRequest> _requests = db.GetCollection<ThumbnailRequest>("thumbRequests");
+
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{

@@ -16,4 +16,5 @@ public enum ThumbnailSize
 	Medium = 256,
 	Large = 512,
 	ExtraLarge = 1024,
+	Responsive = 450
 }

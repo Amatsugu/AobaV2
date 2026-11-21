@@ -8,7 +8,7 @@ namespace AobaCore.Services;
 
 public class AccessTokenService(IMongoDatabase db)
 {
-	private readonly IMongoCollection<AccessToken> _accessTokens = db.GetCollection<AccessToken>("accessTokens");
+	private readonly IMongoCollection<AccessToken> _accessTokens = db.GetCollection<AccessToken>(Collections.AccessTokens);
 
 	public async Task<AccessToken> AddTokenAsync(ObjectId ownerId, string label, string[] roles, Func<ClaimsIdentity, string> tokenFactory, CancellationToken cancellationToken = default)
 	{
