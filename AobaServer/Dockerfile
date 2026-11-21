@@ -1,5 +1,6 @@
-ARG NET_VERSION="10.0"
+ARG NET_VERSION="11.0"
 ARG DX_VERSION="0.7.10"
+ARG VARIANT="resolute"
 
 # Client Side build - prep deps
 FROM rust:1-trixie AS chef
@@ -42,7 +43,7 @@ WORKDIR /app
 EXPOSE 8081
 
 # This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION}-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION}-${VARIANT} AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AobaServer/AobaServer.csproj", "AobaServer/"]
