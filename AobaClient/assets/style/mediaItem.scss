@@ -1,0 +1,94 @@
+@import "mixins";
+@import "colors";
+
+$itemWidth: 450px;
+.mediaGrid {
+	margin-top: 5px;
+	gap: 10px;
+	justify-self: center;
+	columns: 16;
+	@for $i from 15 to 0 {
+		@include max-container(($i + 1) * $itemWidth) {
+			columns: $i;
+		}
+	}
+}
+
+.mediaItem {
+	display: grid;
+	overflow: hidden;
+	margin-bottom: 10px;
+	justify-content: center;
+	grid-template-rows: auto 1fr auto;
+	grid-template-areas: "Toolbar" "Content" "Info";
+
+	.content {
+		display: grid;
+		grid-area: Content;
+		background-color: #000;
+		grid-template-areas: "A";
+		> * {
+			grid-area: A;
+			width: $itemWidth;
+			display: block;
+		}
+	}
+
+	&.blur {
+		.content::after {
+			grid-area: A;
+			display: flex;
+			content: "NSFW";
+			justify-content: center;
+			align-items: center;
+			font-size: 3rem;
+			font-weight: 100;
+			backdrop-filter: blur(20px) brightness(0.5);
+			opacity: 1;
+			transition: 0.25s ease-out opacity;
+			margin: 0;
+		}
+
+		&:hover {
+			.content::after {
+				opacity: 0;
+			}
+		}
+	}
+
+	.toolbar {
+		content: Toolbar;
+		display: flex;
+		place-self: start;
+		width: 100%;
+		background-color: $buttonMutedBG;
+		padding: 5px;
+		justify-content: center;
+	}
+
+	.info {
+		content: Info;
+		background-color: $buttonMutedBG;
+		place-self: end;
+		justify-self: center;
+		width: 100%;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-template-areas: "Title Title" "Type Meta";
+		padding: 5px;
+
+		.title {
+			grid-area: Title;
+			text-align: center;
+		}
+
+		.type {
+			grid-area: Type;
+		}
+
+		.meta {
+			grid-area: Meta;
+			text-align: right;
+		}
+	}
+}

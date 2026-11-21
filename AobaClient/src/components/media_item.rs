@@ -9,6 +9,7 @@ use dioxus::{
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
 use crate::{
+	HOST,
 	components::icons::Stack,
 	rpc::aoba::{MediaClass, MediaModel, MediaType},
 };
@@ -29,8 +30,54 @@ pub struct MediaItemProps {
 	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
+const MEDIA_ITEM_CSS: Asset = asset!("/assets/style/mediaItem.scss");
+
 #[component]
 pub fn MediaItem(props: MediaItemProps) -> Element {
+	let item = props.item;
+	let media_type = item.media_type();
+	let class = item.class();
+	let class_string = class.to_class_name();
+	let id = item.id.unwrap_or_default().value;
+	let thumb = format!("{}/m/{}", HOST, id.clone());
+
+	rsx! {
+		div {
+			class: "mediaItem {class_string}",
+			div {
+				class: "toolbar",
+				"x"
+			}
+			div {
+				class: "content",
+				img{
+					src: thumb,
+					loading: "lazy"
+				}
+			}
+			div {
+				class: "info",
+				div {
+					class: "title",
+					{item.filename}
+				}
+				div {
+					class: "type",
+					"{media_type}"
+				}
+				div  {
+					class: "meta",
+					"000x000"
+				}
+			}
+		}
+		document::Link {href: MEDIA_ITEM_CSS, rel: "stylesheet" }
+	}
+}
+
+const LEGACY_CSS: Asset = asset!("/assets/style/mediaItemLegacy.scss");
+#[component]
+pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
 	let class = item.class();
@@ -54,6 +101,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 	};
 
 	return rsx! {
+		document::Link {href: LEGACY_CSS, rel: "stylesheet"}
 		ContextMenu{
 			ContextMenuTrigger{
 				a {

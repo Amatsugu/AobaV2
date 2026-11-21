@@ -44,120 +44,8 @@ body {
 	overflow-y: auto;
 	height: 100dvh;
 	padding: 10px;
-	container: card-box;
+	container-type: inline-size;
 	/* margin-left: $navBarSize; */
-}
-
-$mediaItemSize: 300px;
-
-.mediaGrid {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	gap: 10px;
-	margin: 10px 0;
-	user-select: none;
-
-	.mediaItem {
-		width: $mediaItemSize;
-		height: auto;
-		overflow: hidden;
-		display: grid;
-		grid-template-columns: $mediaItemSize;
-		grid-template-areas: "A";
-		box-shadow: 0 0 2px #000;
-		color: $mainTextColor;
-		text-decoration: none;
-		transition:
-			transform 0.25s ease-out,
-			box-shadow 0.25s ease-out;
-
-		> * {
-			grid-area: A;
-		}
-
-		svg{
-			padding: 20px;
-			background-color: $buttonMutedBG;
-		}
-
-		img, video {
-			aspect-ratio: 1;
-			object-fit: cover;
-			width: 100%;
-			object-position: center;
-			background-color: $invertTextColor;
-			border: 0;
-			outline: none;
-		}
-
-		.info {
-			align-self: end;
-			backdrop-filter: blur(20px) brightness(0.5);
-			transition: transform 0.25s ease-out;
-			transform: translateY(100%);
-			padding: 2px;
-
-			.name {
-				text-align: center;
-				width: 100%;
-				display: block;
-				overflow: hidden;
-			}
-			.details {
-				display: flex;
-				justify-content: space-between;
-			}
-		}
-
-		&:hover {
-			transform: scale(110%) translateZ(2px);
-			box-shadow: 0 0 8px #000;
-			z-index: 500;
-
-			.info {
-				transform: translateY(0%);
-			}
-		}
-		&.blur {
-			img, video {
-				filter: blur(20px);
-				transition: filter 0.25s ease-out;
-			}
-		}
-		&.blur:hover{
-			img, video {
-				filter: blur(0px);
-			}
-		}
-
-		&::before {
-			grid-area: A;
-			display: flex;
-			align-self: start;
-			content: "Selected";
-			transform: translateY(-100%);
-			transition: transform 0.25s ease;
-			z-index: 3;
-			justify-content: center;
-			padding: 3px;
-			z-index: 3;
-		}
-
-		&.selected {
-			box-shadow: 0 0 8px $focusColor;
-			border: 1px solid $featureColor;
-
-			&::before {
-				background-color: $featureColor;
-				transform: translateY(0%);
-			}
-
-			.info {
-				transform: translateY(0%);
-			}
-		}
-	}
 }
 
 #main:has(#centralModal) {
@@ -351,7 +239,7 @@ form {
 	}
 }
 
-#uploadArea{
+#uploadArea {
 	display: grid;
 	grid-template-areas: "A";
 
@@ -359,7 +247,7 @@ form {
 		grid-area: A;
 	}
 
-	#uploadOverlay{
+	#uploadOverlay {
 		backdrop-filter: brightness(0.1);
 		display: none;
 		position: fixed;
@@ -370,28 +258,27 @@ form {
 		top: 0;
 		grid-template-areas: "A";
 
-		> *{
+		> * {
 			grid-area: A;
 		}
-		.display{
+		.display {
 			justify-self: center;
 			align-self: center;
 		}
-		> input{
+		> input {
 			appearance: none;
 			opacity: 0;
 		}
 	}
 
-	&.dragging{
-		#uploadOverlay{
+	&.dragging {
+		#uploadOverlay {
 			display: grid;
 		}
 	}
 }
 
-
-.listItem{
+.listItem {
 	display: flex;
 	flex-direction: column;
 	padding-top: 10px;
@@ -401,26 +288,26 @@ form {
 	border-radius: 10px;
 	gap: 5px;
 
-	.head{
+	.head {
 		display: grid;
 		grid-template-columns: 1fr auto;
 		margin: 0 10px;
 
-		.title{
+		.title {
 			display: flex;
 			align-items: center;
 			border-left: 2px solid $focusColor;
 			padding: 0 5px;
 		}
 
-		.controls{
+		.controls {
 			display: flex;
 			gap: 5px;
 			flex-direction: row;
 		}
 	}
 
-	.content{
+	.content {
 		display: flex;
 		flex-direction: column;
 		background-color: $darkBGColor;
