@@ -141,10 +141,11 @@ builder.Services.AddAuthentication(options =>
 		},
 		OnAuthenticationFailed = ctx =>
 		{
-			var logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger>();
+			var lf = ctx.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+			var logger = lf.CreateLogger("Auth");
 			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
 			return Task.CompletedTask;
-		}
+		},
 #if DEBUG //allow cookie based auth when in debug mode
 		OnMessageReceived = ctx =>
 		{
@@ -187,10 +188,11 @@ builder.Services.AddAuthentication(options =>
 		},
 		OnAuthenticationFailed = ctx =>
 		{
-			var logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger>();
+			var lf = ctx.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+			var logger = lf.CreateLogger("Auth Metrics");
 			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
 			return Task.CompletedTask;
-		}
+		},
 	};
 
 });
