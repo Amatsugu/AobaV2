@@ -69,7 +69,7 @@ public static class AVIFTools
 		try
 		{
 			var colorSpaceOpt = MapColorSpaceOption(color.Value.ColorSpace);
-			var colorTransferOpt = avifIn ? color.Value.ColorTransfer : MapColorTransferOption(color.Value.ColorTransfer);
+			var colorTransferOpt = MapColorTransferOption(color.Value.ColorTransfer);
 			var vf = $"scale={width}:{height}:force_original_aspect_ratio=increase:flags=lanczos";
 
 			var args = FFMpegArguments.FromFileInput(inputFile)
@@ -82,11 +82,11 @@ public static class AVIFTools
 						.WithConstantRateFactor(crf)
 						.WithCustomArgument("-b:v 0")
 						.WithCustomArgument("-cpu-used 4");
-					if(avifIn)
+					if (avifIn)
 						opts.WithCustomArgument("-still-picture 1");
 					if (colorInfo.ColorPrimaries != "unknown")
 						opts.WithCustomArgument($"-color_primaries {colorInfo.ColorPrimaries}");
-					if (colorTransferOpt != "unknown")
+					if (colorTransferOpt != null)
 						opts.WithCustomArgument($"-color_trc {colorTransferOpt}");
 					if (colorInfo.ColorRange != "unknown")
 						opts.WithCustomArgument($"-color_range {colorInfo.ColorRange}");
