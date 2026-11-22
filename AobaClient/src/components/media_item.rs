@@ -1,13 +1,5 @@
-use std::time::Duration;
-
 use super::media_item_context_menu_items::MediaItemContextMenuItems;
-use dioxus::{
-	html::{
-		geometry::{ClientSpace, euclid::Point2D},
-		input_data::MouseButton,
-	},
-	prelude::*,
-};
+use dioxus::{html::input_data::MouseButton, prelude::*};
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
 use crate::{
@@ -68,7 +60,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 			Link {
 				to: Route::Media { id: id.clone() },
 				class: "content",
-				MediaThumb { media_type, url: thumb, size }
+				MediaThumb { media_type, url: thumb, size, autoplay: class != MediaClass::Nsfw }
 			}
 			div {
 				class: "info",
@@ -130,7 +122,8 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element
 					MediaThumb {
 						media_type: thumb_type,
 						url: thumb,
-						size: item.main_thumb_size.unwrap_or_default()
+						size: item.main_thumb_size.unwrap_or_default(),
+						autoplay: true
 					}
 					// img { src: "{thumb}", draggable: false }
 					span { class: "info",
@@ -155,7 +148,7 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element
 }
 
 #[component]
-pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions) -> Element
+pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions, autoplay: bool) -> Element
 {
 	match media_type
 	{
@@ -164,7 +157,7 @@ pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions) -> Eleme
 			rsx! {
 				video {
 					src: url,
-					autoplay: true,
+					autoplay,
 					muted: true,
 					playsinline: true,
 					draggable: false,

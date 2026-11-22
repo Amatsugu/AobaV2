@@ -118,7 +118,6 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
-#if DEBUG
 
 	public async Task ClearS3ThumbnailsAsync(ObjectId mediaId, CancellationToken cancellationToken = default)
 	{
@@ -126,7 +125,6 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
-#endif
 
 	[Obsolete("Use s3")]
 	public async Task<ObjectId> GetThumbnailIdAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)

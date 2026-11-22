@@ -213,7 +213,7 @@ fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>)
 				window.__thumbObserver = new IntersectionObserver((entries) => {
 					entries.forEach(entry => {
 						const video = entry.target;
-						if (entry.isIntersecting) {
+						if (entry.isIntersecting && video.autoplay) {
 							video.play().catch(() => {});
 						} else {
 							video.pause();
@@ -223,6 +223,10 @@ fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>)
 
 				document.querySelectorAll('video').forEach(video => {
 					window.__thumbObserver.observe(video);
+					if (!video.autoplay){
+						video.addEventListener("mouseover", () => video.play().catch(() => {}));
+						video.addEventListener("mouseleave", () => video.pause().catch(() => {}));
+					}
 				});
 
 				var listener = () => {
@@ -230,7 +234,8 @@ fn init_auto_play(items: Signal<Option<Vec<MediaModel>>>)
 						const rect = video.getBoundingClientRect();
 						const isVisible = rect.top < window.innerHeight && rect.bottom > 0
 										&& rect.left < window.innerWidth && rect.right > 0;
-						if (isVisible) {
+
+						if (isVisible && video.autoplay) {
 							video.play().catch(() => {});
 						}
 					});
