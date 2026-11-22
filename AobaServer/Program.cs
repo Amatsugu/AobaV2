@@ -139,6 +139,12 @@ builder.Services.AddAuthentication(options =>
 			ctx.HttpContext.Response.Headers["Token-Refresh"] = session.Token;
 			ctx.HttpContext.Response.Headers["Token-Refresh-Exp"] = session.Expiration.UnixTime.ToString();
 		},
+		OnAuthenticationFailed = ctx =>
+		{
+			var logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger>();
+			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
+			return Task.CompletedTask;
+		}
 #if DEBUG //allow cookie based auth when in debug mode
 		OnMessageReceived = ctx =>
 		{
@@ -178,6 +184,12 @@ builder.Services.AddAuthentication(options =>
 				ctx.Fail("Invalid Access Token");
 				return;
 			}
+		},
+		OnAuthenticationFailed = ctx =>
+		{
+			var logger = ctx.HttpContext.RequestServices.GetRequiredService<ILogger>();
+			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
+			return Task.CompletedTask;
 		}
 	};
 
@@ -213,6 +225,14 @@ if (!app.Environment.IsDevelopment())
 	app.UseExceptionHandler("/Home/Error");
 	app.UseOwaspHeaders();
 }
+#if DEBUG
+app.Use(async (ctx, next) =>
+{
+	Console.WriteLine($"IP: {ctx.Request.HttpContext.Connection.RemoteIpAddress}");
+
+	await next();
+});
+#endif
 
 app.UseForwardedHeaders();
 app.UseStaticFiles();
