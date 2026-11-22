@@ -19,11 +19,10 @@ namespace AobaServer.Controllers;
 public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger<MediaController> logger) : Controller
 {
 	[HttpGet("{id}")]
-	[HttpGet("{id}/{*fn}")]
 	[ResponseCache(Duration = int.MaxValue)]
 	public async Task<IActionResult> MediaAsync(ObjectId id, CancellationToken cancellationToken)
 	{
-		var media = await aobaService.GetMediaAsync(id);
+		var media = await aobaService.GetMediaAsync(id, cancellationToken);
 		if (media == null)
 		{
 			return NotFound();
@@ -37,34 +36,9 @@ public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger
 			}
 			else
 			{
-				var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
-				if (file.HasError)
-				{
-					logger.LogError(file.Error.Exception, "Failed to load media stream");
-					return NotFound();
-				}
-				var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
-				_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
-				return File(file, mime, true);
+				return NotFound();
 			}
 		}
-	}
-
-	[Obsolete("Use /m with file name instead")]
-	[HttpGet("{id}/dl")]
-	[HttpGet("{id}/dl/{*fn}")]
-	[ResponseCache(Duration = int.MaxValue)]
-	public async Task<IActionResult> DownloadMediaAsync(ObjectId id, [FromQuery] string? fn = null, CancellationToken cancellationToken = default)
-	{
-		var file = await aobaService.GetFileStreamAsync(id, seekable: true, cancellationToken: cancellationToken);
-		if (file.HasError)
-		{
-			logger.LogError(file.Error.Exception, "Failed to load media stream");
-			return NotFound();
-		}
-		var mime = MimeTypesMap.GetMimeType(file.Value.FileInfo.Filename);
-		_ = aobaService.IncrementViewCountAsync(id, cancellationToken);
-		return File(file, mime, fn ?? file.Value.FileInfo.Filename, true);
 	}
 
 	/// <summary>
@@ -74,41 +48,28 @@ public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger
 	/// <param name="rest"></param>
 	/// <returns></returns>
 	[HttpGet("/i/{legacyId}/{*rest}")]
-	public async Task<IActionResult> LegacyRedirectAsync(ObjectId legacyId, string rest, CancellationToken cancellationToken)
+	public async Task<IActionResult> LegacyRedirectAsync(ObjectId legacyId, CancellationToken cancellationToken)
 	{
 		var media = await aobaService.GetMediaFromLegacyIdAsync(legacyId, cancellationToken);
 		if (media == null)
 			return NotFound();
-		return LocalRedirectPermanent($"/m/{media.MediaId}/{rest}");
+		return LocalRedirectPermanent($"/m/{media.MediaId}/");
 	}
 
 	[HttpGet("{id}/thumb")]
 	[ResponseCache(Duration = int.MaxValue)]
 	[RequestTimeout("thumbnails")]
-	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, [FromQuery] ThumbnailSize size = ThumbnailSize.Medium, CancellationToken cancellationToken = default)
+	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailRequestService thumbnailService, [FromQuery] ThumbnailSize size = ThumbnailSize.Medium, CancellationToken cancellationToken = default)
 	{
 		var thumb = await thumbnailService.GetOrCreateThumbnailAsync(id, size, cancellationToken);
-		if (thumb.HasError)
-		{
-			logger.LogError("Failed to generate thumbnail: {}", thumb.Error);
+		if (thumb == null)
 			return DefaultThumbnailAsync();
-		}
-		return RedirectPermanent(thumb.Value);
-	}
-
-	[HttpGet("/t/{id}")]
-	[ResponseCache(Duration = int.MaxValue)]
-	public async Task<IActionResult> ThumbAsync(ObjectId id, [FromServices] ThumbnailService thumbnailService, CancellationToken cancellationToken = default)
-	{
-		var thumb = await thumbnailService.GetThumbnailByFileIdAsync(id, cancellationToken);
-		if (thumb.thumb == null || thumb.mimeType == null)
-			return NotFound();
-		return File(thumb.thumb, thumb.mimeType, true);
+		return RedirectPermanent(thumb);
 	}
 
 	[NonAction]
-	private IActionResult DefaultThumbnailAsync()
+	private LocalRedirectResult DefaultThumbnailAsync()
 	{
-		return NotFound();
+		return LocalRedirect("/assets/icons/thumb_ph.avif");
 	}
 }

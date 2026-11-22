@@ -20,6 +20,10 @@ using System.Buffers.Binary;
 using System.Security.Claims;
 using System.Text;
 
+//var file = @"H:\tmp\6ade992e7e5e61153c1bc58c.png";
+//var meta = await AobaCore.ThumbnailGeneration.Image.GetMetadataAsync(file);
+//var thumb = AobaCore.ThumbnailGeneration.Image.GenerateThumbnail(file, AobaCore.Models.ThumbnailSize.ResponsiveMedium, meta);
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(o =>

@@ -92,36 +92,45 @@ pub fn Home(page: Option<i32>, q: Option<String>) -> Element
 				max_page.set(p.total_pages);
 				item_count.set(p.total_items);
 			},
-			on_item_selected: move |select: (String, bool, Point2D<f64, ClientSpace>)| {
-				let mut items = selection_context.selected_items.cloned();
-				let (id, selected, pos) = select;
-				let delta = if let Some(last_pos) = last_pos.cloned() {
-					(last_pos - pos).length()
+			on_item_selected: move |select: (String, bool)| {
+				if select.1{
+					let mut items = selection_context.selected_items.write();
+					if !items.contains(&select.0){
+						items.push(select.0.clone());
+					}
 				}else{
-					0.0
-				};
-				last_pos.set(Some(pos));
-				if delta <= MIN_DRAG_DISTANCE {
-					return;
-				}
-				match seletion_phase.cloned(){
-					SelectionPhase::Start => {
-						let mode = match selected {
-							true => SelectionMode::Remove,
-							false => SelectionMode::Add
-						};
-						process_selection(&mut items, mode.clone(), id.clone());
-						seletion_mode.set(mode);
-						seletion_phase.set(SelectionPhase::Selecting);
-					},
-					SelectionPhase::Selecting => {
-						let mode = seletion_mode.cloned();
-						process_selection(&mut items, mode, id.clone());
-					},
-					SelectionPhase::Idle => (),
+					selection_context.selected_items.write().retain(|id| id != &select.0);
 				}
 
-				selection_context.selected_items.set(items);
+				// let mut items = selection_context.selected_items.cloned();
+				// let (id, selected, pos) = select;
+				// let delta = if let Some(last_pos) = last_pos.cloned() {
+				// 	(last_pos - pos).length()
+				// }else{
+				// 	0.0
+				// };
+				// last_pos.set(Some(pos));
+				// if delta <= MIN_DRAG_DISTANCE {
+				// 	return;
+				// }
+				// match seletion_phase.cloned(){
+				// 	SelectionPhase::Start => {
+				// 		let mode = match selected {
+				// 			true => SelectionMode::Remove,
+				// 			false => SelectionMode::Add
+				// 		};
+				// 		process_selection(&mut items, mode.clone(), id.clone());
+				// 		seletion_mode.set(mode);
+				// 		seletion_phase.set(SelectionPhase::Selecting);
+				// 	},
+				// 	SelectionPhase::Selecting => {
+				// 		let mode = seletion_mode.cloned();
+				// 		process_selection(&mut items, mode, id.clone());
+				// 	},
+				// 	SelectionPhase::Idle => (),
+				// }
+
+				// selection_context.selected_items.set(items);
 			},
 			bulk_change_class,
 			onmouseup: move |e: MouseEvent|{

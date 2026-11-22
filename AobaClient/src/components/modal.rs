@@ -1,8 +1,17 @@
 use dioxus::prelude::*;
 
+#[derive(Debug, Clone)]
+pub struct ModalInfo
+{
+	pub title: String,
+	pub content: Element,
+}
+
 #[component]
-pub fn Modal(title: String, is_open: Option<bool>, children: Element) -> Element {
-	if !is_open.unwrap_or(false) {
+pub fn Modal(title: String, is_open: Option<bool>, children: Element) -> Element
+{
+	if !is_open.unwrap_or(false)
+	{
 		return rsx! {};
 	}
 	return rsx! {
@@ -14,7 +23,8 @@ pub fn Modal(title: String, is_open: Option<bool>, children: Element) -> Element
 }
 
 #[component]
-fn ModalWindow(title: String, children: Element) -> Element {
+fn ModalWindow(title: String, children: Element) -> Element
+{
 	rsx! {
 		div{
 			class: "modal",

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::media_item_context_menu_items::MediaItemContextMenuItems;
 use dioxus::{
 	html::{
@@ -9,51 +11,64 @@ use dioxus::{
 use dioxus_primitives::context_menu::{ContextMenu, ContextMenuContent, ContextMenuTrigger};
 
 use crate::{
-	HOST,
-	components::icons::Stack,
-	rpc::aoba::{MediaClass, MediaModel, MediaType},
+	components::{Toolbar, icons::Stack},
+	route::Route,
+	rpc::aoba::{Dimensions, MediaClass, MediaModel, MediaType},
 };
-pub type OnItemSelectedEvent = (String, bool, Point2D<f64, ClientSpace>);
+pub type OnItemSelectedEvent = (String, bool);
 
-pub struct MediaClassChangeEvent {
+pub struct MediaClassChangeEvent
+{
 	pub id: String,
 	pub class: MediaClass,
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaItemProps {
+pub struct MediaItemProps
+{
 	pub item: MediaModel,
 	pub is_selected: bool,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
 	pub on_deleted: EventHandler<String>,
-	pub on_selected: Option<EventHandler<OnItemSelectedEvent>>,
+	pub on_selected: EventHandler<OnItemSelectedEvent>,
 	pub bulk_change_class: EventHandler<MediaClass>,
 }
 
 const MEDIA_ITEM_CSS: Asset = asset!("/assets/style/mediaItem.scss");
 
 #[component]
-pub fn MediaItem(props: MediaItemProps) -> Element {
+pub fn MediaItem(props: MediaItemProps) -> Element
+{
 	let item = props.item;
 	let media_type = item.media_type();
 	let class = item.class();
 	let class_string = class.to_class_name();
+	let thumb = item.main_thumb_url;
 	let id = item.id.unwrap_or_default().value;
-	let thumb = format!("{}/m/{}", HOST, id.clone());
-
+	let size = item.main_thumb_size.unwrap_or_default();
+	let dims = item
+		.dimensions
+		.map(|d| format!("{}x{}", d.width, d.height))
+		.unwrap_or_default();
+	let media_url = item.media_url.clone();
+	let selected_class = match props.is_selected
+	{
+		true => "selected",
+		false => "",
+	};
 	rsx! {
 		div {
-			class: "mediaItem {class_string}",
-			div {
-				class: "toolbar",
-				"x"
+			"data-id" : id.clone(),
+			class: "mediaItem {class_string} {selected_class}",
+			Toolbar {
+				id: id.clone(), media_url, media_class: class, selected: props.is_selected,
+				on_deleted: props.on_deleted, on_class_change: props.on_class_changed,
+				on_selected: props.on_selected
 			}
-			div {
+			Link {
+				to: Route::Media { id: id.clone() },
 				class: "content",
-				img{
-					src: thumb,
-					loading: "lazy"
-				}
+				MediaThumb { media_type, url: thumb, size }
 			}
 			div {
 				class: "info",
@@ -67,7 +82,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 				}
 				div  {
 					class: "meta",
-					"000x000"
+					{dims}
 				}
 			}
 		}
@@ -77,15 +92,17 @@ pub fn MediaItem(props: MediaItemProps) -> Element {
 
 const LEGACY_CSS: Asset = asset!("/assets/style/mediaItemLegacy.scss");
 #[component]
-pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
+pub fn MediaItemLegacy(props: MediaItemProps) -> Element
+{
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
 	let class = item.class();
 	let class_string = class.to_class_name();
 	let filename = item.filename;
 	let id = item.id.unwrap_or_default().value;
-	let thumb = item.thumb_url;
-	let selected_class = match props.is_selected {
+	let thumb = item.main_thumb_url;
+	let selected_class = match props.is_selected
+	{
 		true => "selected",
 		false => "",
 	};
@@ -93,10 +110,8 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
 	let del_id = id.clone();
 	let onmove = move |e: MouseEvent| {
 		if e.data().held_buttons().contains(MouseButton::Primary)
-			&& let Some(handler) = props.on_selected
 		{
-			let p = e.data().coordinates().client();
-			handler.call((del_id.clone(), props.is_selected, p));
+			props.on_selected.call((del_id.clone(), props.is_selected));
 		}
 	};
 
@@ -112,7 +127,11 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
 					// href: Route::Media { id },
 					draggable: false,
 					"data-id" : id.clone(),
-					MediaThumb { media_type: thumb_type, url: thumb }
+					MediaThumb {
+						media_type: thumb_type,
+						url: thumb,
+						size: item.main_thumb_size.unwrap_or_default()
+					}
 					// img { src: "{thumb}", draggable: false }
 					span { class: "info",
 						span { class: "name", {filename.to_string()} }
@@ -136,9 +155,12 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
 }
 
 #[component]
-pub fn MediaThumb(media_type: MediaType, url: String) -> Element {
-	match media_type {
-		MediaType::Video => {
+pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions) -> Element
+{
+	match media_type
+	{
+		MediaType::Video =>
+		{
 			rsx! {
 				video {
 					src: url,
@@ -146,15 +168,21 @@ pub fn MediaThumb(media_type: MediaType, url: String) -> Element {
 					muted: true,
 					playsinline: true,
 					draggable: false,
+					height: size.height,
+					width: size.width,
 					loop: true
 				}
 			}
 		}
 		MediaType::Raw => rsx! { Stack{} },
+		MediaType::Text => rsx! { Stack{} },
+		MediaType::Code => rsx! { Stack{} },
 		_ => rsx! {
 			img {
 				src: url,
 				draggable: false,
+				height: size.height,
+				width: size.width,
 				loading: "lazy"
 			}
 		},
@@ -162,7 +190,8 @@ pub fn MediaThumb(media_type: MediaType, url: String) -> Element {
 }
 
 #[component]
-pub fn MediaItemPlaceHolder() -> Element {
+pub fn MediaItemPlaceHolder() -> Element
+{
 	return rsx! {
 		div { class: "mediaItem placeholder",
 			img { },

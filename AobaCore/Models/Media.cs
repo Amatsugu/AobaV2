@@ -25,6 +25,7 @@ public class Media
 	public ObjectId Owner { get; set; }
 	public DateTime UploadDate { get; set; }
 	public string[] Tags { get; set; } = [];
+	[Obsolete("Use s3 instead")]
 	public Dictionary<ThumbnailSize, ObjectId> Thumbnails { get; set; } = [];
 	public MediaClass Class { get; set; }
 	public CdnData? Cdn { get; set; }
@@ -118,7 +119,7 @@ public class Media
 		return MimeTypesMap.GetMimeType(Ext);
 	}
 
-	public string GetThumbnailUrl(ThumbnailSize size, HostInfo host)
+	public string? GetThumbnailUrl(ThumbnailSize size, HostInfo host)
 	{
 		if (Cdn != null)
 		{
@@ -128,13 +129,7 @@ public class Media
 			} else
 				return host.Host.AppendPathSegments("m", MediaId, "thumb").SetQueryParam("size", size);
 		}
-		else
-		{
-			if(Thumbnails.TryGetValue(size, out var thumb))
-				return host.Host.AppendPathSegments("t", thumb);
-			else
-				return host.Host.AppendPathSegments("m", MediaId, "thumb").SetQueryParam("size", size);
-		}
+		return null;
 	}
 
 	public static MediaType GetMediaType(string filename)

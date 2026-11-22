@@ -1,6 +1,9 @@
 ﻿using AobaCore.Models;
+using AobaCore.Tools;
 
 using MaybeError.Errors;
+
+using MongoDB.Bson;
 
 using SixLabors.ImageSharp;
 
@@ -10,6 +13,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
 
 namespace AobaCore.ThumbnailGeneration;
 
@@ -51,8 +55,24 @@ public static class Image
 
 		metadata.Hdr = exif.IsHdr();
 		metadata.Dimensions = exif.GetDimensions();
+		if (metadata.Dimensions == null)
+			return new Error("Failed to read dimensions");
 
 		return metadata;
+	}
+
+	public static Maybe<Stream> GenerateThumbnail(string filePath, ThumbnailSize size, MediaMetadata meta)
+	{
+		var (w, h) = size.GetThumbnailSize(meta.Dimensions);
+
+		try
+		{
+			return AVIFTools.CropImage(filePath, w, h);
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
 	}
 
 
@@ -76,8 +96,11 @@ public static class Image
 
 		public Size? GetDimensions()
 		{
-			if(TryGetValue("File:ImageWidth", out var widthVal) && TryGetValue("File:ImageHeight", out var heightVal))
-				return new Size(widthVal.Deserialize<int>(), heightVal.Deserialize<int>());
+			JsonValue? width = this.FirstOrDefault(v => v.Key.EndsWith("ImageWidth")).Value;
+			JsonValue? height = this.FirstOrDefault(v => v.Key.EndsWith("ImageHeight")).Value;
+
+			if(width != null && height != null)
+				return new Size(width.Deserialize<int>(), height.Deserialize<int>());
 
 			return null;
 		}

@@ -28,6 +28,7 @@ using System.Diagnostics;
 
 namespace AobaCore.Services;
 
+[Obsolete($"Use {nameof(ThumbnailGenerationService)} and {nameof(ThumbnailRequestService)}")]
 public partial class ThumbnailService(IMongoDatabase db, AobaService aobaService, S3MediaService s3Media, HostInfo hostInfo, ILogger<ThumbnailService> logger)
 {
 	private readonly GridFSBucket _gridfs = new(db);
@@ -439,7 +440,6 @@ public partial class ThumbnailService(IMongoDatabase db, AobaService aobaService
 		var w = (int)size;
 		var fn = ObjectId.GenerateNewId().ToString();
 		var inFilePath = $"/tmp/{fn}.avif";
-		var outFilePath = $"/tmp/thumb_{fn}.avif";
 		using var source = new FileStream(inFilePath, FileMode.CreateNew);
 		data.CopyTo(source);
 		source.Flush();
@@ -448,14 +448,7 @@ public partial class ThumbnailService(IMongoDatabase db, AobaService aobaService
 		data.Dispose();
 		try
 		{
-			var error = await AVIFTools.CropImageAsync(inFilePath, outFilePath, w, cancellationToken: cancellationToken);
-			if (error != null)
-				return error;
-			var output = new MemoryStream();
-			using var oFile = File.OpenRead(outFilePath);
-			oFile.CopyTo(output);
-			output.Position = 0;
-			return output;
+			return AVIFTools.CropImage(inFilePath, w, w);
 		}
 		catch (Exception ex)
 		{
@@ -464,7 +457,6 @@ public partial class ThumbnailService(IMongoDatabase db, AobaService aobaService
 		finally
 		{
 			File.Delete(inFilePath);
-			File.Delete(outFilePath);
 		}
 	}
 

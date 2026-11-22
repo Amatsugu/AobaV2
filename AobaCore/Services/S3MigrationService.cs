@@ -9,6 +9,7 @@ using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
+[Obsolete("Migration complete")]
 public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, ILogger<S3MigrationService> logger) : BackgroundService
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>("media");
@@ -61,6 +62,7 @@ public partial class S3MigrationService(IMongoDatabase db, S3MediaService s3, IL
 	[LoggerMessage(Level = LogLevel.Information, Message = "Converted Media: {filename}. Url: /m/{id}")]
 	private partial void LogConversionSuccess(string filename, ObjectId id);
 
+	[Obsolete("Migration complete")]
 	private async Task MigrateThumbnails(Media media)
 	{
 		var (thumbExt, mimeType) = media.Ext switch

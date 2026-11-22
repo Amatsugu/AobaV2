@@ -1,6 +1,9 @@
 ﻿using FFMpegCore;
+using FFMpegCore.Pipes;
 
 using MaybeError.Errors;
+
+using MongoDB.Bson;
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +15,7 @@ namespace AobaCore.Tools;
 
 public static class AVIFTools
 {
-	public static async Task<Maybe<AvifColorInfo>> ProbleColorInfoAsync(string file, CancellationToken cancellationToken = default)
+	public static Maybe<AvifColorInfo> ProbleColorInfo(string file)
 	{
 		var processInfo = new ProcessStartInfo
 		{
@@ -36,10 +39,10 @@ public static class AVIFTools
 		if (process == null)
 			return new Error("Failed to start ffprobe");
 
-		await process.WaitForExitAsync(cancellationToken);
 
-		var stdOut = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-		var stdErr = await process.StandardError.ReadToEndAsync(cancellationToken);
+		var stdOut = process.StandardOutput.ReadToEnd();
+		var stdErr = process.StandardError.ReadToEnd();
+		process.WaitForExit();
 
 		if (process.ExitCode != 0)
 			return new Error($"ffprobe failed: exit code {process.ExitCode}", stdErr);
@@ -56,18 +59,21 @@ public static class AVIFTools
 		return new AvifColorInfo(Get("pix_fmt"), Get("color_transfer"), Get("color_primaries"), Get("color_space"), Get("color_range"));
 	}
 
-	public static async Task<Error?> CropImageAsync(string inputFile, string outputFile, int size, int crf = 18, CancellationToken cancellationToken = default)
+	public static Maybe<Stream> CropImage(string inputFile, int width, int height, int crf = 18)
 	{
-		var color = await ProbleColorInfoAsync(inputFile, cancellationToken);
+		var color = ProbleColorInfo(inputFile);
 		if (color.HasError)
 			return color.Error;
+		var avifIn = inputFile.EndsWith(".avif");
+		var outFile = $"/tmp/{ObjectId.GenerateNewId()}_thumb.avif";
 		try
 		{
 			var colorSpaceOpt = MapColorSpaceOption(color.Value.ColorSpace);
-			var vf = $"scale={size}:{size}:force_original_aspect_ratio=increase:flags=lanczos,crop={size}:{size}";
+			var colorTransferOpt = avifIn ? color.Value.ColorTransfer : MapColorTransferOption(color.Value.ColorTransfer);
+			var vf = $"scale={width}:{height}:force_original_aspect_ratio=increase:flags=lanczos";
 
-			var result = await FFMpegArguments.FromFileInput(inputFile)
-				.OutputToFile(outputFile, overwrite: true, opts =>
+			var args = FFMpegArguments.FromFileInput(inputFile)
+				.OutputToFile(outFile, true, opts =>
 				{
 					var colorInfo = color.Value;
 					opts.WithCustomArgument($"-vf \"{vf}\"")
@@ -75,26 +81,36 @@ public static class AVIFTools
 						.WithCustomArgument($"-pix_fmt {colorInfo.PixFmt}")
 						.WithConstantRateFactor(crf)
 						.WithCustomArgument("-b:v 0")
-						.WithCustomArgument("-cpu-used 4")
-						.WithCustomArgument("-still-picture 1");
+						.WithCustomArgument("-cpu-used 4");
+					if(avifIn)
+						opts.WithCustomArgument("-still-picture 1");
 					if (colorInfo.ColorPrimaries != "unknown")
 						opts.WithCustomArgument($"-color_primaries {colorInfo.ColorPrimaries}");
-					if (colorInfo.ColorTransfer != "unknown")
-						opts.WithCustomArgument($"-color_trc {colorInfo.ColorTransfer}");
+					if (colorTransferOpt != "unknown")
+						opts.WithCustomArgument($"-color_trc {colorTransferOpt}");
 					if (colorInfo.ColorRange != "unknown")
 						opts.WithCustomArgument($"-color_range {colorInfo.ColorRange}");
 					if (colorSpaceOpt != null)
 						opts.WithCustomArgument($"-colorspace {colorSpaceOpt}");
-				}).CancellableThrough(cancellationToken)
-				.ProcessAsynchronously();
+				});
+			var result = args
+				.ProcessSynchronously(false);
 			if (!result.Success)
-				return new Error("Failed to process file");
+				return new Error($"Failed to process file\n{string.Join('\n', result.StandardError)}", details: $"ffmpeg {args.Arguments}");
+			var outputStream = new MemoryStream();
+			using var fs = new FileStream(outFile, FileMode.Open);
+			fs.CopyTo(outputStream);
+			fs.Flush();
+			fs.Dispose();
+			File.Delete(outFile);
+			outputStream.Flush();
+			outputStream.Position = 0;
+			return outputStream;
 		}
 		catch (Exception ex)
 		{
 			return new ExceptionError(ex);
 		}
-		return null;
 	}
 
 	public static string? MapColorSpaceOption(string colorSpace) => colorSpace switch
@@ -104,6 +120,14 @@ public static class AVIFTools
 		"bt2020c" => "bt2020c",
 		"bt709" => "bt709",
 		"smpte170m" => "smpte170m",
+		"unknown" or "" => null,
+		var other => other
+	};
+
+	public static string? MapColorTransferOption(string trc) => trc switch
+	{
+		"bt470m" => "gamma22",
+		"bt470bg" => "gamma28",
 		"unknown" or "" => null,
 		var other => other
 	};

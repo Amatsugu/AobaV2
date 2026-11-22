@@ -62,10 +62,11 @@ public static class ProtoExtensions
 			MediaType = (Aoba.RPC.Models.MediaType)(media.MediaType + 1),
 			Owner = media.Owner.ToRpc(),
 			ViewCount = media.ViewCount,
-			ThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.Medium, host),
+			MainThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.ResponsiveMedium, host),
 			MediaUrl = media.GetMediaUrl(host),
 			CdnUrl = media.GetRawMediaUrl(host),
 			Class = (Aoba.RPC.Models.MediaClass)(media.Class + 1),
+			MainThumbPending = media.Cdn?.ThumbnailUrls.ContainsKey(AobaCore.Models.ThumbnailSize.ResponsiveMedium) == false
 		};
 		if (media.Metadata?.Dimensions is SixLabors.ImageSharp.Size s)
 		{
@@ -75,6 +76,12 @@ public static class ProtoExtensions
 				Width = (uint)s.Width,
 			};
 		}
+		var (w, h) = AobaCore.Models.ThumbnailSize.ResponsiveMedium.GetThumbnailSize(media.Metadata?.Dimensions);
+		result.MainThumbSize = new Dimensions
+		{
+			Width = (uint)w,
+			Height = (uint)h
+		};
 		result.Thumbnails.AddRange(thumbs);
 		result.Tags.AddRange(media.Tags);
 		return result;

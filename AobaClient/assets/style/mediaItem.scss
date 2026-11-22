@@ -4,9 +4,10 @@
 $itemWidth: 450px;
 .mediaGrid {
 	margin-top: 5px;
-	gap: 10px;
+	gap: 15px;
 	justify-self: center;
 	columns: 16;
+
 	@for $i from 15 to 0 {
 		@include max-container(($i + 1) * $itemWidth) {
 			columns: $i;
@@ -17,16 +18,19 @@ $itemWidth: 450px;
 .mediaItem {
 	display: grid;
 	overflow: hidden;
-	margin-bottom: 10px;
+	margin-bottom: 15px;
 	justify-content: center;
 	grid-template-rows: auto 1fr auto;
 	grid-template-areas: "Toolbar" "Content" "Info";
+	box-shadow: 0 0 2px #000;
 
-	.content {
+	> .content {
 		display: grid;
 		grid-area: Content;
 		background-color: #000;
 		grid-template-areas: "A";
+		text-decoration: none;
+		color: $mainTextColor;
 		> * {
 			grid-area: A;
 			width: $itemWidth;
@@ -43,10 +47,11 @@ $itemWidth: 450px;
 			align-items: center;
 			font-size: 3rem;
 			font-weight: 100;
-			backdrop-filter: blur(20px) brightness(0.5);
+			backdrop-filter: blur(30px) brightness(0.2);
 			opacity: 1;
 			transition: 0.25s ease-out opacity;
 			margin: 0;
+			pointer-events: none;
 		}
 
 		&:hover {
@@ -60,10 +65,34 @@ $itemWidth: 450px;
 		content: Toolbar;
 		display: flex;
 		place-self: start;
+		gap: 5px;
 		width: 100%;
 		background-color: $buttonMutedBG;
-		padding: 5px;
 		justify-content: center;
+
+		.mediaButton{
+			display: flex;
+			height: 30px;
+			width: 30px;
+			padding: 5px;
+			color: $buttonAccentedBG;
+			cursor: pointer;
+			transition: .25s ease-out color, .25s ease-out transform;
+
+			&:hover{
+				color: $buttonAccentedBGHover;
+				transform: scale(150%);
+			}
+		}
+	}
+	.toolbarTooltip{
+		grid-area: Content;
+		padding: 5px;
+		align-self: start;
+		z-index: 10;
+		text-align: center;
+		backdrop-filter: blur(30px) brightness(0.5);
+
 	}
 
 	.info {
@@ -76,10 +105,13 @@ $itemWidth: 450px;
 		grid-template-columns: 1fr 1fr;
 		grid-template-areas: "Title Title" "Type Meta";
 		padding: 5px;
+		max-width: $itemWidth;
 
 		.title {
 			grid-area: Title;
 			text-align: center;
+			overflow: hidden;
+			line-break: anywhere;
 		}
 
 		.type {
@@ -89,6 +121,12 @@ $itemWidth: 450px;
 		.meta {
 			grid-area: Meta;
 			text-align: right;
+		}
+	}
+
+	&.selected{
+		.info, .toolbar{
+			background-color: $featureColor;
 		}
 	}
 }

@@ -1,6 +1,11 @@
 ﻿using AobaCore.Models;
 
+using FFMpegCore;
+using FFMpegCore.Pipes;
+
 using MaybeError.Errors;
+
+using MongoDB.Bson;
 
 using SixLabors.ImageSharp;
 
@@ -11,6 +16,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 
 namespace AobaCore.ThumbnailGeneration;
 
@@ -65,10 +71,36 @@ public static class Video
 		return metadata;
 	}
 
+	public static Maybe<Stream> GenerateThumbnail(string filePath, ThumbnailSize size, MediaMetadata meta)
+	{
+		var (w, h) = size.GetThumbnailSize(meta.Dimensions);
+		var fn = ObjectId.GenerateNewId().ToString();
+		try
+		{
+			var output = new MemoryStream();
+			var args = FFMpegArguments.FromFileInput(filePath, false, opt =>
+			{
+				opt.WithCustomArgument("-t 10");
+			}).OutputToPipe(new StreamPipeSink(output), opt =>
+			{
+				opt.WithCustomArgument($"-vf \"scale={w}:{h}:force_original_aspect_ratio=increase:flags=lanczos,crop={w}:{h}\" -c:v libsvtav1 -crf 34 -preset 2 -an -pix_fmt yuv420p -r 15")
+				.ForceFormat("webm");
+			});
+			var result = args.ProcessSynchronously(false);
+			if (!result.Success)
+				return new Error("Failed to process file", details: $"ffmpeg {args.Arguments}");
+			output.Position = 0;
+			return output;
+		}
+		catch (Exception ex)
+		{
+			return ex;
+		}
+	}
 	private class FFProbeData
 	{
 		[JsonPropertyName("streams")]
-		public Stream[] Streams { get; set; } = [];
+		public FFStream[] Streams { get; set; } = [];
 		[JsonPropertyName("format")]
 		public Format? Format { get; set; }
 
@@ -89,7 +121,7 @@ public static class Video
 		}
 	}
 
-	private class Stream
+	private class FFStream
 	{
 		[JsonPropertyName("width")]
 		public int Width { get; set; }

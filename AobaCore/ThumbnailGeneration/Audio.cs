@@ -70,29 +70,27 @@ public class Audio
 		return metadata;
 	}
 
-	public static Maybe<Stream> GenerateAudioThumbnail(string filePath, ThumbnailSize size, string ext)
+	public static async Task<Maybe<Stream>> GenerateThumbnailAsync(string filePath, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		var w = (int)size;
+		var (w, h) = size.GetThumbnailSize();
 		var fn = ObjectId.GenerateNewId().ToString();
 
 		try
 		{
 			var output = new MemoryStream();
-			FFMpegArguments.FromFileInput(filePath, false)
+			var result = await FFMpegArguments.FromFileInput(filePath, false)
 				.OutputToPipe(new StreamPipeSink(output), opt =>
 				{
-					opt.WithCustomArgument($"-lavfi \"showspectrumpic=s={w}x{w}:legend=0:color=plasma:scale=log\"").ForceFormat("webp");
-				}).ProcessSynchronously();
+					opt.WithCustomArgument($"-lavfi \"showspectrumpic=s={w}x{h}:legend=0:color=plasma:scale=log\"").ForceFormat("avif");
+				}).ProcessAsynchronously(true, cancellationToken: cancellationToken);
+			if (!result.Success)
+				return new Error($"FFmpeg failed: {result.ExitCode}");
 			output.Position = 0;
 			return output;
 		}
 		catch (Exception ex)
 		{
 			return ex;
-		}
-		finally
-		{
-			File.Delete(filePath);
 		}
 	}
 

@@ -48,6 +48,17 @@ public class AobaIndexCreationService(IMongoDatabase db) : BackgroundService
 			Background = true
 		});
 
+		var thumbReqUniqueKeys = Builders<ThumbnailRequest>.IndexKeys
+			.Ascending(r => r.MediaId)
+			.Ascending(r => r.Size);
+		var thumbReqUniqueModel = new CreateIndexModel<ThumbnailRequest>(thumbReqUniqueKeys, new CreateIndexOptions
+		{
+			Name = "Unque",
+			Background = true,
+			Unique = true
+		});
+
+		await _requests.EnsureIndexAsync(thumbReqUniqueModel);
 		await _media.EnsureIndexAsync(mediaIdModel);
 		await _media.EnsureIndexAsync(textModel);
 		await _media.EnsureIndexAsync(ownerDateModel);

@@ -20,7 +20,7 @@ using SearchQuery = AobaServer.Models.SearchQuery;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailService, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thumbnailService, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
 {
 
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
@@ -56,11 +56,6 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
 			await aobaService.DeleteMediaAsync(media.MediaId, context.GetUserId(), context.CancellationToken);
 		}
-		else
-		{
-			await aobaService.DeleteFileAsync(media.MediaId, context.GetUserId(), context.CancellationToken);
-			await thumbnailService.DeleteAllThumbnailsAsync(media.MediaId);
-		}
 		return new Empty();
 	}
 
@@ -69,7 +64,6 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
 		if (media.Count == 0)
 			return new Empty();
-		await aobaService.DeleteFilesAsync(request.ToObjectId(), context.GetUserId(), context.CancellationToken);
 		foreach (var item in media)
 		{
 			if (item.Owner != context.GetUserId())
@@ -79,10 +73,6 @@ public class AobaRpcService(AobaService aobaService, ThumbnailService thumbnailS
 				await s3.DeleteFileAsync(item.Cdn.Url, CancellationToken.None);
 				await thumbnailService.DeleteAllThumbnailsAsync(item.MediaId);
 				await aobaService.DeleteMediaAsync(item.MediaId, context.GetUserId(), context.CancellationToken);
-			}
-			else
-			{
-				await thumbnailService.DeleteAllThumbnailsAsync(item.MediaId);
 			}
 		}
 		return new Empty();

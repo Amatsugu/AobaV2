@@ -18,13 +18,15 @@ message MediaModel {
   string ext = 4;
   int32 view_count = 5;
   Id owner = 6;
-  string thumb_url = 7;
-  string media_url = 8;
-  MediaClass class = 9;
-  repeated MediaThumbnail thumbnails = 10;
-  repeated string tags = 11;
-  string cdn_url = 12;
-  optional Dimensions dimensions = 13;
+  string main_thumb_url = 7;
+  Dimensions main_thumb_size = 8;
+  string media_url = 9;
+  MediaClass class = 10;
+  repeated MediaThumbnail thumbnails = 11;
+  repeated string tags = 12;
+  string cdn_url = 13;
+  optional Dimensions dimensions = 14;
+  bool main_thumb_pending = 15;
 }
 
 enum ThumbnailSize {
@@ -33,6 +35,9 @@ enum ThumbnailSize {
   THUMBNAIL_SIZE_MEDIUM = 256;
   THUMBNAIL_SIZE_LARGE = 512;
   THUMBNAIL_SIZE_EXTRA_LARGE = 1024;
+  THUMBNAIL_SIZE_RESPONSIVE_SMALL = 200;
+  THUMBNAIL_SIZE_RESPONSIVE_MEDIUM = 450;
+  THUMBNAIL_SIZE_RESPONSIVE_LARGE = 800;
 }
 
 enum MediaType {

@@ -3,6 +3,7 @@ use std::time::Duration;
 use crate::{
 	HOST,
 	components::{
+		ModalInfo,
 		basic::flex::{FlexColumn, FlexRow},
 		modals::BulkTagEditor,
 	},
@@ -25,23 +26,21 @@ const TRASH_ICON: Asset = asset!("/assets/icons/trash.svg");
 const TAG_ICON: Asset = asset!("/assets/icons/tag.svg");
 const COPY_ICON: Asset = asset!("/assets/icons/copy-doc.svg");
 
-#[derive(Debug, Clone)]
-struct ModalInfo {
-	pub title: String,
-	pub content: Element,
-}
-
 #[component]
 pub fn SelectionBar(
 	selected_items: Signal<Vec<String>>,
 	on_selection_cleared: EventHandler,
 	on_items_delete: EventHandler,
-) -> Element {
+) -> Element
+{
 	let mut modal_content: Signal<Option<ModalInfo>> = use_signal(|| None);
 	let toasts_ctx = use_context::<ToastsContext>();
-	if selected_items.read().is_empty() {
+	if selected_items.read().is_empty()
+	{
 		return rsx! {};
-	} else {
+	}
+	else
+	{
 		let selection_count = selected_items.read().len();
 		return rsx! {
 			div{
@@ -131,7 +130,8 @@ pub fn SelectionBar(
 }
 
 #[component]
-fn BulkTagEditModal(on_close: EventHandler, selected_items: Signal<Vec<String>>) -> Element {
+fn BulkTagEditModal(on_close: EventHandler, selected_items: Signal<Vec<String>>) -> Element
+{
 	let toasts_ctx = use_context::<ToastsContext>();
 	let tag_groups = use_resource(move || async move {
 		let mut rpc = get_rpc_client();
@@ -181,25 +181,23 @@ fn BulkTagEditModal(on_close: EventHandler, selected_items: Signal<Vec<String>>)
 	}
 }
 
-fn add_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext) {
+fn add_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext)
+{
 	let item_count = items.read().len();
 	spawn(async move {
 		let mut rpc = get_rpc_client();
 		let result = rpc
 			.add_media_tags_bulk(BulkTagUpateRequest {
 				media_ids: Some(IdList {
-					value: items
-						.read()
-						.iter()
-						.map(|id| Id { value: id.clone() })
-						.collect(),
+					value: items.read().iter().map(|id| Id { value: id.clone() }).collect(),
 				}),
 				tags: vec![tag.clone()],
 			})
 			.await
 			.map(|r| r.into_inner());
 
-		match result {
+		match result
+		{
 			Ok(_) => toasts_ctx.push(ToastCommand::Push {
 				title: "Tag Added".into(),
 				message: Some(format!("'{}' added to {} items", tag, item_count)),
@@ -215,25 +213,23 @@ fn add_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext) {
 		}
 	});
 }
-fn remove_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext) {
+fn remove_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext)
+{
 	let item_count = items.read().len();
 	spawn(async move {
 		let mut rpc = get_rpc_client();
 		let result = rpc
 			.remove_media_tags_bulk(BulkTagUpateRequest {
 				media_ids: Some(IdList {
-					value: items
-						.read()
-						.iter()
-						.map(|id| Id { value: id.clone() })
-						.collect(),
+					value: items.read().iter().map(|id| Id { value: id.clone() }).collect(),
 				}),
 				tags: vec![tag.clone()],
 			})
 			.await
 			.map(|r| r.into_inner());
 
-		match result {
+		match result
+		{
 			Ok(_) => toasts_ctx.push(ToastCommand::Push {
 				title: "Tag Removed".into(),
 				message: Some(format!("'{}' removed from {} items", tag, item_count)),
@@ -251,7 +247,8 @@ fn remove_tag(items: Signal<Vec<String>>, tag: String, toasts_ctx: ToastsContext
 }
 
 #[component]
-fn DeleteModalContent(on_close: EventHandler, on_items_delete: EventHandler) -> Element {
+fn DeleteModalContent(on_close: EventHandler, on_items_delete: EventHandler) -> Element
+{
 	rsx! {
 		div{
 			class: "vertFlexBox",
@@ -278,7 +275,8 @@ fn DeleteModalContent(on_close: EventHandler, on_items_delete: EventHandler) -> 
 	}
 }
 #[component]
-fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element {
+fn BarButton(onclick: EventHandler<MouseEvent>, children: Element) -> Element
+{
 	rsx! {
 		div{
 			class: "button",

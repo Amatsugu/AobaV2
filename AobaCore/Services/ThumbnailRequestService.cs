@@ -1,4 +1,7 @@
 using AobaCore.Models;
+
+using Flurl;
+
 using MaybeError.Errors;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -6,18 +9,18 @@ using MongoDB.Driver;
 
 namespace AobaCore.Services;
 
-public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba)
+public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba, S3MediaService s3, HostInfo hostInfo)
 {
 	private readonly IMongoCollection<ThumbnailRequest> _requests = db.GetCollection<ThumbnailRequest>(Collections.ThumbnailRequests);
 
 
-	public async Task<object?> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
+	public async Task<string?> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var media = await aoba.GetMediaAsync(mediaId, cancellationToken);
 		if (media == null)
 			return null;
 		if (media.Cdn != null && media.Cdn.ThumbnailUrls.TryGetValue(size, out var thumb))
-			return thumb;
+			return hostInfo.CdnHost.AppendPathSegments(thumb);
 		await RequestThumbnailGenerationAsync(mediaId, size, cancellationToken);
 		return null;
 	}
@@ -29,8 +32,10 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba)
 
 	public async Task MarkAsFailedAsync(ObjectId requestId, CancellationToken cancellationToken = default)
 	{
-		var update = Builders<ThumbnailRequest>.Update.Set(r => r.Failed, true);
-		await _requests.UpdateOneAsync(r => r.RequestId == requestId, update, null, cancellationToken);
+		//Remove failed requests for now
+		await RemoveRequestAsync(requestId, cancellationToken);
+		//var update = Builders<ThumbnailRequest>.Update.Set(r => r.Failed, true);
+		//await _requests.UpdateOneAsync(r => r.RequestId == requestId, update, null, cancellationToken);
 	}
 
 	public async Task RemoveRequestAsync(ObjectId requestId, CancellationToken cancellationToken = default)
@@ -39,11 +44,60 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba)
 	}
 	private async Task RequestThumbnailGenerationAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
-		await _requests.InsertOneAsync(new ThumbnailRequest
+		var req = new ThumbnailRequest
 		{
 			MediaId = mediaId,
 			Size = size,
-		});
+		};
+		try
+		{
+			await _requests.InsertOneAsync(req, null, cancellationToken);
+		}
+		catch
+		{
+			//Ignore duplicate requests
+		}
+	}
+
+	public async Task<Error?> DeleteAllThumbnailsAsync(ObjectId mediaId)
+	{
+		var media = await aoba.GetMediaAsync(mediaId);
+		if (media == null)
+			return null;
+		try
+		{
+			if (media.Cdn != null)
+			{
+				foreach (var (_, thumb) in media.Cdn.ThumbnailUrls)
+					await s3.DeleteFileAsync(thumb);
+				await aoba.ClearS3ThumbnailsAsync(mediaId);
+			}
+			return null;
+		}
+		catch (Exception ex)
+		{
+			return new ExceptionError(ex);
+		}
+	}
+
+	public async Task<Error?> DeleteThumbnailAsync(ObjectId mediaId, ThumbnailSize size)
+	{
+		var media = await aoba.GetMediaAsync(mediaId);
+		if (media == null)
+			return null;
+		try
+		{
+			if (media.Cdn != null && media.Cdn.ThumbnailUrls.TryGetValue(size, out var url))
+			{
+				await s3.DeleteFileAsync(url);
+				await aoba.RemoveS3ThumbnailAsync(mediaId, size);
+			}
+			return null;
+		}
+		catch (Exception ex)
+		{
+			return new ExceptionError(ex);
+		}
 	}
 
 }

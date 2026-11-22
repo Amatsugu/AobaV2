@@ -15,6 +15,7 @@ namespace AobaCore.Services;
 public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>(Collections.Media);
+	[Obsolete("Use s3")]
 	private readonly GridFSBucket _gridFs = new(db);
 
 	public async Task<Media?> GetMediaFromLegacyIdAsync(ObjectId id, CancellationToken cancellationToken = default)
@@ -89,6 +90,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.UpdateManyAsync(_media.IdFilter(mediaIds).WithUserFilter(userId), update, cancellationToken: cancellationToken);
 	}
 
+	[Obsolete("Use s3")]
 	public async Task AddThumbnailAsync(ObjectId mediaId, ObjectId thumbId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Set(m => m.Thumbnails[size], thumbId);
@@ -103,6 +105,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.UpdateOneAsync(m => m.MediaId == mediaId, update, cancellationToken: cancellationToken);
 	}
 
+	[Obsolete("Use s3")]
 	public async Task RemoveThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var update = Builders<Media>.Update.Unset(m => m.Thumbnails[size]);
@@ -125,6 +128,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 
 #endif
 
+	[Obsolete("Use s3")]
 	public async Task<ObjectId> GetThumbnailIdAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
 		var thumb = await _media.Find(m => m.MediaId == mediaId).Project(m => m.Thumbnails[size]).FirstOrDefaultAsync(cancellationToken);
@@ -140,6 +144,13 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 	{
 		var update = Builders<Media>.Update.Set(m => m.MediaType, type);
 		await _media.UpdateOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), update, null, cancellationToken);
+	}
+
+	public async Task SetMetaMetadataAsync(ObjectId mediaId, MediaMetadata metadata, CancellationToken cancellationToken = default)
+	{
+		var update = Builders<Media>.Update.Set(m => m.Metadata, metadata);
+		await _media.UpdateOneAsync(_media.IdFilter(mediaId), update, null, cancellationToken);
+
 	}
 
 	public async Task SetCdnUrlAsync(ObjectId mediaId, string url, CancellationToken cancellationToken)
@@ -177,6 +188,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
+	[Obsolete("Use s3")]
 	public async Task<MaybeEx<GridFSDownloadStream, GridFSException>> GetFileStreamAsync(ObjectId mediaId, bool seekable = false, CancellationToken cancellationToken = default)
 	{
 		try
@@ -194,6 +206,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		await _media.DeleteOneAsync(_media.IdFilter(mediaId).WithUserFilter(userId), cancellationToken);
 	}
 
+	[Obsolete("Use s3")]
 	public async Task DeleteFileAsync(ObjectId mediaId, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		try
@@ -208,6 +221,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
+	[Obsolete("Use s3")]
 	public async Task DeleteFilesAsync(IEnumerable<ObjectId> mediaIds, ObjectId userId = default, CancellationToken cancellationToken = default)
 	{
 		foreach (var id in mediaIds)

@@ -17,16 +17,17 @@ namespace AobaCore;
 
 public static class Extensions
 {
-	public static IServiceCollection AddAoba(this IServiceCollection services, bool s3 = false)
+	public static IServiceCollection AddAoba(this IServiceCollection services)
 	{
 
 		services.AddSingleton<AobaService>()
 			.AddSingleton<AutoTagger>()
-			.AddSingleton<ThumbnailService>()
+			//.AddSingleton<ThumbnailService>()
 			.AddSingleton<ThumbnailRequestService>()
 			.AddSingleton<AccountsService>()
 			.AddSingleton<UserSessionsService>()
-			.AddSingleton<AccessTokenService>();
+			.AddSingleton<AccessTokenService>()
+			.AddHostedService<ThumbnailGenerationService>();
 		services.AddSingleton<HostInfo>();
 		services.AddHostedService<AobaIndexCreationService>();
 		return services;
@@ -35,9 +36,6 @@ public static class Extensions
 	public static IServiceCollection AddAobaS3(this IServiceCollection services)
 	{
 		services.AddSingleton<S3MediaService>();
-#if DEBUG
-		services.AddHostedService<S3MigrationService>();
-#endif
 		return services;
 	}
 
