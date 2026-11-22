@@ -9,15 +9,13 @@ use crate::{
 };
 pub type OnItemSelectedEvent = (String, bool);
 
-pub struct MediaClassChangeEvent
-{
+pub struct MediaClassChangeEvent {
 	pub id: String,
 	pub class: MediaClass,
 }
 
 #[derive(PartialEq, Clone, Props)]
-pub struct MediaItemProps
-{
+pub struct MediaItemProps {
 	pub item: MediaModel,
 	pub is_selected: bool,
 	pub on_class_changed: EventHandler<MediaClassChangeEvent>,
@@ -29,8 +27,7 @@ pub struct MediaItemProps
 const MEDIA_ITEM_CSS: Asset = asset!("/assets/style/mediaItem.scss");
 
 #[component]
-pub fn MediaItem(props: MediaItemProps) -> Element
-{
+pub fn MediaItem(props: MediaItemProps) -> Element {
 	let item = props.item;
 	let media_type = item.media_type();
 	let class = item.class();
@@ -43,8 +40,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		.map(|d| format!("{}x{}", d.width, d.height))
 		.unwrap_or_default();
 	let media_url = item.media_url.clone();
-	let selected_class = match props.is_selected
-	{
+	let selected_class = match props.is_selected {
 		true => "selected",
 		false => "",
 	};
@@ -84,8 +80,7 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 
 const LEGACY_CSS: Asset = asset!("/assets/style/mediaItemLegacy.scss");
 #[component]
-pub fn MediaItemLegacy(props: MediaItemProps) -> Element
-{
+pub fn MediaItemLegacy(props: MediaItemProps) -> Element {
 	let item = props.item.clone();
 	let thumb_type = item.media_type();
 	let class = item.class();
@@ -93,16 +88,14 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element
 	let filename = item.filename;
 	let id = item.id.unwrap_or_default().value;
 	let thumb = item.main_thumb_url;
-	let selected_class = match props.is_selected
-	{
+	let selected_class = match props.is_selected {
 		true => "selected",
 		false => "",
 	};
 
 	let del_id = id.clone();
 	let onmove = move |e: MouseEvent| {
-		if e.data().held_buttons().contains(MouseButton::Primary)
-		{
+		if e.data().held_buttons().contains(MouseButton::Primary) {
 			props.on_selected.call((del_id.clone(), props.is_selected));
 		}
 	};
@@ -148,12 +141,9 @@ pub fn MediaItemLegacy(props: MediaItemProps) -> Element
 }
 
 #[component]
-pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions, autoplay: bool) -> Element
-{
-	match media_type
-	{
-		MediaType::Video =>
-		{
+pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions, autoplay: bool) -> Element {
+	match media_type {
+		MediaType::Video => {
 			rsx! {
 				video {
 					src: url,
@@ -182,9 +172,30 @@ pub fn MediaThumb(media_type: MediaType, url: String, size: Dimensions, autoplay
 	}
 }
 
+const PH_THUMB: Asset = asset!("/assets/icons/thumb_ph.avif");
 #[component]
-pub fn MediaItemPlaceHolder() -> Element
-{
+fn PendingThumb(size: Dimensions, media_type: MediaType) -> Element {
+	rsx! {
+		match media_type {
+			MediaType::Raw => rsx! { Stack{} },
+			MediaType::Text => rsx! { Stack{} },
+			MediaType::Code => rsx! { Stack{} },
+			_ => rsx! {
+				img {
+					src: PH_THUMB,
+					draggable: false,
+					height: size.height,
+					width: size.width,
+					loading: "lazy"
+				}
+			}
+		}
+
+	}
+}
+
+#[component]
+pub fn MediaItemPlaceHolder() -> Element {
 	return rsx! {
 		div { class: "mediaItem placeholder",
 			img { },
