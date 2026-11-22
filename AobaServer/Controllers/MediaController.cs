@@ -68,8 +68,8 @@ public class MediaController(AobaService aobaService, HostInfo hostInfo, ILogger
 	}
 
 	[NonAction]
-	private LocalRedirectResult DefaultThumbnailAsync()
+	private NoContentResult DefaultThumbnailAsync()
 	{
-		return LocalRedirect("/assets/icons/thumb_ph.avif");
+		return NoContent();
 	}
 }

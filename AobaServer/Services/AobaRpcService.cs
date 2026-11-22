@@ -7,6 +7,8 @@ using AobaCore.Services;
 using AobaServer.Models;
 using AobaServer.Utils;
 
+using Flurl;
+
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -189,5 +191,37 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 	{
 		var tagInfo = await aobaService.GetBulkTagInfoAsync(request.ToObjectId(), context.CancellationToken);
 		return tagInfo.ToResponse();
+	}
+
+	public override async Task<ThumbnailResponse> GetThumbnail(Aoba.RPC.Models.ThumbnailRequest request, ServerCallContext context)
+	{
+		if (request.Size == Aoba.RPC.Models.ThumbnailSize.Unspecified)
+			return new();
+		var media = await aobaService.GetMediaAsync(request.MediaId.ToObjectId(), context.CancellationToken);
+		if(media == null || media.Cdn == null)
+			return new ();
+		if(media.Cdn.ThumbnailUrls.TryGetValue(request.Size.FromRpc(), out var thumbUrl))
+		{
+			var hostInfo = context.GetHttpContext().RequestServices.GetRequiredService<HostInfo>();
+			var url = hostInfo.CdnHost.AppendPathSegments(thumbUrl);
+			return new ThumbnailResponse
+			{
+				Info = new ThumbnailInfo
+				{
+					Generating = false,
+					Url = url
+				}
+			};
+		}
+
+		if (await thumbnailService.RequestExistsAsync(request.MediaId.ToObjectId(), request.Size.FromRpc(), context.CancellationToken))
+			return new ThumbnailResponse
+			{
+				Info = new ThumbnailInfo
+				{
+					Generating = true
+				}
+			};
+		return new();
 	}
 }

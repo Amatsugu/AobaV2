@@ -30,6 +30,11 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba, S3Medi
 		return await _requests.Find(r => !r.Failed).Limit(count).ToListAsync(cancellationToken);
 	}
 
+	public async Task<bool> RequestExistsAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken)
+	{
+		return await _requests.Find(m => m.MediaId == mediaId && m.Size == size).AnyAsync(cancellationToken);
+	}
+
 	public async Task MarkAsFailedAsync(ObjectId requestId, CancellationToken cancellationToken = default)
 	{
 		//Remove failed requests for now

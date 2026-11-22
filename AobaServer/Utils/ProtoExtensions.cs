@@ -207,4 +207,19 @@ public static class ProtoExtensions
 	{
 		return tokens.Select(t => t.ToRpc());
 	}
+
+	public static AobaCore.Models.ThumbnailSize FromRpc(this Aoba.RPC.Models.ThumbnailSize size)
+	{
+		return size switch
+		{
+			Aoba.RPC.Models.ThumbnailSize.Small => AobaCore.Models.ThumbnailSize.Small,
+			Aoba.RPC.Models.ThumbnailSize.Medium => AobaCore.Models.ThumbnailSize.Medium,
+			Aoba.RPC.Models.ThumbnailSize.Large => AobaCore.Models.ThumbnailSize.Large,
+			Aoba.RPC.Models.ThumbnailSize.ExtraLarge => AobaCore.Models.ThumbnailSize.ExtraLarge,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveSmall => AobaCore.Models.ThumbnailSize.ResponsiveSmall,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveMedium => AobaCore.Models.ThumbnailSize.ResponsiveMedium,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveLarge => AobaCore.Models.ThumbnailSize.ResponsiveLarge,
+			_ => throw new InvalidOperationException("Invalid Thumbnail Size"),
+		};
+	}
 }

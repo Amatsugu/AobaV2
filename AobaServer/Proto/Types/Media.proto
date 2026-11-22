@@ -123,3 +123,17 @@ message TagGroup {
   string tag = 1;
   int32 count = 2;
 }
+
+message ThumbnailRequest {
+	Id media_id = 1;
+	ThumbnailSize size = 2;
+}
+
+message ThumbnailInfo {
+	optional string url = 1;
+	bool generating = 2;
+}
+
+message ThumbnailResponse {
+	optional ThumbnailInfo info = 1;
+}

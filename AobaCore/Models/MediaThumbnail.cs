@@ -32,7 +32,7 @@ public static class ThumbnailSizeExt{
 			{
 				var ratio = srcSize.Height / (float)srcSize.Width;
 
-				var w = (int)size;
+				var w = Math.Min((int)size, srcSize.Width);
 				var h = (int)(w * ratio);
 				return (w, h);
 			}
