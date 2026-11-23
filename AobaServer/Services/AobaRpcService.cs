@@ -29,7 +29,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 	{
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
 		if(media != null)
-			await thumbnailService.EnsureThumbnailAsync(media, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
+			_ = thumbnailService.EnsureThumbnailAsync(media, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
 		return media.ToResponse(host);
 	}
 
@@ -38,7 +38,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 		var user = context.GetUserId();
 		SearchQuery query = request.Query;
 		var result = await aobaService.FindMediaAsync(query.ToFilter(), user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
-		await thumbnailService.EnsureThumbnailsAsync(result.Items, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
+		_ = thumbnailService.EnsureThumbnailsAsync(result.Items, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
 		return result.ToResponse(host);
 	}
 
@@ -136,6 +136,14 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 					Url = file.Value.cdnUrl,
 				}
 			};
+			var data = await s3.GetFileAsync(file.Value.cdnUrl, CancellationToken.None);
+			if (!data.HasError)
+			{
+				using (data.Value)
+				{
+					media.Metadata = await AobaService.GetMetadataAsync(media.MediaType, data, media.Ext, CancellationToken.None);
+				}
+			}
 
 			await aobaService.AddMediaAsync(media, context.CancellationToken);
 			result.UploadCount++;

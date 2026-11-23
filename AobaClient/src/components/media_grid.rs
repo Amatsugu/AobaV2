@@ -5,7 +5,7 @@ use tonic::{Response, Status};
 
 use crate::{
 	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType, OnItemSelectedEvent},
-	contexts::init_thumbnail_loader,
+	contexts::init_thumbnail_loader_context,
 	models::toasts::{ToastCommand, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
@@ -39,7 +39,7 @@ pub struct PaginationInfo
 pub fn MediaGrid(props: MediaGridProps) -> Element
 {
 	let toasts_ctx = use_context::<ToastsContext>();
-	init_thumbnail_loader();
+	let mut thumb_ctx = init_thumbnail_loader_context();
 	let mut error_display = use_signal(|| {
 		rsx! {}
 	});
@@ -78,6 +78,7 @@ pub fn MediaGrid(props: MediaGridProps) -> Element
 						}
 					}
 					items.set(Some(result.items));
+					thumb_ctx.reset();
 					error_display.set(rsx! {});
 				}
 				Err(msg) => error_display.set(rsx! {

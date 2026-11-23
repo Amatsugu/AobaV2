@@ -17,6 +17,7 @@ pub struct ThumbnailWait
 	pub size: ThumbnailSize,
 }
 
+#[derive(PartialEq, Clone)]
 pub struct ThumbnailResult
 {
 	pub id: String,
@@ -31,7 +32,69 @@ pub struct ThumbnailLoaderContext
 	pub handle: Coroutine<ThumbnailWait>,
 }
 
-pub fn init_thumbnail_loader() -> ThumbnailLoaderContext
+impl ThumbnailLoaderContext
+{
+	pub fn reset(&mut self)
+	{
+		self.waitlist.write().clear();
+		self.results.write().clear();
+	}
+}
+
+#[derive(PartialEq, Clone)]
+pub enum ThumbData
+{
+	Thumb(String, Dimensions),
+	Pending(Dimensions),
+	NoThumb,
+}
+
+pub fn init_thumb_loader(id: String, thumb: String, size: Dimensions, is_pending: bool) -> Memo<ThumbData>
+{
+	let ctx = use_context::<ThumbnailLoaderContext>();
+	use_effect({
+		let id = id.clone();
+		move || {
+			if is_pending
+			{
+				ctx.handle.send(ThumbnailWait {
+					id: id.clone(),
+					size: crate::rpc::aoba::ThumbnailSize::ResponsiveMedium,
+				});
+			}
+		}
+	});
+	use_memo({
+		let id = id.clone();
+		move || {
+			let results = ctx.results.cloned();
+			if let Some(result) = results.iter().find(|r| r.id == id)
+			{
+				if let Some((url, size)) = result.result.clone()
+				{
+					ThumbData::Thumb(url, size)
+				}
+				else
+				{
+					ThumbData::NoThumb
+				}
+			}
+			else
+			{
+				if thumb.is_empty()
+				{
+					ThumbData::Pending(size)
+				}
+				else
+				{
+					ThumbData::Thumb(thumb.clone(), size)
+				}
+			}
+		}
+	})
+}
+
+pub fn init_thumbnail_loader_context() -> ThumbnailLoaderContext
 {
 	let ctx = create_thumbnail_loader();
 	use_context_provider(|| ctx)
@@ -80,7 +143,7 @@ fn create_thumbnail_loader() -> ThumbnailLoaderContext
 
 async fn delay() -> Option<()>
 {
-	Delay::new(Duration::from_secs(1)).await;
+	Delay::new(Duration::from_secs(2)).await;
 	Some(())
 }
 
@@ -118,13 +181,12 @@ async fn check_status(
 			continue;
 		}
 		if let Some(id) = status.id
+			&& waitlist.read().iter().any(|w| w.id == id.value)
 		{
-			info!("url: {:?} - size: {:?}", status.url.is_some(), status.size.is_some());
 			if let Some(url) = status.url
 				&& let Some(size) = status.size
 				&& !status.generating
 			{
-				info!("Thumbnail Result");
 				results.write().push(ThumbnailResult {
 					id: id.value.clone(),
 					result: Some((url, size)),

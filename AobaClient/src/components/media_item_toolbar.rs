@@ -35,7 +35,7 @@ pub fn Toolbar(
 			class: "toolbar",
 			MediaButton{
 				arg: id.clone(),
-				tooltip_text: {if selected { "Deselect" } else { "Select" }},
+				tooltip_text: if selected { "Deselect" } else { "Select" },
 				tooltip,
 				onclick: move |id: String|{
 					on_selected.call((id.clone(), !selected));

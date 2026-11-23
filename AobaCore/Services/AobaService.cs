@@ -1,6 +1,8 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
 
 using AobaCore.Models;
+using AobaCore.ThumbnailGeneration;
 
 using MaybeError.Errors;
 
@@ -169,7 +171,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			if (s3File.HasError)
 				return s3File.Error;
 			media.Cdn = new CdnData { Url = s3File.Value };
-
+			media.Metadata = await GetMetadataAsync(media.MediaType, data, media.Ext, cancellationToken);
 			//var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
 			//var media = new Media(fileId, filename, owner);
 
@@ -184,6 +186,38 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		{
 			data.Dispose();
 		}
+	}
+
+	public static async Task<MediaMetadata?> GetMetadataAsync(MediaType type, Stream data, string ext, CancellationToken cancellationToken = default)
+	{
+		return type switch {
+			MediaType.Raw => new MediaMetadata { FileSize = data.Length },
+			_ => (await GetMetaAsync()).ValueOrDefault()
+		};
+		async Task<Maybe<MediaMetadata>> GetMetaAsync()
+		{
+			var fn = $"/tmp/{ObjectId.GenerateNewId()}{ext}";
+			if(data.CanSeek)
+				data.Position = 0;
+			using var fs = new FileStream(fn, FileMode.Create);
+			data.CopyTo(fs);
+			await fs.FlushAsync(cancellationToken);
+			fs.Dispose();
+			try
+			{
+				return type switch
+				{
+					MediaType.Image => await Image.GetMetadataAsync(fn, cancellationToken),
+					MediaType.Audio => await Audio.GetMetadataAsync(fn, cancellationToken),
+					MediaType.Video => await Video.GetMetadataAsync(fn, cancellationToken),
+					_ => new Error("Invalid type")
+				};
+			}finally{
+				File.Delete(fn);
+			}
+		}
+
+
 	}
 
 	[Obsolete("Use s3")]

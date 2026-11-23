@@ -54,7 +54,7 @@ pub fn use_unauth_hook(mut auth_context: AuthContext)
 			{
 				match event
 				{
-					AuthEvent::Unauth => auth_context.logout(),
+					AuthEvent::Unauth => auth_context.unauth(),
 					AuthEvent::Refresh { token, exp } =>
 					{
 						auth_context.login(Jwt { token, exp });

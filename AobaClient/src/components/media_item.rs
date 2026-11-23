@@ -2,9 +2,9 @@ use dioxus::prelude::*;
 
 use crate::{
 	components::{Toolbar, icons::Stack},
-	contexts::{ThumbnailLoaderContext, ThumbnailWait},
+	contexts::{ThumbData, init_thumb_loader},
 	route::Route,
-	rpc::aoba::{Dimensions, MediaClass, MediaModel, MediaType},
+	rpc::aoba::{MediaClass, MediaModel, MediaType},
 };
 pub type OnItemSelectedEvent = (String, bool);
 
@@ -27,14 +27,6 @@ pub struct MediaItemProps
 
 const MEDIA_ITEM_CSS: Asset = asset!("/assets/style/mediaItem.scss");
 
-#[derive(PartialEq, Clone)]
-enum ThumbData
-{
-	Thumb(String, Dimensions),
-	Pending,
-	NoThumb,
-}
-
 #[component]
 pub fn MediaItem(props: MediaItemProps) -> Element
 {
@@ -45,46 +37,18 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 	let thumb = item.main_thumb_url;
 	let id = item.id.unwrap_or_default().value;
 	let size = item.main_thumb_size.unwrap_or_default();
-	let mut dims = use_signal({
-		let d = item.dimensions.clone();
-		move || d.map(|d| format!("{}x{}", d.width, d.height)).unwrap_or_default()
-	});
+	let dims = item
+		.dimensions
+		.map(|d| format!("{}x{}", d.width, d.height))
+		.unwrap_or_default();
 	let media_url = item.media_url.clone();
 	let selected_class = match props.is_selected
 	{
 		true => "selected",
 		false => "",
 	};
-	// let mut ctx = init_thumb_loader(id.clone(), item.main_thumb_pending);
-	let thumb_data = use_signal({
-		let id = id.clone();
-		move || {
-			// let mut results = ctx.results.write();
-			// if let Some(result) = results.iter().find(|r| r.id == id)
-			// {
-			// 	let result = result.result.clone();
-			// 	results.retain(|r| r.id == id);
-			// 	if let Some((url, size)) = result
-			// 	{
-			// 		ThumbData::Thumb(url, size)
-			// 	}
-			// 	else
-			// 	{
-			// 		ThumbData::NoThumb
-			// 	}
-			// }
-			// else
-			// {
-			ThumbData::Thumb(thumb.clone(), size)
-			// }
-		}
-	});
-	// use_hook(move || {
-	// 	if let ThumbData::Thumb(_, size) = thumb_data.cloned()
-	// 	{
-	// 		dims.set(format!("{}x{}", size.width, size.height));
-	// 	}
-	// });
+	let thumb_data = init_thumb_loader(id.clone(), thumb, size, item.main_thumb_pending);
+
 	rsx! {
 		div {
 			"data-id" : id.clone(),
@@ -117,21 +81,6 @@ pub fn MediaItem(props: MediaItemProps) -> Element
 		}
 		document::Link {href: MEDIA_ITEM_CSS, rel: "stylesheet" }
 	}
-}
-
-fn init_thumb_loader(id: String, is_pending: bool) -> ThumbnailLoaderContext
-{
-	let thumb_ctx = use_context::<ThumbnailLoaderContext>();
-	use_effect(move || {
-		if is_pending
-		{
-			thumb_ctx.handle.send(ThumbnailWait {
-				id: id.clone(),
-				size: crate::rpc::aoba::ThumbnailSize::ResponsiveMedium,
-			});
-		}
-	});
-	thumb_ctx
 }
 
 #[component]
@@ -169,10 +118,10 @@ fn MediaThumb(media_type: MediaType, data: ThumbData, autoplay: bool) -> Element
 				}
 			},
 		},
-		ThumbData::Pending => rsx! {
+		ThumbData::Pending(dim) => rsx! {
 			div{
+				style: "height: {dim.height}px; width: {dim.width}px;",
 				class: "loading",
-				"Loading"
 			}
 		},
 		ThumbData::NoThumb => rsx! {

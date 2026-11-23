@@ -21,7 +21,7 @@ public class ThumbnailGenerationService(ThumbnailRequestService thumbnailRequest
 		{
 			try
 			{
-				GenerateThumbnailsAsync().GetAwaiter().GetResult();
+				GenerateThumbnailsAsync(cancellationToken).GetAwaiter().GetResult();
 			}
 			catch (Exception e)
 			{
@@ -35,28 +35,35 @@ public class ThumbnailGenerationService(ThumbnailRequestService thumbnailRequest
 		return Task.CompletedTask;
 	}
 
-	private async Task GenerateThumbnailsAsync()
+	private async Task GenerateThumbnailsAsync(CancellationToken cancellationToken = default)
 	{
-		var requests = await thumbnailRequests.GetRequestsAsync(100);
+		var requests = await thumbnailRequests.GetRequestsAsync(100, cancellationToken);
 		if (requests.Count > 0 && logger.IsEnabled(LogLevel.Information))
 			logger.LogInformation("Generating thumbnails for {count} items", requests.Count);
 		else
 			return;
 		var genCount = 0;
-		foreach (var request in requests)
+		while(requests.Count > 0)
 		{
-			try
+			foreach (var request in requests)
 			{
-				await ProcressThumbnailRequestAsync(request);
-				genCount++;
+				if (cancellationToken.IsCancellationRequested)
+					break;
+				try
+				{
+					await ProcressThumbnailRequestAsync(request);
+					genCount++;
+				}
+				catch (Exception e)
+				{
+					await thumbnailRequests.MarkAsFailedAsync(request.RequestId, cancellationToken);
+					logger.LogError(e, "Failed to generate thumbnail for {id} - {size}", request.MediaId, request.Size);
+				}
 			}
-			catch (Exception e)
-			{
-				await thumbnailRequests.MarkAsFailedAsync(request.RequestId);
-				logger.LogError(e, "Failed to generate thumbnail for {id} - {size}", request.MediaId, request.Size);
-			}
+			requests = await thumbnailRequests.GetRequestsAsync(100, cancellationToken);
 		}
-		logger.LogInformation("Generated thumbnails for {count} items.", genCount);
+		if(logger.IsEnabled(LogLevel.Information))
+			logger.LogInformation("Generated thumbnails for {count} items.", genCount);
 	}
 
 	private async Task ProcressThumbnailRequestAsync(ThumbnailRequest request)
@@ -98,6 +105,7 @@ public class ThumbnailGenerationService(ThumbnailRequestService thumbnailRequest
 		if (!ShouldGenerateThumb(media))
 		{
 			File.Delete(filePath);
+			await thumbnailRequests.RemoveRequestAsync(request.RequestId);
 			return;
 		}
 

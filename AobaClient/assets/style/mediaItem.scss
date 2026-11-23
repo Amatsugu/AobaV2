@@ -1,5 +1,6 @@
 @import "mixins";
 @import "colors";
+@import "animations";
 
 $itemWidth: 450px;
 .mediaGrid {
@@ -35,6 +36,26 @@ $itemWidth: 450px;
 			grid-area: A;
 			width: $itemWidth;
 			display: block;
+		}
+
+		.loading{
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 20px;
+			height: $itemWidth;
+			&:after{
+				content: "";
+				display: block;
+				height: 50px;
+				width: 50px;
+				border-radius: 50%;
+				background: linear-gradient(#000, #000), conic-gradient(transparent 25%, $featureColor 95%, transparent 100%);
+				animation: 1s infinite linear spinner;
+				border: 5px solid transparent;
+				background-clip: padding-box, border-box;
+				background-origin: border-box;
+			}
 		}
 	}
 

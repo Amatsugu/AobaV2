@@ -22,6 +22,7 @@ nav {
 
 	.branding {
 		grid-area: Branding;
+		width: $navBarSize;
 
 		img {
 			width: $navBarSize;
@@ -30,14 +31,17 @@ nav {
 	}
 
 	.mainNav {
+		width: $navBarSize;
 		grid-area: Nav;
 	}
 
 	.widgets {
+		width: $navBarSize;
 		grid-area: Widgets;
 	}
 
 	.utils {
+		width: $navBarSize;
 		grid-area: Utils;
 	}
 
@@ -46,6 +50,7 @@ nav {
 		display: grid;
 		grid-template-areas: "A";
 		transition: 0.25s ease-out background-color;
+		cursor: pointer;
 
 		svg {
 			width: $navBarSize;
@@ -71,5 +76,9 @@ nav {
 		&:hover::before {
 			width: 100% !important;
 		}
+	}
+
+	.vertical{
+		writing-mode: vertical-lr;
 	}
 }

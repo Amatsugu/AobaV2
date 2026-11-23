@@ -34,7 +34,7 @@ input[type="text"] {
 		border-top-right-radius: 0;
 
 		background-color: $inputBGColor;
-		border: none;
+		border: 3px solid transparent;
 		color: $invertTextColor;
 
 		&::-webkit-input-placeholder,
@@ -43,13 +43,22 @@ input[type="text"] {
 		}
 
 		&:focus {
-			outline-style: solid;
-			outline-color: $inputBGColorFocus;
-			outline-width: 3;
+			border: 3px solid $inputBGColorFocus;
+			border-right: 0;
+			outline: none;
+			// outline-style: solid;
+			// outline-color: $inputBGColorFocus;
+			// outline-width: 3;
 		}
 	}
 
+	input:focus + .uploadBtn{
+		border: 3px solid $inputBGColorFocus;
+		border-left: 0;
+	}
+
 	.uploadBtn{
+		box-sizing: border-box;
 		display: grid;
 		height: 40px;
 		width: 40px;
@@ -60,6 +69,8 @@ input[type="text"] {
 		border-bottom-right-radius: 20px;
 		border-top-right-radius: 20px;
 		transition: background-color .25s ease-out;
+		border: 3px solid transparent;
+		border-left: 0;
 
 		&:hover{
 			background-color: $buttonAccentedBGHover;
@@ -71,12 +82,18 @@ input[type="text"] {
 
 		input[type=file]{
 			opacity: 0;
+			margin: 0;
+			padding: 0;
 			display: block;
+			height: calc(100% - 3px);
+			width: calc(100% - 3px);
 		}
 
 		svg{
-			padding: 10px;
-			height: 40px;
+			justify-self: center;
+			align-self: center;
+			padding: 0;
+			height: 60%;
 			pointer-events: none;
 			display: block;
 		}

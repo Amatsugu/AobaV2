@@ -18,7 +18,7 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba, S3Medi
 		foreach (var media in items)
 		{
 			if (media.Cdn != null && media.Cdn.ThumbnailUrls.ContainsKey(size))
-				return;
+				continue;
 			await RequestThumbnailGenerationAsync(media.MediaId, size, cancellationToken);
 		}
 	}
