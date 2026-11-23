@@ -99,6 +99,11 @@ builder.Services.AddAuthorizationBuilder()
 		p.AddAuthenticationSchemes(Consts.AccessTokenAuthScheme, JwtBearerDefaults.AuthenticationScheme)
 			.RequireAuthenticatedUser()
 			.RequireRole("user", "upload");
+	}).AddPolicy(Consts.AobaAuthScheme, p =>
+	{
+		p.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+			.RequireAuthenticatedUser()
+			.RequireRole("user");
 	});
 builder.Services.AddRequestTimeouts(cfg =>
 {
@@ -254,13 +259,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGrpcService<AobaRpcService>()
-	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
+	.RequireAuthorization(Consts.AobaAuthScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<AccountRpcService>()
-	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
+	.RequireAuthorization(Consts.AobaAuthScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<MetricsRpcService>()
-	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
+	.RequireAuthorization(Consts.AobaAuthScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<AuthRpcService>()
 	.AllowAnonymous()
