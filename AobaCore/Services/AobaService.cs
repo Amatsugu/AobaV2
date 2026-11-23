@@ -14,7 +14,7 @@ using MongoDB.Driver.GridFS;
 
 namespace AobaCore.Services;
 
-public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger)
+public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger, ILogger<AobaService> logger)
 {
 	private readonly IMongoCollection<Media> _media = db.GetCollection<Media>(Collections.Media);
 	[Obsolete("Use s3")]
@@ -167,13 +167,16 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 			var extraTags = await tagger.GetTagsAsync(filename);
 			media.Tags = [.. media.Tags.Concat(extraTags).Distinct()];
 
+			var meta = await GetMetadataAsync(media.MediaType, data, media.Ext, cancellationToken);
+			if (meta.HasError)
+				logger.LogError("Failed to read metadata\n{details}", meta.Error);
+			else
+				media.Metadata = meta;
+
 			var s3File = await s3.UploadFileAsync(media.GetS3Filename(), media.GetMimeType(), data, cancellationToken);
 			if (s3File.HasError)
 				return s3File.Error;
 			media.Cdn = new CdnData { Url = s3File.Value };
-			media.Metadata = await GetMetadataAsync(media.MediaType, data, media.Ext, cancellationToken);
-			//var fileId = await _gridFs.UploadFromStreamAsync(filename, data, cancellationToken: cancellationToken);
-			//var media = new Media(fileId, filename, owner);
 
 			await AddMediaAsync(media, cancellationToken);
 			return media;
@@ -188,7 +191,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 		}
 	}
 
-	public static async Task<MediaMetadata?> GetMetadataAsync(MediaType type, Stream data, string ext, CancellationToken cancellationToken = default)
+	public static async Task<Maybe<MediaMetadata?>> GetMetadataAsync(MediaType type, Stream data, string ext, CancellationToken cancellationToken = default)
 	{
 		return type switch {
 			MediaType.Raw => new MediaMetadata { FileSize = data.Length },
@@ -212,7 +215,12 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 					MediaType.Video => await Video.GetMetadataAsync(fn, cancellationToken),
 					_ => new Error("Invalid type")
 				};
-			}finally{
+			}
+			catch (Exception ex) {
+				return ex;
+			}
+			finally
+			{
 				File.Delete(fn);
 			}
 		}

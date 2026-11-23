@@ -23,7 +23,7 @@ public class MediaApi(AobaService aoba, HostInfo hostInfo, ILogger<MediaApi> log
 
 		if (media.HasError)
 		{
-			logger.LogError(media.Error.GetException(), "Failed to upload media");
+			logger.LogError(media.Error.GetException(), "Failed to upload media\n{details}", media.Error.Details);
 			
 			return Problem(detail: media.Error.Message, statusCode: StatusCodes.Status400BadRequest);
 		}

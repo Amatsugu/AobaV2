@@ -22,7 +22,7 @@ using SearchQuery = AobaServer.Models.SearchQuery;
 
 namespace AobaServer.Services;
 
-public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thumbnailService, HostInfo host, S3MediaService s3) : AobaRpc.AobaRpcBase
+public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thumbnailService, HostInfo host, S3MediaService s3, ILogger<AobaRpcService> logger) : AobaRpc.AobaRpcBase
 {
 
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
@@ -141,7 +141,11 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 			{
 				using (data.Value)
 				{
-					media.Metadata = await AobaService.GetMetadataAsync(media.MediaType, data, media.Ext, CancellationToken.None);
+					var meta = await AobaService.GetMetadataAsync(media.MediaType, data, media.Ext, CancellationToken.None);
+					if (meta.HasError)
+						logger.LogError("Failed to read metadata\n{details}", meta.Error);
+					else
+						media.Metadata = meta;
 				}
 			}
 

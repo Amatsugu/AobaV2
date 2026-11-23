@@ -143,7 +143,7 @@ builder.Services.AddAuthentication(options =>
 		{
 			var lf = ctx.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
 			var logger = lf.CreateLogger("Auth");
-			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
+			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.Headers["X-Forwarded-For"].ToString());
 			return Task.CompletedTask;
 		},
 #if DEBUG //allow cookie based auth when in debug mode
@@ -190,7 +190,7 @@ builder.Services.AddAuthentication(options =>
 		{
 			var lf = ctx.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
 			var logger = lf.CreateLogger("Auth Metrics");
-			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.HttpContext.Connection.RemoteIpAddress);
+			logger.LogWarning("Token Validation Failed from {srcIp}", ctx.Request.Headers["X-Forwarded-For"].ToString());
 			return Task.CompletedTask;
 		},
 	};
@@ -228,7 +228,10 @@ if (!app.Environment.IsDevelopment())
 	app.UseOwaspHeaders();
 }
 
-app.UseForwardedHeaders();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+	//Todo: configure trusted proxies
+});
 app.UseStaticFiles();
 app.UseRouting();
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
