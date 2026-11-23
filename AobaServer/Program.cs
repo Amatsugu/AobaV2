@@ -18,12 +18,10 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
 
 using System.Buffers.Binary;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
-//var file = @"H:\tmp\6ade992e7e5e61153c1bc58c.png";
-//var meta = await AobaCore.ThumbnailGeneration.Image.GetMetadataAsync(file);
-//var thumb = AobaCore.ThumbnailGeneration.Image.GenerateThumbnail(file, AobaCore.Models.ThumbnailSize.ResponsiveMedium, meta);
 
 #if DEBUG
 IdentityModelEventSource.ShowPII = true;
@@ -231,10 +229,18 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+var trusted = config.GetValue<string>("TRUSTED_PROXIES")?.Split(',');
+var forwardCfg = new ForwardedHeadersOptions();
+if(trusted != null)
 {
-	//Todo: configure trusted proxies
-});
+	foreach (var addr in trusted)
+	{
+		if (IPAddress.TryParse(addr, out var ip))
+			forwardCfg.KnownProxies.Add(ip);
+	}
+}
+app.UseForwardedHeaders(forwardCfg);
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
