@@ -14,7 +14,7 @@ namespace AobaServer.Controllers.Api;
 [ApiController, Authorize(Policy = Consts.UploadAuthPolicy)]
 [Route("/api/media")]
 [RequestTimeout("upload")]
-public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase
+public class MediaApi(AobaService aoba, HostInfo hostInfo, ILogger<MediaApi> logger) : ControllerBase
 {
 	[HttpPost("upload")]
 	public async Task<IActionResult> UploadAsync([FromForm] IFormFile file, CancellationToken cancellationToken)
@@ -22,7 +22,11 @@ public class MediaApi(AobaService aoba, HostInfo hostInfo) : ControllerBase
 		var media = await aoba.UploadFileAsync(file.OpenReadStream(), file.FileName, User.GetId(), cancellationToken);
 
 		if (media.HasError)
+		{
+			logger.LogError(media.Error.GetException(), "Failed to upload media");
+			
 			return Problem(detail: media.Error.Message, statusCode: StatusCodes.Status400BadRequest);
+		}
 
 
 		return Ok(new
