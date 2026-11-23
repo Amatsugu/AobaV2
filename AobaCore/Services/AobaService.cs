@@ -172,7 +172,7 @@ public class AobaService(IMongoDatabase db, S3MediaService s3, AutoTagger tagger
 				logger.LogError("Failed to read metadata\n{details}", meta.Error);
 			else
 				media.Metadata = meta;
-
+			data.Position = 0;
 			var s3File = await s3.UploadFileAsync(media.GetS3Filename(), media.GetMimeType(), data, cancellationToken);
 			if (s3File.HasError)
 				return s3File.Error;

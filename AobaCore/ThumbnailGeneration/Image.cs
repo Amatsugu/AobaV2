@@ -43,9 +43,9 @@ public static class Image
 		if (process == null)
 			return new Error("Failed to start ffprobe");
 
+		var stdOut = await process.StandardOutput.ReadToEndAsync(cancellationToken);
 		await process.WaitForExitAsync(cancellationToken);
 
-		var stdOut = await process.StandardOutput.ReadToEndAsync(cancellationToken);
 
 		var result = JsonSerializer.Deserialize<ExifData[]>(stdOut);
 		if (result == null || result.Length == 0)
