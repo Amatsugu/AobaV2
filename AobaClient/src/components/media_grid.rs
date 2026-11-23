@@ -4,9 +4,8 @@ use dioxus::prelude::*;
 use tonic::{Response, Status};
 
 use crate::{
-	components::{
-		MediaClassChangeEvent, MediaItem, MediaItemLegacy, MediaItemPlaceHolder, Notif, NotifType, OnItemSelectedEvent,
-	},
+	components::{MediaClassChangeEvent, MediaItem, MediaItemPlaceHolder, Notif, NotifType, OnItemSelectedEvent},
+	contexts::init_thumbnail_loader,
 	models::toasts::{ToastCommand, ToastsContext},
 	rpc::{
 		aoba::{Id, MediaClass, MediaModel, PageFilter, SetMediaClassRequest},
@@ -40,6 +39,7 @@ pub struct PaginationInfo
 pub fn MediaGrid(props: MediaGridProps) -> Element
 {
 	let toasts_ctx = use_context::<ToastsContext>();
+	init_thumbnail_loader();
 	let mut error_display = use_signal(|| {
 		rsx! {}
 	});

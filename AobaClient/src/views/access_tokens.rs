@@ -7,7 +7,7 @@ use crate::{
 	},
 	models::toasts::{ToastCommand, ToastsContext},
 	rpc::{
-		aoba::{AccessToken, AccessTokenCreationRequest, AccessTokenFull, AccessTokenList, AccessTokenType, Id},
+		aoba::{AccessToken, AccessTokenCreationRequest, AccessTokenFull, AccessTokenList, AccessTokenType},
 		get_account_rpc_client,
 	},
 };

@@ -1,8 +1,10 @@
 mod auth_context;
 mod drag_context;
 mod selection_context;
+mod thumbnail_loader;
 mod uploader_context;
 pub use auth_context::*;
 pub use drag_context::*;
 pub use selection_context::*;
+pub use thumbnail_loader::*;
 pub use uploader_context::*;

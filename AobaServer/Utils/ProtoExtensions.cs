@@ -49,11 +49,14 @@ public static class ProtoExtensions
 
 	public static MediaModel ToMediaModel(this Media media, HostInfo host)
 	{
-		var thumbs = System.Enum.GetValues<AobaCore.Models.ThumbnailSize>().Select(s => new Aoba.RPC.Models.MediaThumbnail
-		{
-			Size = (Aoba.RPC.Models.ThumbnailSize)s,
-			Url = media.GetThumbnailUrl(s, host)
-		});
+		var thumbs = System.Enum.GetValues<AobaCore.Models.ThumbnailSize>()
+			.Select(s => (size: s, thumb: media.GetThumbnailUrl(s, host)))
+			.Where(s => s.thumb != null)
+			.Select(s => new Aoba.RPC.Models.MediaThumbnail
+			{
+				Size = (Aoba.RPC.Models.ThumbnailSize)s.size,
+				Url = s.thumb
+			});
 		var result = new MediaModel()
 		{
 			Ext = media.Ext,
@@ -62,7 +65,7 @@ public static class ProtoExtensions
 			MediaType = (Aoba.RPC.Models.MediaType)(media.MediaType + 1),
 			Owner = media.Owner.ToRpc(),
 			ViewCount = media.ViewCount,
-			MainThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.ResponsiveMedium, host),
+			MainThumbUrl = media.GetThumbnailUrl(AobaCore.Models.ThumbnailSize.ResponsiveMedium, host) ?? string.Empty,
 			MediaUrl = media.GetMediaUrl(host),
 			CdnUrl = media.GetRawMediaUrl(host),
 			Class = (Aoba.RPC.Models.MediaClass)(media.Class + 1),
@@ -206,5 +209,20 @@ public static class ProtoExtensions
 	public static IEnumerable<Aoba.RPC.Models.AccessToken> ToRpc(this IEnumerable<AobaCore.Models.AccessToken> tokens)
 	{
 		return tokens.Select(t => t.ToRpc());
+	}
+
+	public static AobaCore.Models.ThumbnailSize FromRpc(this Aoba.RPC.Models.ThumbnailSize size)
+	{
+		return size switch
+		{
+			Aoba.RPC.Models.ThumbnailSize.Small => AobaCore.Models.ThumbnailSize.Small,
+			Aoba.RPC.Models.ThumbnailSize.Medium => AobaCore.Models.ThumbnailSize.Medium,
+			Aoba.RPC.Models.ThumbnailSize.Large => AobaCore.Models.ThumbnailSize.Large,
+			Aoba.RPC.Models.ThumbnailSize.ExtraLarge => AobaCore.Models.ThumbnailSize.ExtraLarge,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveSmall => AobaCore.Models.ThumbnailSize.ResponsiveSmall,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveMedium => AobaCore.Models.ThumbnailSize.ResponsiveMedium,
+			Aoba.RPC.Models.ThumbnailSize.ResponsiveLarge => AobaCore.Models.ThumbnailSize.ResponsiveLarge,
+			_ => throw new InvalidOperationException("Invalid Thumbnail Size"),
+		};
 	}
 }

@@ -24,7 +24,7 @@ pub use layout_groups::*;
 pub use list_item::*;
 pub use media_grid::*;
 pub use media_item::*;
-pub use media_item_toolbar::*;
+pub use media_item_toolbar::Toolbar;
 pub use metrics_token::*;
 pub use modal::*;
 pub use navbar::*;

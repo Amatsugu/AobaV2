@@ -9,6 +9,8 @@ using MongoDB.Bson.Serialization.Attributes;
 
 using SixLabors.ImageSharp;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace AobaCore.Models;
 
 [BsonIgnoreExtraElements]
@@ -126,10 +128,20 @@ public class Media
 			if (Cdn.ThumbnailUrls.TryGetValue(size, out var thumb))
 			{
 				return host.CdnHost.AppendPathSegments(thumb);
-			} else
-				return host.Host.AppendPathSegments("m", MediaId, "thumb").SetQueryParam("size", size);
+			}
 		}
 		return null;
+	}
+
+	public bool TryGetThumbnailUrl(ThumbnailSize size, HostInfo host, [NotNullWhen(true)] out string? thumbUrl)
+	{
+		if (Cdn != null && Cdn.ThumbnailUrls.TryGetValue(size, out var thumb))
+		{
+			thumbUrl = host.CdnHost.AppendPathSegments(thumb);
+			return true;
+		}
+		thumbUrl = null;
+		return false;
 	}
 
 	public static MediaType GetMediaType(string filename)

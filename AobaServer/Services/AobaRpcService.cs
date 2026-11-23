@@ -7,6 +7,8 @@ using AobaCore.Services;
 using AobaServer.Models;
 using AobaServer.Utils;
 
+using Flurl;
+
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -26,6 +28,8 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 	public override async Task<MediaResponse> GetMedia(Id request, ServerCallContext context)
 	{
 		var media = await aobaService.GetMediaAsync(request.ToObjectId(), context.CancellationToken);
+		if(media != null)
+			await thumbnailService.EnsureThumbnailAsync(media, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
 		return media.ToResponse(host);
 	}
 
@@ -34,6 +38,7 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 		var user = context.GetUserId();
 		SearchQuery query = request.Query;
 		var result = await aobaService.FindMediaAsync(query.ToFilter(), user, request.HasPage ? request.Page : 1, request.HasPageSize ? request.PageSize : 100);
+		await thumbnailService.EnsureThumbnailsAsync(result.Items, AobaCore.Models.ThumbnailSize.ResponsiveMedium, context.CancellationToken);
 		return result.ToResponse(host);
 	}
 
@@ -189,5 +194,52 @@ public class AobaRpcService(AobaService aobaService, ThumbnailRequestService thu
 	{
 		var tagInfo = await aobaService.GetBulkTagInfoAsync(request.ToObjectId(), context.CancellationToken);
 		return tagInfo.ToResponse();
+	}
+
+	public override async Task<ThumbnailResponse> GetThumbnail(Aoba.RPC.Models.ThumbnailRequest request, ServerCallContext context)
+	{
+		var responses = new List<ThumbnailInfo>();
+		foreach (var req in request.Thumbs)
+		{
+			if (req.Size == Aoba.RPC.Models.ThumbnailSize.Unspecified)
+				continue;
+			var media = await aobaService.GetMediaAsync(req.MediaId.ToObjectId(), context.CancellationToken);
+			if(media == null || media.Cdn == null)
+				continue;
+			var hostInfo = context.GetHttpContext().RequestServices.GetRequiredService<HostInfo>();
+			if(media.TryGetThumbnailUrl(req.Size.FromRpc(), hostInfo, out var url))
+			{
+				var (w, h) = req.Size.FromRpc().GetThumbnailSize(media.Metadata?.Dimensions);
+				responses.Add(new ThumbnailInfo
+				{
+					Generating = false,
+					Url = url,
+					Id = media.MediaId.ToRpc(),
+					Size = new Dimensions
+					{
+						Height = (uint)h,
+						Width = (uint)w
+					},
+				});
+			}
+
+			if (await thumbnailService.RequestExistsAsync(req.MediaId.ToObjectId(), req.Size.FromRpc(), context.CancellationToken))
+				responses.Add(new ThumbnailInfo
+				{
+					Generating = true,
+					Id = media.MediaId.ToRpc()
+				});
+			else
+			{
+				responses.Add(new ThumbnailInfo
+				{
+					Generating = false,
+					Id = media.MediaId.ToRpc()
+				});
+			}
+		}
+		var response = new ThumbnailResponse();
+		response.Info.AddRange(responses);
+		return response;
 	}
 }

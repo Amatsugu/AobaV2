@@ -227,14 +227,6 @@ if (!app.Environment.IsDevelopment())
 	app.UseExceptionHandler("/Home/Error");
 	app.UseOwaspHeaders();
 }
-#if DEBUG
-app.Use(async (ctx, next) =>
-{
-	Console.WriteLine($"IP: {ctx.Request.HttpContext.Connection.RemoteIpAddress}");
-
-	await next();
-});
-#endif
 
 app.UseForwardedHeaders();
 app.UseStaticFiles();

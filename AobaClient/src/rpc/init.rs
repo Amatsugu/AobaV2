@@ -22,7 +22,7 @@ pub mod aoba
 	tonic::include_proto!("aoba");
 }
 
-type AuthorizedClient = InterceptedService<UnauthService<Client>, AuthInterceptor>;
+pub type AuthorizedClient = InterceptedService<UnauthService<Client>, AuthInterceptor>;
 pub static UNAUTH_TX: OnceLock<UnboundedSender<AuthEvent>> = OnceLock::new();
 
 static RPC_CLIENTS: LazyLock<RpcConnection> = LazyLock::new(|| {

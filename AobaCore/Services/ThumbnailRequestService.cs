@@ -13,6 +13,21 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba, S3Medi
 {
 	private readonly IMongoCollection<ThumbnailRequest> _requests = db.GetCollection<ThumbnailRequest>(Collections.ThumbnailRequests);
 
+	public async Task EnsureThumbnailsAsync(List<Media> items, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		foreach (var media in items)
+		{
+			if (media.Cdn != null && media.Cdn.ThumbnailUrls.ContainsKey(size))
+				return;
+			await RequestThumbnailGenerationAsync(media.MediaId, size, cancellationToken);
+		}
+	}
+	public async Task EnsureThumbnailAsync(Media media, ThumbnailSize size, CancellationToken cancellationToken = default)
+	{
+		if (media.Cdn != null && media.Cdn.ThumbnailUrls.ContainsKey(size))
+			return;
+		await RequestThumbnailGenerationAsync(media.MediaId, size, cancellationToken);
+	}
 
 	public async Task<string?> GetOrCreateThumbnailAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken = default)
 	{
@@ -28,6 +43,11 @@ public class ThumbnailRequestService(IMongoDatabase db, AobaService aoba, S3Medi
 	public async Task<List<ThumbnailRequest>> GetRequestsAsync(int count, CancellationToken cancellationToken = default)
 	{
 		return await _requests.Find(r => !r.Failed).Limit(count).ToListAsync(cancellationToken);
+	}
+
+	public async Task<bool> RequestExistsAsync(ObjectId mediaId, ThumbnailSize size, CancellationToken cancellationToken)
+	{
+		return await _requests.Find(m => m.MediaId == mediaId && m.Size == size).AnyAsync(cancellationToken);
 	}
 
 	public async Task MarkAsFailedAsync(ObjectId requestId, CancellationToken cancellationToken = default)
