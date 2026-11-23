@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 using MongoDB.Driver;
@@ -23,6 +24,10 @@ using System.Text;
 //var file = @"H:\tmp\6ade992e7e5e61153c1bc58c.png";
 //var meta = await AobaCore.ThumbnailGeneration.Image.GetMetadataAsync(file);
 //var thumb = AobaCore.ThumbnailGeneration.Image.GenerateThumbnail(file, AobaCore.Models.ThumbnailSize.ResponsiveMedium, meta);
+
+#if DEBUG
+IdentityModelEventSource.ShowPII = true;
+#endif
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,10 +109,7 @@ builder.Services.AddRequestTimeouts(cfg =>
 });
 
 var accessTokenAuthInfo = await authCfg.GetAccessTokenAuthInfoAsync();
-builder.Services.AddAuthentication(options =>
-{
-	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
+builder.Services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => //Bearer auth
 {
 	options.TokenValidationParameters = new TokenValidationParameters
 	{
@@ -228,6 +230,7 @@ if (!app.Environment.IsDevelopment())
 	app.UseOwaspHeaders();
 }
 
+
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
 	//Todo: configure trusted proxies
@@ -245,13 +248,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGrpcService<AobaRpcService>()
-	.RequireAuthorization()
+	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<AccountRpcService>()
-	.RequireAuthorization()
+	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<MetricsRpcService>()
-	.RequireAuthorization()
+	.RequireAuthorization(JwtBearerDefaults.AuthenticationScheme)
 	.RequireCors("RPC");
 app.MapGrpcService<AuthRpcService>()
 	.AllowAnonymous()
