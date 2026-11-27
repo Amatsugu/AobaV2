@@ -133,6 +133,14 @@ public class ThumbnailGenerationService(ThumbnailRequestService thumbnailRequest
 			{ MediaType: MediaType.Audio } => ".avif",
 			_ => ".webp"
 		};
+		
+		if(!await aoba.MediaExistsAsync(media.MediaId))
+		{
+			logger.LogWarning("Media file no longer exists, aborting. Media Id: {}", request.MediaId);
+			await thumbnailRequests.RemoveRequestAsync(request.RequestId);
+			File.Delete(filePath);
+			return;
+		}
 		var thumbPath = $"{media.MediaId}/thumb/{request.Size}{thumbExt}";
 		var s3Result = await s3.UploadFileAsync(thumbPath, MimeTypesMap.GetMimeType(thumbExt), thumbnail.Value);
 		if (s3Result.HasError)
